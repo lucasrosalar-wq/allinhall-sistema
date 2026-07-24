@@ -425,7 +425,7 @@ function abrirWhatsapp() {
     o.condominio + ' identificamos um consumo em ' + formatarDataBR(o.data_ocorrencia) + ' às ' + (o.hora || '—') +
     ' (' + resumoItens + ' — total ' + formatarMoeda(o.valor_total) + ') sem pagamento localizado. ' +
     'Pode verificar? Se já pagou, nos envie o comprovante. Qualquer dúvida estamos à disposição!';
-  window.open('https://wa.me/' + numero + '?text=' + encodeURIComponent(mensagem), '_blank');
+  window.open('https://web.whatsapp.com/send?phone=' + numero + '&text=' + encodeURIComponent(mensagem), '_blank');
 }
 
 // Lembrete rápido direto pro WhatsApp, sem reabrir a notificação — para ocorrências já cobradas.
@@ -441,7 +441,7 @@ function recobrarWhatsapp(id) {
     formatarMoeda(o.valor_total) + ' referente à ocorrência de ' + formatarDataBR(o.data_ocorrencia) +
     ' no ' + o.condominio + ', que ainda consta em aberto. Pode verificar quando puder? Se já pagou, ' +
     'nos envie o comprovante que atualizamos por aqui. Qualquer dúvida estamos à disposição!';
-  window.open('https://wa.me/' + numero + '?text=' + encodeURIComponent(mensagem), '_blank');
+  window.open('https://web.whatsapp.com/send?phone=' + numero + '&text=' + encodeURIComponent(mensagem), '_blank');
 }
 
 // Renderiza o extrato como imagem e copia pra área de transferência — permite colar
@@ -619,7 +619,7 @@ function abrirWhatsappConsolidado() {
     ' consumos em aberto entre ' + formatarDataBR(datas[0]) + ' e ' + formatarDataBR(datas[datas.length - 1]) +
     ', no valor total de ' + formatarMoeda(totalGeral) + ', sem pagamento localizado. ' +
     'Pode verificar? Se já pagou algum deles, nos envie o comprovante. Qualquer dúvida estamos à disposição!';
-  window.open('https://wa.me/' + numero + '?text=' + encodeURIComponent(mensagem), '_blank');
+  window.open('https://web.whatsapp.com/send?phone=' + numero + '&text=' + encodeURIComponent(mensagem), '_blank');
 }
 
 function fecharCobrancaConsolidada() {
