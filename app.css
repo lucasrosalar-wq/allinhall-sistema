@@ -173,10 +173,8 @@
     border-radius: var(--raio); box-shadow: var(--sombra); border: 1px solid var(--borda);
   }
   #telaPin .icone-pin {
-    width: 52px; height: 52px; border-radius: 14px; background: #FFF7ED; color: var(--laranja);
-    display: flex; align-items: center; justify-content: center; margin: 0 auto 16px;
+    height: 56px; width: auto; display: block; margin: 0 auto 16px; border-radius: 12px;
   }
-  #telaPin .icone-pin svg { width: 26px; height: 26px; }
   #telaPin h1 { font-size: 20px; }
   #telaPin input { text-align: center; font-size: 24px; letter-spacing: .5em; text-indent: .5em; }
   #erroPin { color: var(--vermelho); font-size: 13px; margin-top: 10px; min-height: 18px; }
@@ -687,10 +685,8 @@
     border-radius: var(--raio); box-shadow: var(--sombra); border: 1px solid var(--borda);
   }
   #telaPin .icone-pin {
-    width: 52px; height: 52px; border-radius: 14px; background: #FFF7ED; color: var(--laranja);
-    display: flex; align-items: center; justify-content: center; margin: 0 auto 16px;
+    height: 56px; width: auto; display: block; margin: 0 auto 16px; border-radius: 12px;
   }
-  #telaPin .icone-pin svg { width: 26px; height: 26px; }
   #telaPin h1 { font-size: 20px; }
   #telaPin input { text-align: center; font-size: 24px; letter-spacing: .5em; text-indent: .5em; }
   #erroPin { color: var(--vermelho); font-size: 13px; margin-top: 10px; min-height: 18px; }
