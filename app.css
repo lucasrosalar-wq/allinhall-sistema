@@ -450,6 +450,7 @@
        posicionar o invoice-wrap como absolute sobre a página (o que atrapalha a
        paginação do navegador), simplesmente escondemos tudo que não é o extrato e
        deixamos ele fluir normalmente no documento — impressão/paginação nativa. */
+    @page { margin: 0; }
     body { background: #fff; }
     body > *:not(.overlay.aberto) { display: none !important; }
     .overlay:not(.aberto) { display: none !important; }
@@ -457,11 +458,11 @@
       position: static; display: block; background: none; padding: 0; backdrop-filter: none;
     }
     .folha {
-      max-width: none; width: auto; max-height: none; overflow: visible; box-shadow: none; padding: 0; transform: none; border-radius: 0;
-      margin: 0 auto;
+      max-width: none !important; width: 100%; max-height: none; overflow: visible; box-shadow: none; padding: 0; transform: none; border-radius: 0;
+      margin: 0;
     }
     .folha > *:not(.invoice-wrap) { display: none !important; }
-    .invoice-wrap { box-shadow: none; margin: 0; }
+    .invoice-wrap { box-shadow: none; margin: 0; width: 100%; max-width: 100%; }
     table.itens tr, .aviso, .rodape-contato { page-break-inside: avoid; }
     .ref-linha, .invoice-top { page-break-after: avoid; }
     .rodape-contato { page-break-before: avoid; }
