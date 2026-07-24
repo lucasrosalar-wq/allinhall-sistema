@@ -444,6 +444,8 @@
   .btn-whatsapp:hover { background: #1EBE5A; }
   .btn-imprimir { background: var(--preto); color: #fff; }
   .btn-imprimir:hover { background: #1F2937; }
+  .btn-copiar { background: var(--azul); color: #fff; }
+  .btn-copiar:hover { background: #2563EB; }
 
   @media print {
     /* Mesma estratégia do gerador-cobranca.html original (já validado): em vez de
