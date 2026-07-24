@@ -444,6 +444,24 @@ function recobrarWhatsapp(id) {
   window.open('https://wa.me/' + numero + '?text=' + encodeURIComponent(mensagem), '_blank');
 }
 
+// Renderiza o extrato como imagem e copia pra área de transferência — permite colar
+// (Ctrl+V) direto numa conversa do WhatsApp Web, sem passar pelo diálogo de impressão.
+async function copiarCobrancaComoImagem(idInvoice, idBanner) {
+  const banner = document.getElementById(idBanner);
+  banner.className = 'banner';
+  try {
+    const elemento = document.getElementById(idInvoice);
+    const canvas = await html2canvas(elemento, { backgroundColor: '#ffffff', scale: 2 });
+    const blob = await new Promise(function (resolve) { canvas.toBlob(resolve, 'image/png'); });
+    await navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })]);
+    banner.className = 'banner sucesso';
+    banner.textContent = 'Cobrança copiada! Cole (Ctrl+V) direto na conversa do WhatsApp.';
+  } catch (err) {
+    banner.className = 'banner erro';
+    banner.textContent = 'Não foi possível copiar. Tente novamente ou use "Gerar PDF".';
+  }
+}
+
 function fecharCobranca() {
   document.title = TITULO_PADRAO_;
   fecharModal('overlayCobranca');

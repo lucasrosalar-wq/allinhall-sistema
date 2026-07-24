@@ -1,0 +1,1064 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<title>Conferência — All in Hall</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+<style>
+  /*
+    IMPORTANTE: troque a URL abaixo pela URL do seu Web App do Apps Script
+    depois de publicar (veja o GUIA-CONFIGURACAO.md).
+  */
+  :root {
+    --preto: #111827;
+    --texto-2: #6B7280;
+    --cinza: #F1F5F9;
+    --borda: #E5E7EB;
+    --amarelo: #F59E0B;
+    --creme: #F8FAFC;
+    --laranja: #F97316;
+    --laranja-escuro: #EA580C;
+    --verde: #22C55E;
+    --azul: #3B82F6;
+    --vermelho: #EF4444;
+    --raio: 16px;
+    --raio-sm: 12px;
+    --sombra: 0 10px 30px rgba(17,24,39,.06);
+    --sombra-sm: 0 4px 12px rgba(17,24,39,.05);
+    --ease: cubic-bezier(.4,0,.2,1);
+  }
+  * { box-sizing: border-box; }
+  @media (prefers-reduced-motion: no-preference) {
+    .card-relacao, .item-adicionado, .card { animation: entrada .35s var(--ease) both; }
+  }
+  @keyframes entrada { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+  body {
+    font-family: 'Inter', 'Segoe UI', Arial, sans-serif;
+    margin: 0;
+    background: var(--creme);
+    color: var(--preto);
+    -webkit-font-smoothing: antialiased;
+    font-variant-numeric: tabular-nums;
+  }
+  :focus-visible { outline: 2px solid var(--laranja); outline-offset: 2px; }
+  h1, h2, h3 {
+    font-family: 'Inter', 'Segoe UI', Arial, sans-serif;
+    font-weight: 700;
+    letter-spacing: -.01em;
+    margin: 0;
+  }
+  /* Casca do app: sidebar fixa (desktop) / gaveta off-canvas (mobile) + área principal */
+  .app-shell { display: flex; align-items: stretch; min-height: 100vh; }
+
+  .sidebar {
+    background: #fff; border-right: 1px solid var(--borda); width: 240px; flex-shrink: 0;
+    padding: 20px 16px; display: flex; flex-direction: column; gap: 24px;
+    position: fixed; top: 0; bottom: 0; left: 0; z-index: 40;
+    transform: translateX(-100%); transition: transform .25s var(--ease);
+  }
+  .sidebar.aberta { transform: translateX(0); box-shadow: 0 0 40px rgba(17,24,39,.15); }
+  .marca-sidebar { display: flex; align-items: center; justify-content: space-between; padding: 0 4px 0 6px; }
+  .marca-sidebar .marca-texto { display: flex; align-items: center; gap: 9px; }
+  .marca-sidebar strong { font-size: 14.5px; letter-spacing: .01em; color: var(--preto); }
+  .btn-fechar-sidebar {
+    background: none; width: 30px; height: 30px; padding: 0; border-radius: var(--raio-sm); color: var(--texto-2);
+    display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+  }
+  .btn-fechar-sidebar:hover { background: var(--cinza); }
+  .btn-fechar-sidebar svg { width: 16px; height: 16px; }
+  @media (min-width: 1024px) { .btn-fechar-sidebar { display: none; } }
+  .nav-sidebar { display: flex; flex-direction: column; gap: 4px; }
+  .rodape-sidebar { margin-top: auto; padding: 0 6px; font-size: 11px; color: #9CA3AF; line-height: 1.5; }
+  .sidebar-info { padding: 4px 6px 0; border-top: 1px solid var(--borda); padding-top: 16px; margin-top: 4px; }
+  .sidebar-info-titulo { font-size: 10.5px; font-weight: 700; color: var(--texto-2); text-transform: uppercase; letter-spacing: .04em; margin-bottom: 10px; }
+  .sidebar-info-item { display: flex; align-items: flex-start; gap: 7px; margin-bottom: 10px; }
+  .sidebar-info-item .bolinha { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; margin-top: 4px; }
+  .sidebar-info-item strong { display: block; font-size: 11.5px; color: var(--preto); }
+  .sidebar-info-item span.texto { font-size: 11px; color: var(--texto-2); line-height: 1.4; }
+  .sidebar-info-nota { font-size: 10.5px; color: #9CA3AF; line-height: 1.45; padding-top: 4px; border-top: 1px dashed var(--borda); }
+  .nav-item {
+    display: flex; align-items: center; gap: 10px; padding: 11px 12px; border-radius: var(--raio-sm);
+    color: var(--texto-2); font-size: 14px; font-weight: 600; text-decoration: none;
+    transition: background-color .2s var(--ease), color .2s var(--ease);
+  }
+  .nav-item svg { width: 18px; height: 18px; flex-shrink: 0; }
+  .nav-item:hover { background: var(--cinza); color: var(--preto); }
+  .nav-item.ativo { background: #FFF7ED; color: var(--laranja-escuro); }
+  .scrim-sidebar {
+    display: none; position: fixed; inset: 0; background: rgba(17,24,39,.4); z-index: 39;
+    opacity: 0; transition: opacity .25s var(--ease);
+  }
+  .scrim-sidebar.ativo { display: block; opacity: 1; }
+  @media (min-width: 1024px) {
+    .sidebar { position: sticky; transform: none; box-shadow: none; }
+    .scrim-sidebar { display: none !important; }
+    .btn-hamburguer { display: none; }
+  }
+
+  .area-principal { flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; min-height: 100vh; }
+
+  header {
+    background: rgba(255,255,255,.82);
+    backdrop-filter: saturate(180%) blur(12px);
+    -webkit-backdrop-filter: saturate(180%) blur(12px);
+    color: var(--preto);
+    padding: 12px 20px;
+    position: sticky;
+    top: 0;
+    z-index: 20;
+    border-bottom: 1px solid var(--borda);
+    transition: box-shadow .25s var(--ease);
+    display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  }
+  header.tem-sombra { box-shadow: 0 4px 16px rgba(17,24,39,.06); }
+  header h1 { font-size: 17px; font-weight: 700; display: flex; align-items: center; gap: 10px; }
+  header .logo-header { height: 32px; width: auto; display: block; border-radius: 8px; }
+  .btn-hamburguer {
+    background: var(--cinza); width: 38px; height: 38px; padding: 0; border-radius: var(--raio-sm);
+    display: flex; align-items: center; justify-content: center; color: var(--preto); flex-shrink: 0;
+  }
+  .btn-hamburguer:hover { background: #E2E8F0; }
+  .btn-hamburguer svg { width: 20px; height: 20px; }
+  .usuario-topbar { display: flex; align-items: center; gap: 10px; margin-left: auto; }
+  .avatar-usuario {
+    width: 34px; height: 34px; border-radius: 50%; background: #FFF7ED; color: var(--laranja-escuro);
+    display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+    font-size: 13px; font-weight: 700;
+  }
+  .usuario-info { line-height: 1.25; display: none; }
+  .usuario-nome { font-size: 13.5px; font-weight: 700; }
+  .usuario-papel { font-size: 11.5px; color: var(--texto-2); }
+  @media (min-width: 420px) { .usuario-info { display: block; } }
+  .btn-sair {
+    background: none; width: 34px; height: 34px; padding: 0; border-radius: var(--raio-sm); color: var(--texto-2);
+    display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+  }
+  .btn-sair:hover { background: #FEF2F2; color: var(--vermelho); }
+  .btn-sair svg { width: 18px; height: 18px; }
+
+  .page-header { margin-bottom: 18px; }
+  .page-header h2 { font-size: 20px; }
+  .page-header p { margin: 4px 0 0; font-size: 13px; color: var(--texto-2); }
+
+  .rodape {
+    margin-top: auto; padding: 18px 24px; text-align: center; font-size: 12px; color: var(--texto-2);
+    border-top: 1px solid var(--borda);
+  }
+
+  .container { max-width: 480px; margin: 0 auto; padding: 16px; flex: 1 0 auto; width: 100%; }
+
+  /* Em telas largas (notebook/desktop), calendário e detalhes do dia ficam lado a lado. */
+  @media (min-width: 760px) {
+    .container {
+      max-width: 820px;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: flex-start;
+      gap: 20px;
+      padding: 28px 24px;
+    }
+    .container .page-header { flex: 1 1 100%; }
+    .coluna-calendario { flex: 0 0 320px; }
+    .coluna-detalhes { flex: 1 1 380px; max-width: 420px; min-width: 0; }
+  }
+
+  select, input, textarea, button {
+    font-family: inherit;
+    font-size: 14.5px;
+  }
+  select, input, textarea {
+    width: 100%;
+    height: 48px;
+    padding: 0 14px;
+    border: 1px solid var(--borda);
+    border-radius: var(--raio-sm);
+    background: #fff;
+    color: var(--preto);
+    transition: border-color .15s ease, box-shadow .15s ease;
+  }
+  textarea { height: auto; padding: 12px 14px; }
+  select:focus, input:focus, textarea:focus {
+    outline: none; border-color: var(--laranja); box-shadow: 0 0 0 3px rgba(249,115,22,.15);
+  }
+  label { display: block; font-size: 12px; font-weight: 600; color: var(--texto-2); margin: 14px 0 6px; text-transform: uppercase; letter-spacing: .04em; }
+
+  button { cursor: pointer; border: none; border-radius: var(--raio-sm); font-weight: 600; transition: background-color .2s var(--ease), transform .15s var(--ease), box-shadow .2s var(--ease); }
+  button:active { transform: scale(.98); }
+
+  .btn-primaria {
+    background: var(--laranja); color: #fff; padding: 0 16px; height: 48px; width: 100%; font-size: 15px; margin-top: 14px;
+    box-shadow: 0 4px 12px rgba(249,115,22,.25);
+  }
+  .btn-primaria:hover { background: var(--laranja-escuro); transform: translateY(-1px); box-shadow: 0 8px 18px rgba(249,115,22,.3); }
+  .btn-primaria:active { transform: scale(.98); }
+  .btn-primaria:disabled { background: #d1d5db; box-shadow: none; transform: none; }
+  .btn-secundaria {
+    background: var(--cinza); color: var(--preto); padding: 0 16px; height: 48px; width: 100%; font-size: 14.5px; margin-top: 10px;
+  }
+  .btn-secundaria:hover { background: #E2E8F0; }
+  .btn-perigo { background: var(--vermelho); color: #fff; }
+  .btn-fechar {
+    background: none; border: 1px solid var(--borda); color: var(--texto-2); padding: 0 16px; height: 48px; width: 100%; margin-top: 10px;
+  }
+  .btn-fechar:hover { background: var(--cinza); }
+  .btn-icone { display: inline-flex; align-items: center; justify-content: center; gap: 8px; }
+  .btn-icone svg { width: 18px; height: 18px; flex-shrink: 0; }
+
+  /* Tela de PIN */
+  #telaPin {
+    max-width: 340px; margin: 72px auto; text-align: center; background: #fff; padding: 40px 32px;
+    border-radius: var(--raio); box-shadow: var(--sombra); border: 1px solid var(--borda);
+  }
+  #telaPin .icone-pin {
+    width: 52px; height: 52px; border-radius: 14px; background: #FFF7ED; color: var(--laranja);
+    display: flex; align-items: center; justify-content: center; margin: 0 auto 16px;
+  }
+  #telaPin .icone-pin svg { width: 26px; height: 26px; }
+  #telaPin h1 { font-size: 20px; }
+  #telaPin input { text-align: center; font-size: 24px; letter-spacing: .5em; text-indent: .5em; }
+  #erroPin { color: var(--vermelho); font-size: 13px; margin-top: 10px; min-height: 18px; }
+  .pin-rodape {
+    display: flex; align-items: center; justify-content: center; gap: 6px; margin-top: 18px;
+    font-size: 11.5px; color: #9CA3AF;
+  }
+  .pin-rodape svg { width: 13px; height: 13px; }
+
+  /* Navegação do mês */
+  .nav-mes {
+    display: flex; align-items: center; justify-content: space-between; margin: 16px 0 8px;
+  }
+  .nav-mes button {
+    background: #fff; border: 1px solid var(--borda); width: 38px; height: 38px; padding: 0;
+    display: flex; align-items: center; justify-content: center; color: var(--preto);
+  }
+  .nav-mes button:hover { background: var(--cinza); }
+  .nav-mes button svg { width: 18px; height: 18px; }
+  .nav-mes .titulo-mes { font-size: 15px; font-weight: 700; text-transform: capitalize; }
+
+  /* Calendário */
+  .grade-semana, .grade-dias {
+    display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px;
+  }
+  .grade-semana div { text-align: center; font-size: 9.5px; font-weight: 600; color: var(--texto-2); text-transform: uppercase; padding: 3px 0; }
+  .dia {
+    position: relative; aspect-ratio: 1; border-radius: var(--raio-sm); border: none; display: flex; align-items: center; justify-content: center;
+    font-size: 12.5px; font-weight: 600; background: var(--cinza); color: #9CA3AF; transition: transform .15s var(--ease), box-shadow .15s var(--ease);
+  }
+  .dia:hover { transform: translateY(-1px); box-shadow: var(--sombra-sm); }
+  .dia:active { transform: scale(.96); }
+  .dia.vazio { background: transparent; box-shadow: none; }
+  .dia.vazio:hover { transform: none; }
+  .dia.ok { background: var(--verde); color: #fff; }
+  .dia.ocorrencia { background: var(--amarelo); color: var(--preto); }
+  .dia.semoperacao { background: var(--azul); color: #fff; }
+  .dia.hoje { box-shadow: 0 0 0 2px var(--preto) inset; }
+  .dia.hoje::before {
+    content: ''; position: absolute; bottom: 5px; left: 50%; transform: translateX(-50%);
+    width: 4px; height: 4px; border-radius: 50%; background: currentColor; opacity: .7;
+  }
+  .dia.selecionado {
+    box-shadow: 0 0 0 2px #fff, 0 0 0 4px var(--laranja-escuro);
+  }
+  .dia.selecionado::after {
+    content: ''; position: absolute; top: 4px; right: 4px; width: 7px; height: 7px;
+    border-radius: 50%; background: var(--laranja-escuro); box-shadow: 0 0 0 1.5px #fff;
+    animation: entrada .2s var(--ease) both;
+  }
+
+  .legenda { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 16px; font-size: 11.5px; color: var(--texto-2); }
+  .legenda span { display: inline-flex; align-items: center; gap: 5px; }
+  .bolinha { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
+  .calendario-vazio { font-size: 12.5px; color: var(--texto-2); text-align: center; padding: 40px 12px; line-height: 1.5; }
+
+  /* Painel de ações do dia selecionado (fica entre o calendário e a relação) */
+  .painel-acoes-dia {
+    margin-top: 20px; background: #fff; border-radius: var(--raio); padding: 20px; box-shadow: var(--sombra); border: 1px solid var(--borda);
+  }
+  .painel-acoes-dia h3 { font-size: 16px; margin-bottom: 2px; }
+  .painel-acoes-dia .subtitulo { font-size: 12.5px; color: var(--texto-2); margin-bottom: 4px; }
+
+  /* Relação de ocorrências do dia selecionado */
+  .relacao-dia { margin-top: 24px; }
+  .relacao-dia h3 { font-size: 14px; margin-bottom: 10px; color: var(--texto-2); text-transform: uppercase; letter-spacing: .04em; font-weight: 700; }
+  .card-relacao {
+    background: #fff; border-radius: var(--raio); padding: 14px 16px; margin-bottom: 10px; box-shadow: var(--sombra-sm); border: 1px solid var(--borda);
+    transition: box-shadow .2s ease, transform .2s ease;
+  }
+  .card-relacao:hover { box-shadow: var(--sombra); transform: translateY(-1px); }
+  .card-relacao .topo { display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; }
+  .card-relacao .pessoa { font-weight: 700; font-size: 14.5px; }
+  .card-relacao .hora { font-size: 12px; color: var(--texto-2); }
+  .card-relacao .valor { font-weight: 700; font-size: 14.5px; white-space: nowrap; }
+  .card-relacao .itens { font-size: 12.5px; color: var(--texto-2); margin-top: 6px; }
+  .badge-status {
+    display: inline-block; margin-top: 8px; padding: 3px 10px; border-radius: 20px; font-size: 10px; font-weight: 700; color: #fff; text-transform: uppercase; letter-spacing: .03em;
+  }
+  .badge-status.pendente { background: #9CA3AF; }
+  .badge-status.identificado { background: var(--amarelo); color: var(--preto); }
+  .badge-status.cobrado { background: var(--vermelho); }
+  .badge-status.pago { background: var(--verde); }
+  .vazio-relacao {
+    font-size: 13px; color: var(--texto-2); padding: 28px 12px; text-align: center; display: flex; flex-direction: column; align-items: center; gap: 8px;
+  }
+  .vazio-relacao::before {
+    content: ''; width: 40px; height: 40px; border-radius: 50%; background: var(--cinza);
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24' fill='none' stroke='%239CA3AF' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='3' y='4' width='18' height='18' rx='2' ry='2'%3E%3C/rect%3E%3Cline x1='16' y1='2' x2='16' y2='6'%3E%3C/line%3E%3Cline x1='8' y1='2' x2='8' y2='6'%3E%3C/line%3E%3Cline x1='3' y1='10' x2='21' y2='10'%3E%3C/line%3E%3C/svg%3E");
+    background-repeat: no-repeat; background-position: center;
+  }
+
+  .acoes-relacao { display: flex; gap: 8px; margin-top: 12px; }
+  .acoes-relacao button {
+    flex: 1; height: 32px; padding: 0 8px; font-size: 12.5px; background: var(--cinza); border-radius: 10px; font-weight: 600;
+  }
+  .acoes-relacao button:hover { background: #E2E8F0; }
+  .acoes-relacao button.btn-excluir-relacao { background: none; color: var(--vermelho); border: 1px solid #FCA5A5; }
+  .acoes-relacao button.btn-excluir-relacao:hover { background: #FEF2F2; }
+
+  /* Modal */
+  .overlay {
+    display: flex; position: fixed; inset: 0; background: rgba(17,24,39,0); z-index: -1; opacity: 0;
+    align-items: flex-end; justify-content: center; backdrop-filter: blur(0px);
+    transition: opacity .25s var(--ease), background-color .25s var(--ease), backdrop-filter .25s var(--ease);
+    pointer-events: none;
+  }
+  .overlay.aberto {
+    z-index: 50; opacity: 1; background: rgba(17,24,39,.5); backdrop-filter: blur(2px);
+    pointer-events: auto;
+  }
+  .folha {
+    background: #fff; width: 100%; max-width: 480px; border-radius: 20px 20px 0 0;
+    max-height: 88vh; box-shadow: 0 -10px 40px rgba(17,24,39,.15);
+    transform: translateY(24px); transition: transform .3s var(--ease);
+    display: flex; flex-direction: column;
+  }
+  .overlay.aberto .folha { transform: translateY(0); }
+  .folha h2 { font-size: 18px; margin-bottom: 4px; }
+  .folha .subtitulo { font-size: 12.5px; color: var(--texto-2); margin-bottom: 0; }
+
+  /* Cabeçalho e rodapé fixos, corpo com rolagem própria — evita rolar a tela
+     toda pra chegar nos botões quando o formulário fica comprido. */
+  .folha-cabecalho {
+    padding: 24px 24px 0; flex-shrink: 0; display: flex; align-items: flex-start; justify-content: space-between; gap: 12px;
+  }
+  .btn-fechar-modal {
+    background: var(--cinza); width: 32px; height: 32px; border-radius: 50%; padding: 0; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center; color: var(--texto-2);
+  }
+  .btn-fechar-modal:hover { background: #E2E8F0; }
+  .btn-fechar-modal svg { width: 16px; height: 16px; }
+  .folha-corpo { padding: 0 24px 16px; overflow-y: auto; flex: 1 1 auto; min-height: 0; }
+  .folha-rodape { padding: 12px 24px 24px; flex-shrink: 0; border-top: 1px solid var(--borda); }
+  .linha-dupla { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .lista-itens-scroll { max-height: 144px; overflow-y: auto; }
+
+  .linha-add-item { display: flex; gap: 8px; margin-top: 6px; }
+  .linha-add-item input[type="text"] { flex: 1; }
+  .linha-add-item input[type="number"] { width: 60px; text-align: center; padding: 0 4px; }
+  .linha-add-item button {
+    width: 48px; height: 48px; flex-shrink: 0; background: var(--laranja); color: #fff; padding: 0; border-radius: var(--raio-sm);
+    display: flex; align-items: center; justify-content: center;
+  }
+  .linha-add-item button:hover { background: var(--laranja-escuro); }
+  .linha-add-item button svg { width: 20px; height: 20px; }
+
+  .item-adicionado {
+    display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid var(--borda);
+  }
+  .item-adicionado .info { font-size: 13.5px; font-weight: 500; }
+  .item-adicionado .qtd-preco { font-size: 11.5px; color: var(--texto-2); }
+  .item-adicionado .direita { display: flex; align-items: center; gap: 12px; }
+  .item-adicionado .subtotal { font-size: 13.5px; font-weight: 700; }
+  .item-adicionado .btn-remover {
+    background: none; color: var(--vermelho); font-size: 18px; width: 28px; height: 28px; padding: 0; border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .item-adicionado .btn-remover:hover { background: #FEF2F2; }
+  .lista-vazia-itens { font-size: 12.5px; color: var(--texto-2); padding: 10px 0; text-align: center; }
+
+  .total-box {
+    background: var(--preto); color: #fff; border-radius: var(--raio-sm); padding: 16px; margin-top: 16px;
+    display: flex; justify-content: space-between; align-items: center; font-size: 14.5px;
+  }
+  .total-box strong { font-size: 20px; font-weight: 700; }
+
+  .banner {
+    padding: 12px 14px; border-radius: var(--raio-sm); font-size: 13px; margin-top: 12px; display: none; font-weight: 500;
+  }
+  .banner.erro { background: #FEF2F2; color: #B91C1C; display: block; }
+  .banner.sucesso { background: #F0FDF4; color: #15803D; display: block; }
+  .banner.carregando { background: var(--cinza); color: var(--texto-2); display: block; }
+
+  .oculto { display: none !important; }
+</style>
+</head>
+<body>
+
+<!-- Tela de PIN: bloqueia o acesso até validar com o backend -->
+<div id="telaPin">
+  <div class="icone-pin"><i data-lucide="lock"></i></div>
+  <h1 style="margin-bottom:6px;">Conferência</h1>
+  <p style="color:var(--texto-2); font-size:13.5px; margin: 0 0 20px;">All in Hall — digite o PIN de acesso</p>
+  <input id="inputPin" type="password" inputmode="numeric" maxlength="8" placeholder="• • • •">
+  <button class="btn-primaria btn-icone" onclick="validarPin()">Entrar <i data-lucide="arrow-right"></i></button>
+  <div id="erroPin"></div>
+  <div class="pin-rodape"><i data-lucide="shield"></i> Acesso seguro e restrito</div>
+</div>
+
+<div id="app" class="oculto">
+<div class="app-shell">
+  <aside class="sidebar" id="sidebar">
+    <div class="marca-sidebar">
+      <div class="marca-texto">
+        <strong>All in hall</strong>
+      </div>
+      <button class="btn-fechar-sidebar" onclick="toggleSidebar(false)" title="Fechar menu"><i data-lucide="x"></i></button>
+    </div>
+    <nav class="nav-sidebar">
+      <a class="nav-item ativo" href="#"><i data-lucide="camera"></i> Conferência</a>
+    </nav>
+    <div class="sidebar-info">
+      <div class="sidebar-info-titulo">Como funciona</div>
+      <div class="sidebar-info-item">
+        <span class="bolinha" style="background:var(--laranja)"></span>
+        <div><strong>Registrar ocorrência</strong><span class="texto">Consumo sem pagamento identificado.</span></div>
+      </div>
+      <div class="sidebar-info-item">
+        <span class="bolinha" style="background:var(--verde)"></span>
+        <div><strong>Fechar dia (OK)</strong><span class="texto">Dia revisado, sem problema — também marca até onde você já conferiu.</span></div>
+      </div>
+      <div class="sidebar-info-item">
+        <span class="bolinha" style="background:var(--azul)"></span>
+        <div><strong>Sem operação</strong><span class="texto">Loja não funcionou nesse dia.</span></div>
+      </div>
+      <div class="sidebar-info-nota">Se o dia tiver ocorrência, ele sempre aparece amarelo no calendário — mesmo já marcado como OK ou sem operação.</div>
+    </div>
+    <div class="rodape-sidebar">All in Hall<br>Sistema interno</div>
+  </aside>
+  <div class="scrim-sidebar" id="scrimSidebar" onclick="toggleSidebar()"></div>
+  <div class="area-principal">
+  <header class="topbar">
+    <button class="btn-hamburguer" onclick="toggleSidebar()"><i data-lucide="menu"></i></button>
+    <h1><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAZ4AAAIACAYAAACy+AqhAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAAFxEAABcRAcom8z8AADJdSURBVHhe7d0JuBTVmf/xBgQBkR13ZROJgrIIAiPLvYCgIiARB3FUtpk8MaNsURN1VNBEE0WW6EQf5y8QjagBwqIGBYGL4Liwi6Agu2DYV4UBlP73W5yGpruau3WdrnPO9/M8r32q773dVd14fn2qTleViEajEQAAdCmpbgEA0ILgAQBoRfAAALQieAAAWhE8AACtCB4AgFYEDwBAK4IHAKAVwQMA0IrgAQBoRfAAALQieAAAWhE8AACtCB4AgFYEDwBAK4IHAKAVwQMA0IrgAQBoRfAAALQieAAAWhE8AACtCB4AgFYEDwBAK4IHAKAVwQMA0IrgAQBoRfAAALQieAAAWhE8AACtCB4AgFYEDwBAK4IHAKAVwQMA0IrgAQBoRfAAALQieAAAWhE8AACtSkSjUdUEUBxHjhw5e9OmTTUPHjx4bmKdddZZP5577rkHK1aseCBeNWvW3KT+LKv27t1bZfv27ecnru+BAwcqlitX7nDi+larVm33+eefv139GVAsBA9QRPPmzWu3dOnSJvFasWLF1epH+apateqeRo0aLY9Xnz59/lKiRInA/2ecMWPGTYnrvG7durrqR/m65JJLtsTXt0WLFp9169ZtuvoRUCgED1AIixcvvnbixIm3S61fv76OurvYKleuvK9fv37jpK6++uoV6u6MmDVr1g3xdd63b19ldXex1atX75u+ffuOl3W+8MIL/6nuBvInwUNR1Jnr9ddfv6tx48ZL5X+ZoGvQoEGj/dahsPXss88+eNlll8kuPd/nyWQ9//zzQ/3WgaL8yvdOiqJO1LRp07o1a9ZsoV9nG2Q1bNhwxYcfftjBb53yq5deeumXF1100Va/xw2ybr755vdWr159hd86UVRisasNSCM3N3duXl5ejlrMiunTp3fr2rXrO2oxX7Vq1dooExzUonby/B988EHnK664Yo26C0jBdGogjR9++OEc1cyaHj16TJkzZ057tZivbIaO2LhxYy1Z5y1btlyi7gJSEDxAiP3000+l7rjjjrdkmrO6K/RWrVp1lUw6UItACoIHCLmdO3fWeOyxx55Si0aYPXt2h7Fjx/ZXi8BpOMYDpHHdddd9vnDhwuZqMes+//zz65o3by4THdLS8V2ggrr44ou3rl279vKyZcv+n7oL8DDiAQwxYcKEO1XTCFu3br148uTJt6lF4CSCBzCEfBFUNY1h4jojeAQPYIiVK1c2yOTZEnQgeOCH4AEMIjPGVNMI33333UU7duw4Ty0CHoIHMIicTVo1jbFnz56qqgl4CB7AICZ24iaGJYJF8AAGYcQDGxA8gEGOHz9u3P+zcvYF1QQ8BA8AQCuCBwCgFcEDANCK4AEAaEXwAAC04uzUKLKjR4+W+eqrr66UMxAfOHCg4v79+yvFbxPbciuzsSpVqrS/YsWKB/xupeSqlddcc80X6uGzLmxnpxZyeYQnn3zycbWYIkxnp46bNm1a927duk1XiwDBg/wdPny4nJyqRUImfiu1evXq+upXMubss88+0rRp0yVNmjRZGr+VykaHSvBkBsGDFBI8FJVYhw4dKvfuu+92GTp06PONGzdeKv9MslmlSpX6sU2bNh+NHTu2n9/6BlWx4PnMb32yWbHgedJvXeOV/PthqFjwdPNbV8rd4hgPPB9//PH1Tz311GO5ublzy5cvf+iWW255d+TIkUOXLVvWWP1K1sgXEOfPn9+mf//+Y6tXr77rwQcffM60k2UCOIXgcdhnn33W4v7773+hatWqe1q3br3g8ccffzIvLy9H/TiUdu/eXW3EiBEPNGjQYGWXLl3e40JjgHkIHsfs2rWr+ujRowfLcZOWLVt++uKLL95n6kkc//GPf9zcs2fPSXL8YM2aNVeouwGEHMHjkEceeeTpGjVq7BwyZMioMOxCy5R33nmn65VXXvnVqFGjhqi7nBXGyQVAMoLHIdOnT++mmtaR6dpDhw4d2bFjxw8zFap04kAwCB5HyHdt5NLJatFas2fP7iC7EV999dUB6i4AIUPwOGLGjBk3qaYT/v3f//3/TZo0qadaBBAiBI8jtm3bdoFqOuP222+f+OGHH3ZUi05g9yBMQPA4YufOnTVU0ym33Xbb5EWLFjVTi4VCJw4Eg+BxhEyjVk2nyHniJHy++eabeuouAFlG8DjC1RGP2Lx582WPPvro79UigCwjeBxx6NCh8qrppIkTJ97+wQcfdFaL1mL3IExA8DhCLj+gms6Sc9GpZoHQiQPBIHgcQfCcOBHquHHj+qlFAFlC8DiC4DmhsKMeAJlH8DhCrvCpmk7bsGFD7VdeeeUXatE67B6ECQgeR9StW3edajpv5syZnVTzjOjEgWAQPI6oX7/+atV0XkGDB0AwCB5H/OxnP/taNZ138ODBc+fMmdNeLQLQjOBxRJ06ddaXLVv2/9Si81z4Tg8QVgSPQ2666aYZquk8W3e3cVwKJiB4HNKlS5f3VNN5crG43bt3V1OLvujEgWCUiEb5f8sV27dvP/+CCy7YphbzVapUqZ+uvvrqFfGSCQoVKlT4PrkOHz5cTk7GKcdO5FZq69atF3/33XcXSS1durTJihUrrlYPGxqrVq26Si6ZrRZTtG7deoF86VQthsJjjz321JNPPvm4WkxRpkyZo8eOHSutFkNh2rRp3bt16zZdLQKRiAQP5U7dcsst78jbnq6uv/76BU8//fTDEydO7Hn8+HHvg0kmavHixU179+49we85s1V5eXnt/NY1XvJa+P1dNisWPE/6rWu8SpcufdTv77JZseDp5reulLvFrjbHDB06dKRqntS2bduP5EuVMkpZsGBB64cffviZnj17TsrkrqamTZsueeONN/6tRo0aO9VdWScjQNW0BrsHYQJ2tTmoVatWn3z66actJQweeeSRp+V6NepHae3du7fKmjVrrti3b1/l5IqNjEpWrlx5n5ScISG5Lbv3ZLedPE7Hjh0/nD17dgfvQbPshRdeuP++++57US2maNOmzXwJYrUYCvntajv77LOPHD16tIxaDAV2tSFF8hCIsr/efffdLlJ+P4vX2rVr67722mt333vvvX9u1KjRMvmnUpxq2LDhirDtastvt1Xr1q3n+/1dNiu/dS5TpswRv7/LZrGrjUoudrU5SGa3+c1w279/f6WRI0cObdCgwcrLL7987T333PPaSy+9dO/y5csbqV8psi+//LLhm2++2VsthsKOHTvOU00AGhE8iCxatKhZbGTzkhx/+fWvf/28zPZSP7KajVdl5RgPTEDwOEyuSjpgwIBXmzdvvvDll1/+Zdim4WYbnTgQDILHUf/4xz9uvuaaa74YO3Zsf3UXAGhB8DjooYceelaO8axbt66uugsAtCF4HNOrV6+3n3vuuQfVIizD7kGYgOBxiBzP+dvf/vavahH5oBMHgkHwOGLgwIF/4ngOgDAgeBwgZyeQb+mrRQDIKoLHcu+8807XZ5555mG1CMuxexAmIHgsNyxGNVFI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" alt="All in Hall" class="logo-header"></h1>
+    <div class="usuario-topbar">
+      <div class="avatar-usuario">B</div>
+      <div class="usuario-info"><div class="usuario-nome">Barby</div><div class="usuario-papel">Operadora</div></div>
+      <button class="btn-sair" onclick="sair()" title="Sair"><i data-lucide="log-out"></i></button>
+    </div>
+  </header>
+
+  <div class="container">
+    <div class="page-header">
+      <h2>Conferência</h2>
+      <p>Registre as ocorrências observadas no dia</p>
+    </div>
+    <div class="coluna-calendario">
+      <label>Condomínio</label>
+      <select id="selectCondominio" onchange="mudarCondominio()">
+        <option value="">Selecione um condomínio</option>
+      </select>
+
+      <div id="calendarioConteudo">
+        <div class="nav-mes">
+          <button onclick="mudarMes(-1)"><i data-lucide="chevron-left"></i></button>
+          <div class="titulo-mes" id="tituloMes">—</div>
+          <button onclick="mudarMes(1)"><i data-lucide="chevron-right"></i></button>
+        </div>
+
+        <div class="grade-semana">
+          <div>Dom</div><div>Seg</div><div>Ter</div><div>Qua</div><div>Qui</div><div>Sex</div><div>Sáb</div>
+        </div>
+        <div class="grade-dias" id="gradeDias"></div>
+
+        <div class="legenda">
+          <span><span class="bolinha" style="background:var(--verde)"></span> Fechado OK</span>
+          <span><span class="bolinha" style="background:var(--amarelo)"></span> Ocorrência</span>
+          <span><span class="bolinha" style="background:var(--azul)"></span> Sem operação</span>
+          <span><span class="bolinha" style="background:#e2e2e2"></span> Não conferido</span>
+        </div>
+      </div>
+      <div id="calendarioVazio" class="calendario-vazio oculto">Selecione um condomínio acima para ver o calendário.</div>
+
+      <div id="bannerCarregamento" class="banner"></div>
+    </div>
+
+    <div class="coluna-detalhes">
+      <div id="painelAcoesDia" class="painel-acoes-dia oculto">
+        <h3 id="tituloDiaSelecionado">Dia —</h3>
+        <div class="subtitulo" id="condominioDiaSelecionado">—</div>
+        <button class="btn-primaria btn-icone" onclick="abrirFormularioOcorrencia()"><i data-lucide="plus-circle"></i> Registrar ocorrência</button>
+        <button class="btn-secundaria btn-icone" onclick="fecharDiaComoOk()"><i data-lucide="check-circle"></i> Fechar dia (OK)</button>
+        <button class="btn-secundaria btn-icone" onclick="marcarSemOperacao()"><i data-lucide="ban"></i> Marcar sem operação</button>
+        <button class="btn-fechar btn-icone" onclick="limparDiaSelecionado()"><i data-lucide="eraser"></i> Limpar marcação do dia</button>
+      </div>
+
+      <div id="relacaoDia" class="relacao-dia oculto">
+        <h3 id="tituloRelacaoDia">Ocorrências —</h3>
+        <div id="listaRelacaoDia"></div>
+      </div>
+    </div>
+  </div>
+  <footer class="rodape">© 2026 All in Hall · Telefone: 41 99828-8660</footer>
+  </div>
+</div>
+</div>
+
+<!-- Modal: formulário de ocorrência -->
+<div class="overlay" id="overlayOcorrencia">
+  <div class="folha">
+    <div class="folha-cabecalho">
+      <div>
+        <h2 id="tituloFormularioOcorrencia">Registrar ocorrência</h2>
+        <div class="subtitulo" id="subtituloOcorrencia">—</div>
+      </div>
+      <button type="button" class="btn-fechar-modal" onclick="fecharModal('overlayOcorrencia')"><i data-lucide="x"></i></button>
+    </div>
+
+    <div class="folha-corpo">
+      <div class="linha-dupla">
+        <div>
+          <label>Data da ocorrência</label>
+          <input type="date" id="inputDataOcorrencia">
+        </div>
+        <div>
+          <label>Hora da ocorrência</label>
+          <input type="time" id="inputHora">
+        </div>
+      </div>
+
+      <div class="linha-dupla">
+        <div>
+          <label>Nome da pessoa</label>
+          <input type="text" id="inputPessoaNome" placeholder="Se souber — deixe em branco se não souber">
+        </div>
+        <div>
+          <label>WhatsApp</label>
+          <input type="text" id="inputPessoaWhatsapp" placeholder="Ex: 41999998888">
+        </div>
+      </div>
+
+      <label>Descrição da pessoa (opcional)</label>
+      <textarea id="inputDescricaoPessoa" rows="2" placeholder="Ex: mulher de casaco preto, saiu pro bloco B"></textarea>
+
+      <label>Itens retirados</label>
+      <div class="linha-add-item">
+        <input type="text" id="inputProdutoNovo" list="listaProdutosDatalist" placeholder="Digite o produto...">
+        <input type="number" id="inputQtdNovo" min="1" step="1" value="1">
+        <button type="button" onclick="adicionarItemNaLista()"><i data-lucide="plus"></i></button>
+      </div>
+      <datalist id="listaProdutosDatalist"></datalist>
+      <div id="listaItensAdicionados" class="lista-itens-scroll"></div>
+
+      <div class="total-box">
+        <span>Total</span>
+        <strong id="totalOcorrencia">R$ 0,00</strong>
+      </div>
+
+      <label>Observação</label>
+      <textarea id="inputObservacao" rows="2" placeholder="Observações adicionais (opcional)"></textarea>
+    </div>
+
+    <div class="folha-rodape">
+      <div id="bannerOcorrencia" class="banner"></div>
+      <button class="btn-primaria" id="botaoSalvarOcorrencia" onclick="salvarOcorrencia()">Salvar ocorrência</button>
+      <button class="btn-fechar" onclick="fecharModal('overlayOcorrencia')">Cancelar</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ===================== CONFIGURAÇÃO =====================
+const URL_WEBAPP = 'https://script.google.com/macros/s/AKfycbz0RF9foxslKzWANlDHV5pbDv8lgxmgPxPzlEXBbPmFUZeTYDeH8WlX1RcpFQLiFK0m/exec';
+
+// ===================== ESTADO EM MEMÓRIA (sem localStorage/sessionStorage) =====================
+let pin = '';
+let bootstrap = { produtos: [], condominios: [], pessoas: [] };
+let mesAtual = new Date().getMonth() + 1;
+let anoAtual = new Date().getFullYear();
+let condominioAtual = '';
+let dadosCalendario = { ocorrencias: [], diasFechados: [] };
+let cacheCalendario = {}; // chave 'condominio|ano|mes' -> dados já buscados (evita repetir fetch ao navegar entre meses já vistos)
+let diaSelecionado = null; // 'yyyy-mm-dd'
+let itensAdicionados = []; // [{ produto, qtd, preco_unit }] da ocorrência em edição
+let ultimoPayloadFalhou = null; // guarda a última tentativa de salvar ocorrência para permitir reenvio
+let ocorrenciaEmEdicaoId = null; // id da ocorrência sendo corrigida, ou null quando é um registro novo
+
+// ===================== CHAMADAS À API =====================
+async function chamarApi(params, metodo) {
+  metodo = metodo || 'GET';
+  const comPin = Object.assign({ pin: pin }, params);
+
+  if (metodo === 'GET') {
+    const query = new URLSearchParams(comPin).toString();
+    const resp = await fetch(URL_WEBAPP + '?' + query, { method: 'GET', redirect: 'follow' });
+    return resp.json();
+  }
+
+  // POST: usa text/plain para evitar preflight CORS (Apps Script não trata OPTIONS).
+  const resp = await fetch(URL_WEBAPP, {
+    method: 'POST',
+    redirect: 'follow',
+    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+    body: JSON.stringify(comPin)
+  });
+  const resultado = await resp.json();
+  // Qualquer escrita (criar/editar/excluir ocorrência, fechar/limpar dia) pode
+  // mudar o que o calendário mostra — invalida o cache pra não exibir dado velho.
+  if (resultado.ok) cacheCalendario = {};
+  return resultado;
+}
+
+// ===================== PIN =====================
+async function validarPin() {
+  const valor = document.getElementById('inputPin').value.trim();
+  if (!valor) return;
+  document.getElementById('erroPin').textContent = '';
+  pin = valor;
+  try {
+    const resposta = await chamarApi({ action: 'bootstrap' });
+    if (!resposta.ok) {
+      document.getElementById('erroPin').textContent = resposta.erro || 'PIN inválido.';
+      pin = '';
+      return;
+    }
+    bootstrap = resposta.dados;
+    document.getElementById('telaPin').classList.add('oculto');
+    document.getElementById('app').classList.remove('oculto');
+    inicializarApp();
+  } catch (err) {
+    document.getElementById('erroPin').textContent = 'Falha de conexão. Verifique a internet e tente novamente.';
+  }
+}
+
+// ===================== INICIALIZAÇÃO =====================
+function inicializarApp() {
+  const select = document.getElementById('selectCondominio');
+  select.innerHTML = '<option value="">Selecione um condomínio</option>' +
+    bootstrap.condominios.map(function (c) {
+      return '<option value="' + c.nome_curto + '">' + c.nome_curto + '</option>';
+    }).join('');
+  condominioAtual = '';
+
+  const datalistProdutos = document.getElementById('listaProdutosDatalist');
+  datalistProdutos.innerHTML = bootstrap.produtos.map(function (p) { return '<option value="' + p.nome + '">'; }).join('');
+
+  carregarCalendario();
+}
+
+function mudarCondominio() {
+  condominioAtual = document.getElementById('selectCondominio').value;
+
+  // Ao trocar de condomínio, o dia que estava selecionado (se algum) pertencia ao
+  // condomínio anterior — esconde o painel de ações e a relação em vez de deixá-los
+  // mostrando informação desatualizada, até a pessoa tocar num dia de novo.
+  diaSelecionado = null;
+  document.querySelectorAll('.dia.selecionado').forEach(function (el) { el.classList.remove('selecionado'); });
+  document.getElementById('painelAcoesDia').classList.add('oculto');
+  document.getElementById('relacaoDia').classList.add('oculto');
+
+  carregarCalendario();
+}
+
+function mudarMes(delta) {
+  mesAtual += delta;
+  if (mesAtual > 12) { mesAtual = 1; anoAtual++; }
+  if (mesAtual < 1) { mesAtual = 12; anoAtual--; }
+  carregarCalendario();
+}
+
+// ===================== CALENDÁRIO =====================
+const NOMES_MESES = ['janeiro', 'fevereiro', 'março', 'abril', 'maio', 'junho', 'julho', 'agosto', 'setembro', 'outubro', 'novembro', 'dezembro'];
+
+async function carregarCalendario() {
+  const conteudo = document.getElementById('calendarioConteudo');
+  const vazio = document.getElementById('calendarioVazio');
+
+  if (!condominioAtual) {
+    conteudo.classList.add('oculto');
+    vazio.classList.remove('oculto');
+    return;
+  }
+  conteudo.classList.remove('oculto');
+  vazio.classList.add('oculto');
+
+  document.getElementById('tituloMes').textContent = NOMES_MESES[mesAtual - 1] + ' de ' + anoAtual;
+  const banner = document.getElementById('bannerCarregamento');
+  banner.className = 'banner';
+  banner.textContent = '';
+
+  const chaveCache = condominioAtual + '|' + anoAtual + '|' + mesAtual;
+  if (cacheCalendario[chaveCache]) {
+    dadosCalendario = cacheCalendario[chaveCache];
+    renderizarCalendario();
+    return;
+  }
+
+  banner.className = 'banner carregando';
+  banner.textContent = 'Carregando calendário...';
+  try {
+    const resposta = await chamarApi({ action: 'calendario', condominio: condominioAtual, ano: anoAtual, mes: mesAtual });
+    if (!resposta.ok) throw new Error(resposta.erro);
+    dadosCalendario = resposta.dados;
+    cacheCalendario[chaveCache] = resposta.dados;
+    banner.className = 'banner';
+    banner.textContent = '';
+    renderizarCalendario();
+  } catch (err) {
+    banner.className = 'banner erro';
+    banner.textContent = 'Não foi possível carregar o calendário. Verifique a conexão e tente novamente.';
+  }
+}
+
+function renderizarCalendario() {
+  const grade = document.getElementById('gradeDias');
+  // Monta tudo num DocumentFragment (fora da árvore visível) e só encosta na
+  // grade de verdade uma vez no final — evita reflow a cada dia do loop.
+  const fragmento = document.createDocumentFragment();
+
+  const primeiroDiaSemana = new Date(anoAtual, mesAtual - 1, 1).getDay();
+  const diasNoMes = new Date(anoAtual, mesAtual, 0).getDate();
+  const hojeISO = formatarISO(new Date());
+
+  const mapaOcorrencias = {};
+  dadosCalendario.ocorrencias.forEach(function (o) {
+    mapaOcorrencias[o.data_ocorrencia] = true;
+  });
+  const mapaFechados = {};
+  dadosCalendario.diasFechados.forEach(function (d) {
+    mapaFechados[d.data] = d.status_dia;
+  });
+
+  for (let i = 0; i < primeiroDiaSemana; i++) {
+    const vazio = document.createElement('div');
+    vazio.className = 'dia vazio';
+    fragmento.appendChild(vazio);
+  }
+
+  for (let dia = 1; dia <= diasNoMes; dia++) {
+    const dataISO = anoAtual + '-' + String(mesAtual).padStart(2, '0') + '-' + String(dia).padStart(2, '0');
+    const botao = document.createElement('button');
+    botao.className = 'dia';
+    botao.textContent = dia;
+    botao.dataset.iso = dataISO;
+
+    if (mapaOcorrencias[dataISO]) {
+      botao.classList.add('ocorrencia');
+    } else if (mapaFechados[dataISO] === 'Sem operacao') {
+      botao.classList.add('semoperacao');
+    } else if (mapaFechados[dataISO] === 'OK') {
+      botao.classList.add('ok');
+    }
+    if (dataISO === hojeISO) botao.classList.add('hoje');
+    if (dataISO === diaSelecionado) botao.classList.add('selecionado');
+
+    botao.onclick = function () { abrirAcoesDia(dataISO, dia); };
+    fragmento.appendChild(botao);
+  }
+
+  grade.innerHTML = '';
+  grade.appendChild(fragmento);
+}
+
+function formatarISO(data) {
+  return data.getFullYear() + '-' + String(data.getMonth() + 1).padStart(2, '0') + '-' + String(data.getDate()).padStart(2, '0');
+}
+
+function formatarDataBR(iso) {
+  const [ano, mes, dia] = iso.split('-');
+  return dia + '/' + mes + '/' + ano;
+}
+
+// ===================== PAINEL: AÇÕES DO DIA =====================
+function abrirAcoesDia(dataISO, dia) {
+  diaSelecionado = dataISO;
+
+  document.querySelectorAll('.dia.selecionado').forEach(function (el) { el.classList.remove('selecionado'); });
+  const botaoAtual = document.querySelector('.dia[data-iso="' + dataISO + '"]');
+  if (botaoAtual) botaoAtual.classList.add('selecionado');
+
+  document.getElementById('tituloDiaSelecionado').textContent = 'Dia ' + formatarDataBR(dataISO);
+  document.getElementById('condominioDiaSelecionado').textContent = condominioAtual;
+  document.getElementById('painelAcoesDia').classList.remove('oculto');
+  renderizarRelacaoDia(dataISO);
+}
+
+// Mostra, abaixo do calendário, a relação de ocorrências já registradas no dia tocado.
+function renderizarRelacaoDia(dataISO) {
+  const container = document.getElementById('relacaoDia');
+  const titulo = document.getElementById('tituloRelacaoDia');
+  const lista = document.getElementById('listaRelacaoDia');
+
+  titulo.textContent = 'Ocorrências em ' + formatarDataBR(dataISO);
+
+  const ocorrenciasDoDia = dadosCalendario.ocorrencias.filter(function (o) { return o.data_ocorrencia === dataISO; });
+
+  if (ocorrenciasDoDia.length === 0) {
+    lista.innerHTML = '<div class="vazio-relacao">Nenhuma ocorrência registrada neste dia.</div>';
+  } else {
+    lista.innerHTML = ocorrenciasDoDia.map(function (o) {
+      const nomePessoa = o.pessoa || o.descricao_pessoa || 'Desconhecido(a)';
+      const resumoItens = o.itens.map(function (item) { return item.qtd + 'x ' + item.produto; }).join(', ');
+      return '<div class="card-relacao">' +
+        '<div class="topo">' +
+          '<div><div class="pessoa">' + nomePessoa + '</div><div class="hora">' + (o.hora || '—') + '</div></div>' +
+          '<div class="valor">' + formatarMoeda(o.valor_total) + '</div>' +
+        '</div>' +
+        '<div class="itens">' + resumoItens + '</div>' +
+        '<span class="badge-status ' + o.status.toLowerCase() + '">' + o.status + '</span>' +
+        '<div class="acoes-relacao">' +
+          '<button type="button" onclick="editarOcorrenciaDoDia(\'' + o.id + '\')">Editar</button>' +
+          '<button type="button" class="btn-excluir-relacao" onclick="excluirOcorrenciaDoDia(\'' + o.id + '\')">Excluir</button>' +
+        '</div>' +
+      '</div>';
+    }).join('');
+  }
+
+  container.classList.remove('oculto');
+}
+
+function abrirModal(id) { document.getElementById(id).classList.add('aberto'); }
+function fecharModal(id) { document.getElementById(id).classList.remove('aberto'); }
+
+async function fecharDiaComoOk() {
+  await enviarFechamentoDia('OK');
+}
+
+async function marcarSemOperacao() {
+  await enviarFechamentoDia('Sem operacao');
+}
+
+async function enviarFechamentoDia(status) {
+  try {
+    const resposta = await chamarApi({ action: 'fecharDia', condominio: condominioAtual, data: diaSelecionado, status_dia: status }, 'POST');
+    if (!resposta.ok) throw new Error(resposta.erro);
+    await carregarCalendario();
+    renderizarRelacaoDia(diaSelecionado);
+  } catch (err) {
+    alert('Não foi possível salvar. Verifique a conexão e tente novamente.');
+  }
+}
+
+// Desfaz uma marcação errada de "Fechar dia (OK)" / "Marcar sem operação" — o dia
+// volta a ficar "Não conferido". Não mexe em ocorrências já registradas nesse dia.
+async function limparDiaSelecionado() {
+  if (!confirm('Limpar a marcação deste dia? Ele volta a aparecer como "Não conferido".')) return;
+  try {
+    const resposta = await chamarApi({ action: 'limparDia', condominio: condominioAtual, data: diaSelecionado }, 'POST');
+    if (!resposta.ok) throw new Error(resposta.erro);
+    await carregarCalendario();
+    renderizarRelacaoDia(diaSelecionado);
+  } catch (err) {
+    alert('Não foi possível limpar a marcação. Verifique a conexão e tente novamente.');
+  }
+}
+
+// ===================== MODAL: FORMULÁRIO DE OCORRÊNCIA =====================
+// Sem argumento: registra uma ocorrência nova. Com "ocorrencia": reabre para corrigir uma já salva.
+function abrirFormularioOcorrencia(ocorrencia) {
+  ocorrenciaEmEdicaoId = ocorrencia ? ocorrencia.id : null;
+  document.getElementById('tituloFormularioOcorrencia').textContent = ocorrencia ? 'Editar ocorrência' : 'Registrar ocorrência';
+  document.getElementById('subtituloOcorrencia').textContent = condominioAtual + ' — ' + formatarDataBR(diaSelecionado);
+
+  if (ocorrencia) {
+    document.getElementById('inputDataOcorrencia').value = ocorrencia.data_ocorrencia || diaSelecionado;
+    document.getElementById('inputHora').value = ocorrencia.hora || '';
+    document.getElementById('inputPessoaNome').value = ocorrencia.pessoa || '';
+    document.getElementById('inputPessoaWhatsapp').value = ocorrencia.contato_whatsapp || '';
+    document.getElementById('inputDescricaoPessoa').value = ocorrencia.descricao_pessoa || '';
+    document.getElementById('inputObservacao').value = ocorrencia.observacao || '';
+    itensAdicionados = ocorrencia.itens.map(function (item) { return Object.assign({}, item); });
+  } else {
+    const agora = new Date();
+    document.getElementById('inputDataOcorrencia').value = diaSelecionado;
+    document.getElementById('inputHora').value = String(agora.getHours()).padStart(2, '0') + ':' + String(agora.getMinutes()).padStart(2, '0');
+    document.getElementById('inputPessoaNome').value = '';
+    document.getElementById('inputPessoaWhatsapp').value = '';
+    document.getElementById('inputDescricaoPessoa').value = '';
+    document.getElementById('inputObservacao').value = '';
+    itensAdicionados = [];
+  }
+
+  document.getElementById('inputProdutoNovo').value = '';
+  document.getElementById('inputQtdNovo').value = '1';
+  document.getElementById('bannerOcorrencia').className = 'banner';
+  document.getElementById('bannerOcorrencia').textContent = '';
+  renderizarItensAdicionados();
+  abrirModal('overlayOcorrencia');
+}
+
+function editarOcorrenciaDoDia(id) {
+  const ocorrencia = dadosCalendario.ocorrencias.find(function (o) { return o.id === id; });
+  if (ocorrencia) abrirFormularioOcorrencia(ocorrencia);
+}
+
+async function excluirOcorrenciaDoDia(id) {
+  if (!confirm('Excluir esta ocorrência? Essa ação não pode ser desfeita.')) return;
+  try {
+    const resposta = await chamarApi({ action: 'excluirOcorrencia', id: id }, 'POST');
+    if (!resposta.ok) throw new Error(resposta.erro);
+    await carregarCalendario();
+    renderizarRelacaoDia(diaSelecionado);
+  } catch (err) {
+    alert('Não foi possível excluir. Verifique a conexão e tente novamente.');
+  }
+}
+
+// Aceita nome exato (selecionado da lista) ou parte do nome digitada livremente.
+function encontrarProduto_(nomeDigitado) {
+  const alvo = nomeDigitado.toLowerCase();
+  const exato = bootstrap.produtos.find(function (p) { return p.nome.toLowerCase() === alvo; });
+  if (exato) return exato;
+  return bootstrap.produtos.find(function (p) { return p.nome.toLowerCase().indexOf(alvo) !== -1; });
+}
+
+function adicionarItemNaLista() {
+  const inputNome = document.getElementById('inputProdutoNovo');
+  const inputQtd = document.getElementById('inputQtdNovo');
+  const nomeDigitado = inputNome.value.trim();
+
+  const produto = encontrarProduto_(nomeDigitado);
+  if (!produto) {
+    alert('Produto não encontrado. Digite parte do nome e escolha uma das opções sugeridas.');
+    return;
+  }
+  const qtd = Math.max(1, parseInt(inputQtd.value, 10) || 1);
+
+  const existente = itensAdicionados.find(function (i) { return i.produto === produto.nome; });
+  if (existente) existente.qtd += qtd;
+  else itensAdicionados.push({ produto: produto.nome, qtd: qtd, preco_unit: produto.preco });
+
+  inputNome.value = '';
+  inputQtd.value = '1';
+  inputNome.focus();
+  renderizarItensAdicionados();
+}
+
+function removerItemDaLista(indice) {
+  itensAdicionados.splice(indice, 1);
+  renderizarItensAdicionados();
+}
+
+function renderizarItensAdicionados() {
+  const lista = document.getElementById('listaItensAdicionados');
+  lista.innerHTML = itensAdicionados.map(function (item, indice) {
+    const subtotal = item.qtd * item.preco_unit;
+    return '<div class="item-adicionado">' +
+      '<div class="info">' + item.produto + '<div class="qtd-preco">' + item.qtd + ' x ' + formatarMoeda(item.preco_unit) + '</div></div>' +
+      '<div class="direita">' +
+        '<span class="subtotal">' + formatarMoeda(subtotal) + '</span>' +
+        '<button type="button" class="btn-remover" onclick="removerItemDaLista(' + indice + ')">×</button>' +
+      '</div>' +
+    '</div>';
+  }).join('') || '<div class="lista-vazia-itens">Nenhum item adicionado ainda.</div>';
+
+  atualizarTotalOcorrencia();
+}
+
+function formatarMoeda(valor) {
+  return Number(valor).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+}
+
+function atualizarTotalOcorrencia() {
+  const total = itensAdicionados.reduce(function (soma, item) { return soma + item.qtd * item.preco_unit; }, 0);
+  document.getElementById('totalOcorrencia').textContent = formatarMoeda(total);
+  return total;
+}
+
+async function salvarOcorrencia() {
+  const itens = itensAdicionados;
+  if (itens.length === 0) {
+    mostrarBannerOcorrencia('erro', 'Adicione ao menos um item retirado.');
+    return;
+  }
+
+  const camposComuns = {
+    data_ocorrencia: document.getElementById('inputDataOcorrencia').value || diaSelecionado,
+    hora: document.getElementById('inputHora').value,
+    pessoa: document.getElementById('inputPessoaNome').value.trim(),
+    contato_whatsapp: document.getElementById('inputPessoaWhatsapp').value.trim(),
+    descricao_pessoa: document.getElementById('inputDescricaoPessoa').value,
+    itens: itens,
+    valor_total: atualizarTotalOcorrencia(),
+    observacao: document.getElementById('inputObservacao').value
+  };
+
+  const payload = ocorrenciaEmEdicaoId
+    ? Object.assign({ action: 'atualizarOcorrencia', id: ocorrenciaEmEdicaoId }, camposComuns)
+    : Object.assign({ action: 'criarOcorrencia', condominio: condominioAtual }, camposComuns);
+
+  await enviarOcorrencia(payload);
+}
+
+async function enviarOcorrencia(payload) {
+  const botao = document.getElementById('botaoSalvarOcorrencia');
+  botao.disabled = true;
+  botao.textContent = 'Salvando...';
+  try {
+    const resposta = await chamarApi(payload, 'POST');
+    if (!resposta.ok) throw new Error(resposta.erro || 'Erro ao salvar.');
+    ultimoPayloadFalhou = null;
+    mostrarBannerOcorrencia('sucesso', 'Ocorrência salva com sucesso!');
+    setTimeout(async function () {
+      fecharModal('overlayOcorrencia');
+      await carregarCalendario();
+      renderizarRelacaoDia(diaSelecionado);
+    }, 700);
+  } catch (err) {
+    ultimoPayloadFalhou = payload;
+    mostrarBannerOcorrencia('erro', 'Falha ao salvar. Seus dados não foram perdidos — toque em "Salvar ocorrência" para tentar novamente.');
+  } finally {
+    botao.disabled = false;
+    botao.textContent = 'Salvar ocorrência';
+  }
+}
+
+function mostrarBannerOcorrencia(tipo, mensagem) {
+  const banner = document.getElementById('bannerOcorrencia');
+  banner.className = 'banner ' + tipo;
+  banner.textContent = mensagem;
+}
+
+// Se uma tentativa anterior falhou, reenviar o mesmo payload em vez de remontar o formulário.
+async function salvarOcorrenciaOuReenviar() {
+  if (ultimoPayloadFalhou) {
+    await enviarOcorrencia(ultimoPayloadFalhou);
+  } else {
+    await salvarOcorrencia();
+  }
+}
+document.getElementById('botaoSalvarOcorrencia').onclick = salvarOcorrenciaOuReenviar;
+</script>
+
+<!-- Inicialização dos ícones Lucide (só desenha os ícones estáticos da página; não mexe na lógica acima). -->
+<script>
+  if (window.lucide) lucide.createIcons();
+</script>
+<!-- Sombra dinâmica do cabeçalho ao rolar (puramente visual, não interfere na lógica acima). -->
+<script>
+  (function () {
+    const cabecalho = document.querySelector('header');
+    if (!cabecalho) return;
+    const atualizar = () => cabecalho.classList.toggle('tem-sombra', window.scrollY > 4);
+    window.addEventListener('scroll', atualizar, { passive: true });
+    atualizar();
+  })();
+</script>
+<!-- Sidebar off-canvas (mobile) e sair (recarrega para a tela de PIN) — funções novas, não alteram nada existente. -->
+<script>
+  function toggleSidebar(forcar) {
+    const sidebar = document.getElementById('sidebar');
+    const scrim = document.getElementById('scrimSidebar');
+    if (!sidebar || !scrim) return;
+    const abrir = typeof forcar === 'boolean' ? forcar : !sidebar.classList.contains('aberta');
+    sidebar.classList.toggle('aberta', abrir);
+    scrim.classList.toggle('ativo', abrir);
+  }
+  function sair() {
+    location.reload();
+  }
+</script>
+</body>
+</html>
