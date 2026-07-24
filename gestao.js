@@ -448,10 +448,11 @@ function recobrarWhatsapp(id) {
 // (Ctrl+V) direto numa conversa do WhatsApp Web, sem passar pelo diálogo de impressão.
 async function copiarCobrancaComoImagem(idInvoice, idBanner) {
   const banner = document.getElementById(idBanner);
-  banner.className = 'banner';
+  banner.className = 'banner sucesso';
+  banner.textContent = 'Gerando imagem...';
   try {
     const elemento = document.getElementById(idInvoice);
-    const canvas = await html2canvas(elemento, { backgroundColor: '#ffffff', scale: 2 });
+    const canvas = await html2canvas(elemento, { backgroundColor: '#ffffff', scale: 1.5 });
     const blob = await new Promise(function (resolve) { canvas.toBlob(resolve, 'image/png'); });
     await navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })]);
     banner.className = 'banner sucesso';
