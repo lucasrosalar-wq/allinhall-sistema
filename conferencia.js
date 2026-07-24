@@ -175,11 +175,16 @@ function renderizarRelacaoDia(dataISO) {
   titulo.textContent = 'Ocorrências em ' + formatarDataBR(dataISO);
 
   const ocorrenciasDoDia = dadosCalendario.ocorrencias.filter(function (o) { return o.data_ocorrencia === dataISO; });
+  // Uma vez cobrada (ou paga/cancelada), a ocorrência sai da relação da Conferência —
+  // o acompanhamento dali em diante é feito pelo quadro kanban da Gestão.
+  const ocorrenciasAtivas = ocorrenciasDoDia.filter(function (o) { return o.status === 'Pendente' || o.status === 'Identificado'; });
 
-  if (ocorrenciasDoDia.length === 0) {
-    lista.innerHTML = '<div class="vazio-relacao">Nenhuma ocorrência registrada neste dia.</div>';
+  if (ocorrenciasAtivas.length === 0) {
+    lista.innerHTML = ocorrenciasDoDia.length === 0
+      ? '<div class="vazio-relacao">Nenhuma ocorrência registrada neste dia.</div>'
+      : '<div class="vazio-relacao">Todas as ocorrências deste dia já foram cobradas — acompanhe em Gestão.</div>';
   } else {
-    lista.innerHTML = ocorrenciasDoDia.map(function (o) {
+    lista.innerHTML = ocorrenciasAtivas.map(function (o) {
       const nomePessoa = o.pessoa || o.descricao_pessoa || 'Desconhecido(a)';
       const resumoItens = o.itens.map(function (item) { return item.qtd + 'x ' + item.produto; }).join(', ');
       return '<div class="card-relacao">' +

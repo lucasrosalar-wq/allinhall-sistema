@@ -131,13 +131,19 @@ function renderizarListaReposicoes() {
   const filtro = document.getElementById('filtroCondominioReposicao').value;
   const lista = document.getElementById('listaReposicoes');
 
-  let filtradas = todasReposicoes;
-  if (filtro) filtradas = filtradas.filter(function (r) { return r.condominio === filtro; });
+  let candidatas = todasReposicoes;
+  if (filtro) candidatas = candidatas.filter(function (r) { return r.condominio === filtro; });
 
-  filtradas = filtradas.slice().sort(function (a, b) { return String(b.data).localeCompare(String(a.data)); });
+  // Furo já identificado sai da lista — ele já virou Ocorrência e passa a ser
+  // acompanhado por lá, não faz sentido continuar aparecendo aqui também.
+  const filtradas = candidatas.filter(function (r) { return r.status !== 'Identificado'; })
+    .slice().sort(function (a, b) { return String(b.data).localeCompare(String(a.data)); });
 
   if (filtradas.length === 0) {
-    lista.innerHTML = '<div class="vazio-relacao">Nenhuma reposição lançada ainda.</div>';
+    const mensagem = candidatas.length === 0
+      ? 'Nenhuma reposição lançada ainda.'
+      : 'Nenhum furo pendente — os já identificados viram Ocorrência em Gestão.';
+    lista.innerHTML = '<div class="vazio-relacao">' + mensagem + '</div>';
     return;
   }
 
