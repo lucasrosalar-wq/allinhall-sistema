@@ -454,6 +454,7 @@ async function salvarOcorrencia() {
 async function enviarOcorrencia(payload) {
   const botao = document.getElementById('botaoSalvarOcorrencia');
   botao.disabled = true;
+  botao.classList.add('carregando');
   botao.textContent = 'Salvando...';
   try {
     const resposta = await chamarApi(payload, 'POST');
@@ -470,6 +471,7 @@ async function enviarOcorrencia(payload) {
     mostrarBannerOcorrencia('erro', 'Falha ao salvar. Seus dados não foram perdidos — toque em "Salvar ocorrência" para tentar novamente.');
   } finally {
     botao.disabled = false;
+    botao.classList.remove('carregando');
     botao.textContent = 'Salvar ocorrência';
   }
 }

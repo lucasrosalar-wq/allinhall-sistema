@@ -240,6 +240,7 @@ async function salvarReposicao() {
 
   const botao = document.getElementById('botaoSalvarReposicao');
   botao.disabled = true;
+  botao.classList.add('carregando');
   botao.textContent = 'Salvando...';
   try {
     const resposta = await chamarApi(payload, 'POST');
@@ -253,6 +254,7 @@ async function salvarReposicao() {
     mostrarBannerReposicao_('erro', 'Falha ao salvar. Verifique a conexão e tente novamente.');
   } finally {
     botao.disabled = false;
+    botao.classList.remove('carregando');
     botao.textContent = 'Salvar reposição';
   }
 }

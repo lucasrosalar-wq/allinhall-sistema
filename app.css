@@ -902,3 +902,55 @@
 .kanban-corpo { display: flex; flex-direction: column; gap: 10px; }
 .kanban-corpo .card { margin-bottom: 0; }
 .kanban-corpo .vazio-relacao { padding: 16px 8px; }
+
+/* ===================== animações & micro-interações (compartilhado) ===================== */
+
+/* Troca de view pela sidebar (Conferência/Gestão/Reposição): a seção que acabou de
+   perder a classe .oculto (display:none -> block) reinicia a animação sozinha —
+   não precisa de JS, o navegador roda a animação sempre que o display deixa de ser none. */
+@keyframes entradaView { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+@media (prefers-reduced-motion: no-preference) {
+  .view-conferencia:not(.oculto), .view-gestao:not(.oculto), .view-reposicao:not(.oculto) {
+    animation: entradaView .3s var(--ease) both;
+  }
+}
+
+/* Cards que ainda não tinham a animação de entrada do restante das listas. */
+@media (prefers-reduced-motion: no-preference) {
+  .card-consolidado, .kanban-cabecalho { animation: entrada .35s var(--ease) both; }
+}
+.card-consolidado { transition: box-shadow .2s var(--ease), transform .2s var(--ease); }
+.card-consolidado:hover { box-shadow: var(--sombra); transform: translateY(-1px); }
+
+/* Totalizadores (KPIs) e navegação lateral ganham um leve realce ao interagir. */
+.total-card { transition: box-shadow .2s var(--ease), transform .2s var(--ease); }
+.total-card:hover { box-shadow: 0 14px 34px rgba(17,24,39,.09); transform: translateY(-2px); }
+.nav-item:active { transform: scale(.98); }
+.btn-secundaria:hover, .btn-fechar:hover { transform: translateY(-1px); }
+
+/* Banners inline (erro/sucesso/carregando) entram com um leve slide; erro treme sutilmente. */
+@keyframes bannerIn { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes bannerShake {
+  10%, 90% { transform: translateX(-1px); }
+  20%, 80% { transform: translateX(2px); }
+  30%, 50%, 70% { transform: translateX(-4px); }
+  40%, 60% { transform: translateX(4px); }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .banner.erro, .banner.sucesso, .banner.carregando { animation: bannerIn .25s var(--ease) both; }
+  .banner.erro { animation: bannerIn .25s var(--ease) both, bannerShake .4s var(--ease) .1s; }
+}
+
+/* Spinner de carregamento para botões em ação (ex: "Salvando..."). Ativado via
+   classe .carregando no botão, junto com disabled = true no JS. */
+@keyframes girar { to { transform: rotate(360deg); } }
+button.carregando { position: relative; color: transparent !important; pointer-events: none; }
+button.carregando svg { visibility: hidden; }
+button.carregando::after {
+  content: ''; position: absolute; top: 50%; left: 50%; width: 16px; height: 16px; margin: -8px 0 0 -8px;
+  border: 2px solid rgba(255,255,255,.35); border-top-color: #fff; border-radius: 50%;
+  animation: girar .6s linear infinite;
+}
+.btn-secundaria.carregando::after, .btn-fechar.carregando::after {
+  border-color: rgba(17,24,39,.2); border-top-color: var(--preto);
+}
