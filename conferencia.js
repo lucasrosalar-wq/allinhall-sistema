@@ -208,7 +208,10 @@ function renderizarRelacaoDia(dataISO) {
 // ===================== FUROS DE REPOSIÇÃO (identificação do infrator) =====================
 // Lista, por condomínio, os furos de estoque lançados na Reposição — pendentes e já
 // identificados. A Barby identifica quem foi aqui; produto/quantidade/valor/data do
-// furo são só-leitura (pertencem à Reposição).
+// furo são só-leitura (pertencem à Reposição). Uma vez identificado, o furo vira uma
+// Ocorrência (ocorrencia_id) — quando essa Ocorrência é cobrada (ou paga/cancelada),
+// o furo sai daqui também, porque o acompanhamento passa a ser feito pela Gestão.
+const STATUS_OCORRENCIA_RESOLVIDA_ = ['Cobrado', 'Pago', 'Cancelado'];
 async function carregarFurosReposicao() {
   const container = document.getElementById('furosPendentes');
   if (!condominioAtual) {
@@ -216,10 +219,22 @@ async function carregarFurosReposicao() {
     return;
   }
   try {
-    const resposta = await chamarApi({ action: 'reposicoes' });
-    if (!resposta.ok) throw new Error(resposta.erro);
-    furosReposicaoCondominio = resposta.dados
+    const [respostaReposicoes, respostaOcorrencias] = await Promise.all([
+      chamarApi({ action: 'reposicoes' }),
+      chamarApi({ action: 'ocorrencias' })
+    ]);
+    if (!respostaReposicoes.ok) throw new Error(respostaReposicoes.erro);
+    if (!respostaOcorrencias.ok) throw new Error(respostaOcorrencias.erro);
+
+    const statusOcorrenciaPorId = {};
+    respostaOcorrencias.dados.forEach(function (o) { statusOcorrenciaPorId[o.id] = o.status; });
+
+    furosReposicaoCondominio = respostaReposicoes.dados
       .filter(function (r) { return r.condominio === condominioAtual; })
+      .filter(function (r) {
+        const statusOcorrencia = r.ocorrencia_id ? statusOcorrenciaPorId[r.ocorrencia_id] : null;
+        return STATUS_OCORRENCIA_RESOLVIDA_.indexOf(statusOcorrencia) === -1;
+      })
       .sort(function (a, b) { return String(b.data).localeCompare(String(a.data)); });
     renderizarFurosReposicao();
   } catch (err) {
