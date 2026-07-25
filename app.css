@@ -47,11 +47,15 @@
 
   .sidebar {
     background: #fff; border-right: 1px solid var(--borda); width: 240px; flex-shrink: 0;
-    padding: 20px 16px; display: flex; flex-direction: column; gap: 24px;
     position: fixed; top: 0; bottom: 0; left: 0; z-index: 40;
     transform: translateX(-100%); transition: transform .25s var(--ease);
   }
   .sidebar.aberta { transform: translateX(0); box-shadow: 0 0 40px rgba(17,24,39,.15); }
+  /* Conteúdo real fica num miolo à parte — a .sidebar (fundo branco + borda) sempre
+     preenche a altura toda; no desktop é o miolo que gruda no topo ao rolar (sticky),
+     nunca a casca — assim o fundo nunca fica "curto" mesmo com o miolo mais baixo
+     que a página. */
+  .sidebar-conteudo { display: flex; flex-direction: column; gap: 24px; padding: 20px 16px; height: 100%; overflow-y: auto; }
   .marca-sidebar { display: flex; align-items: center; justify-content: flex-end; padding: 0 4px 0 6px; }
   .btn-fechar-sidebar {
     background: none; width: 30px; height: 30px; padding: 0; border-radius: var(--raio-sm); color: var(--texto-2);
@@ -87,16 +91,14 @@
   }
   .scrim-sidebar.ativo { display: block; opacity: 1; }
   @media (min-width: 1024px) {
-    /* align-self: flex-start evita que a sidebar (item flex de .app-shell) estique
-       até a altura do conteúdo da página — sem isso o sticky não tem "espaço" pra
-       grudar no topo e ela acaba descendo junto com o scroll. */
-    .sidebar {
-      position: sticky; top: 0; align-self: flex-start; max-height: 100vh; overflow-y: auto; transform: none; box-shadow: none;
-      transition: width .25s var(--ease), opacity .2s var(--ease), padding .25s var(--ease);
-    }
+    .sidebar { position: static; transform: none; box-shadow: none; transition: width .25s var(--ease); }
+    /* Aqui sim: o miolo (não a casca) é quem gruda no topo — precisa de altura livre
+       pra "viajar" dentro da .sidebar, que agora sempre estica até o fim da página. */
+    .sidebar-conteudo { position: sticky; top: 0; height: auto; max-height: 100vh; transition: opacity .2s var(--ease); }
     /* Botão de recolher (o mesmo hambúrguer do celular, agora também visível aqui)
        encolhe a sidebar pra 0 no lugar — sem gaveta/scrim, que são só do modo mobile. */
-    .sidebar.recolhida { width: 0; padding-left: 0; padding-right: 0; opacity: 0; overflow: hidden; border-right: none; }
+    .sidebar.recolhida { width: 0; overflow: hidden; border-right: none; }
+    .sidebar.recolhida .sidebar-conteudo { opacity: 0; }
     .scrim-sidebar { display: none !important; }
   }
 
@@ -524,11 +526,15 @@
 
   .sidebar {
     background: #fff; border-right: 1px solid var(--borda); width: 240px; flex-shrink: 0;
-    padding: 20px 16px; display: flex; flex-direction: column; gap: 24px;
     position: fixed; top: 0; bottom: 0; left: 0; z-index: 40;
     transform: translateX(-100%); transition: transform .25s var(--ease);
   }
   .sidebar.aberta { transform: translateX(0); box-shadow: 0 0 40px rgba(17,24,39,.15); }
+  /* Conteúdo real fica num miolo à parte — a .sidebar (fundo branco + borda) sempre
+     preenche a altura toda; no desktop é o miolo que gruda no topo ao rolar (sticky),
+     nunca a casca — assim o fundo nunca fica "curto" mesmo com o miolo mais baixo
+     que a página. */
+  .sidebar-conteudo { display: flex; flex-direction: column; gap: 24px; padding: 20px 16px; height: 100%; overflow-y: auto; }
   .marca-sidebar { display: flex; align-items: center; justify-content: flex-end; padding: 0 4px 0 6px; }
   .btn-fechar-sidebar {
     background: none; width: 30px; height: 30px; padding: 0; border-radius: var(--raio-sm); color: var(--texto-2);
@@ -571,16 +577,14 @@
   }
   .scrim-sidebar.ativo { display: block; opacity: 1; }
   @media (min-width: 1024px) {
-    /* align-self: flex-start evita que a sidebar (item flex de .app-shell) estique
-       até a altura do conteúdo da página — sem isso o sticky não tem "espaço" pra
-       grudar no topo e ela acaba descendo junto com o scroll. */
-    .sidebar {
-      position: sticky; top: 0; align-self: flex-start; max-height: 100vh; overflow-y: auto; transform: none; box-shadow: none;
-      transition: width .25s var(--ease), opacity .2s var(--ease), padding .25s var(--ease);
-    }
+    .sidebar { position: static; transform: none; box-shadow: none; transition: width .25s var(--ease); }
+    /* Aqui sim: o miolo (não a casca) é quem gruda no topo — precisa de altura livre
+       pra "viajar" dentro da .sidebar, que agora sempre estica até o fim da página. */
+    .sidebar-conteudo { position: sticky; top: 0; height: auto; max-height: 100vh; transition: opacity .2s var(--ease); }
     /* Botão de recolher (o mesmo hambúrguer do celular, agora também visível aqui)
        encolhe a sidebar pra 0 no lugar — sem gaveta/scrim, que são só do modo mobile. */
-    .sidebar.recolhida { width: 0; padding-left: 0; padding-right: 0; opacity: 0; overflow: hidden; border-right: none; }
+    .sidebar.recolhida { width: 0; overflow: hidden; border-right: none; }
+    .sidebar.recolhida .sidebar-conteudo { opacity: 0; }
     .scrim-sidebar { display: none !important; }
   }
 
