@@ -52,9 +52,7 @@
     transform: translateX(-100%); transition: transform .25s var(--ease);
   }
   .sidebar.aberta { transform: translateX(0); box-shadow: 0 0 40px rgba(17,24,39,.15); }
-  .marca-sidebar { display: flex; align-items: center; justify-content: space-between; padding: 0 4px 0 6px; }
-  .marca-sidebar .marca-texto { display: flex; align-items: center; gap: 9px; }
-  .marca-sidebar strong { font-size: 14.5px; letter-spacing: .01em; color: var(--preto); }
+  .marca-sidebar { display: flex; align-items: center; justify-content: flex-end; padding: 0 4px 0 6px; }
   .btn-fechar-sidebar {
     background: none; width: 30px; height: 30px; padding: 0; border-radius: var(--raio-sm); color: var(--texto-2);
     display: flex; align-items: center; justify-content: center; flex-shrink: 0;
@@ -89,9 +87,17 @@
   }
   .scrim-sidebar.ativo { display: block; opacity: 1; }
   @media (min-width: 1024px) {
-    .sidebar { position: sticky; transform: none; box-shadow: none; }
+    /* align-self: flex-start evita que a sidebar (item flex de .app-shell) estique
+       até a altura do conteúdo da página — sem isso o sticky não tem "espaço" pra
+       grudar no topo e ela acaba descendo junto com o scroll. */
+    .sidebar {
+      position: sticky; top: 0; align-self: flex-start; max-height: 100vh; overflow-y: auto; transform: none; box-shadow: none;
+      transition: width .25s var(--ease), opacity .2s var(--ease), padding .25s var(--ease);
+    }
+    /* Botão de recolher (o mesmo hambúrguer do celular, agora também visível aqui)
+       encolhe a sidebar pra 0 no lugar — sem gaveta/scrim, que são só do modo mobile. */
+    .sidebar.recolhida { width: 0; padding-left: 0; padding-right: 0; opacity: 0; overflow: hidden; border-right: none; }
     .scrim-sidebar { display: none !important; }
-    .btn-hamburguer { display: none; }
   }
 
   .area-principal { flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; min-height: 100vh; }
@@ -107,6 +113,8 @@
   }
   header.tem-sombra { box-shadow: 0 4px 16px rgba(17,24,39,.06); }
   header h1 { font-size: 17px; font-weight: 700; display: flex; align-items: center; gap: 10px; }
+  header h1 .marca-tagline { font-size: 12.5px; font-weight: 500; color: var(--texto-2); white-space: nowrap; }
+  @media (max-width: 759px) { header h1 .marca-tagline { display: none; } }
   header .logo-header { height: 32px; width: auto; display: block; flex-shrink: 0; border-radius: 8px; }
   .btn-hamburguer {
     background: var(--cinza); width: 38px; height: 38px; padding: 0; border-radius: var(--raio-sm);
@@ -521,9 +529,7 @@
     transform: translateX(-100%); transition: transform .25s var(--ease);
   }
   .sidebar.aberta { transform: translateX(0); box-shadow: 0 0 40px rgba(17,24,39,.15); }
-  .marca-sidebar { display: flex; align-items: center; justify-content: space-between; padding: 0 4px 0 6px; }
-  .marca-sidebar .marca-texto { display: flex; align-items: center; gap: 9px; }
-  .marca-sidebar strong { font-size: 14.5px; letter-spacing: .01em; color: var(--preto); }
+  .marca-sidebar { display: flex; align-items: center; justify-content: flex-end; padding: 0 4px 0 6px; }
   .btn-fechar-sidebar {
     background: none; width: 30px; height: 30px; padding: 0; border-radius: var(--raio-sm); color: var(--texto-2);
     display: flex; align-items: center; justify-content: center; flex-shrink: 0;
@@ -565,9 +571,17 @@
   }
   .scrim-sidebar.ativo { display: block; opacity: 1; }
   @media (min-width: 1024px) {
-    .sidebar { position: sticky; transform: none; box-shadow: none; }
+    /* align-self: flex-start evita que a sidebar (item flex de .app-shell) estique
+       até a altura do conteúdo da página — sem isso o sticky não tem "espaço" pra
+       grudar no topo e ela acaba descendo junto com o scroll. */
+    .sidebar {
+      position: sticky; top: 0; align-self: flex-start; max-height: 100vh; overflow-y: auto; transform: none; box-shadow: none;
+      transition: width .25s var(--ease), opacity .2s var(--ease), padding .25s var(--ease);
+    }
+    /* Botão de recolher (o mesmo hambúrguer do celular, agora também visível aqui)
+       encolhe a sidebar pra 0 no lugar — sem gaveta/scrim, que são só do modo mobile. */
+    .sidebar.recolhida { width: 0; padding-left: 0; padding-right: 0; opacity: 0; overflow: hidden; border-right: none; }
     .scrim-sidebar { display: none !important; }
-    .btn-hamburguer { display: none; }
   }
 
   .area-principal { flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; min-height: 100vh; }
@@ -587,6 +601,8 @@
   }
   header.tem-sombra { box-shadow: 0 4px 16px rgba(17,24,39,.06); }
   header h1 { font-size: 17px; font-weight: 700; display: flex; align-items: center; gap: 10px; }
+  header h1 .marca-tagline { font-size: 12.5px; font-weight: 500; color: var(--texto-2); white-space: nowrap; }
+  @media (max-width: 759px) { header h1 .marca-tagline { display: none; } }
   header .logo-header { height: 32px; width: auto; display: block; border-radius: 8px; }
   .btn-hamburguer {
     background: var(--cinza); width: 38px; height: 38px; padding: 0; border-radius: var(--raio-sm);

@@ -107,7 +107,9 @@ function irParaView(nome) {
     ATUALIZADORES_VIEW_[nome]();
   }
 
-  toggleSidebar(false);
+  // Só fecha a gaveta no mobile — no desktop a sidebar é persistente (recolher ali é
+  // uma escolha manual da pessoa, não algo pra acontecer sozinho a cada navegação).
+  if (!window.matchMedia('(min-width: 1024px)').matches) toggleSidebar(false);
   if (location.hash.slice(1) !== nome) location.hash = nome;
 }
 
@@ -132,14 +134,24 @@ function encontrarProduto_(nomeDigitado) {
   return bootstrap.produtos.find(function (p) { return p.nome.toLowerCase().indexOf(alvo) !== -1; });
 }
 
-// ===================== SIDEBAR (gaveta off-canvas no mobile) e SAIR =====================
+// ===================== SIDEBAR (gaveta off-canvas no mobile, recolher no desktop) e SAIR =====================
+// forcar: true = deixar aberta/expandida, false = fechar/recolher, omitido = alternar.
 function toggleSidebar(forcar) {
   const sidebar = document.getElementById('sidebar');
   const scrim = document.getElementById('scrimSidebar');
   if (!sidebar || !scrim) return;
-  const abrir = typeof forcar === 'boolean' ? forcar : !sidebar.classList.contains('aberta');
-  sidebar.classList.toggle('aberta', abrir);
-  scrim.classList.toggle('ativo', abrir);
+
+  if (window.matchMedia('(min-width: 1024px)').matches) {
+    // No desktop a sidebar já fica visível por padrão (sem gaveta nem scrim) — o
+    // hambúrguer aqui só alterna entre visível e recolhida, pra ganhar espaço de tela.
+    const aberta = typeof forcar === 'boolean' ? forcar : sidebar.classList.contains('recolhida');
+    sidebar.classList.toggle('recolhida', !aberta);
+    return;
+  }
+
+  const aberta = typeof forcar === 'boolean' ? forcar : !sidebar.classList.contains('aberta');
+  sidebar.classList.toggle('aberta', aberta);
+  scrim.classList.toggle('ativo', aberta);
 }
 function sair() {
   location.reload();
