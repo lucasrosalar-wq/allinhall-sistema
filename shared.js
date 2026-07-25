@@ -168,3 +168,100 @@ function toggleGrupoMonitoramento() {
   window.addEventListener('scroll', atualizar, { passive: true });
   atualizar();
 })();
+
+// ===================== SELECT CUSTOMIZADO (visual por cima do <select> nativo) =====================
+// O <select> de cada tela continua fazendo todo o trabalho de sempre — onchange,
+// .value, innerHTML populado em conferencia.js/gestao.js/reposicao.js — só que
+// escondido. Isso aqui desenha um dropdown com a cara do resto do app em cima dele
+// (mesmo estilo do popup de produtos) e mantém os dois sincronizados sozinho, sem
+// precisar mexer no código de nenhuma tela.
+const IDS_SELECT_CUSTOM_ = [
+  'selectCondominio', 'filtroCondominio', 'filtroMes', 'filtroAno',
+  'condominioReposicao', 'filtroCondominioReposicao'
+];
+
+function inicializarSelectsCustom_() {
+  IDS_SELECT_CUSTOM_.forEach(function (id) {
+    const select = document.getElementById(id);
+    if (!select || select.dataset.customizado) return;
+    select.dataset.customizado = '1';
+
+    const wrapper = document.createElement('div');
+    wrapper.className = 'select-custom';
+    wrapper.dataset.select = id;
+    wrapper.innerHTML =
+      '<button type="button" class="select-custom-trigger" onclick="toggleSelectCustom(\'' + id + '\')">' +
+        '<span class="rotulo"></span><i data-lucide="chevron-down"></i>' +
+      '</button>' +
+      '<div class="select-custom-painel"></div>';
+
+    select.parentNode.insertBefore(wrapper, select);
+    wrapper.appendChild(select);
+    select.classList.add('oculto');
+
+    select.addEventListener('change', function () { sincronizarRotuloSelectCustom_(id); });
+
+    // .value assumido em qualquer lugar do código (ex: editarReposicao) precisa
+    // continuar funcionando igual — só passamos a espiar a atribuição pra atualizar
+    // o rótulo visível junto, sem mudar o comportamento de quem chama.
+    const descritorValor = Object.getOwnPropertyDescriptor(HTMLSelectElement.prototype, 'value');
+    Object.defineProperty(select, 'value', {
+      get: function () { return descritorValor.get.call(select); },
+      set: function (v) { descritorValor.set.call(select, v); sincronizarRotuloSelectCustom_(id); },
+      configurable: true
+    });
+
+    // Cada tela repopula as opções via innerHTML (bootstrap.condominios etc.) — o
+    // observer pega isso sozinho e mantém o rótulo certo, não importa quando rodar.
+    new MutationObserver(function () { sincronizarRotuloSelectCustom_(id); }).observe(select, { childList: true });
+
+    sincronizarRotuloSelectCustom_(id);
+  });
+}
+
+function sincronizarRotuloSelectCustom_(id) {
+  const select = document.getElementById(id);
+  const wrapper = document.querySelector('.select-custom[data-select="' + id + '"]');
+  if (!select || !wrapper) return;
+  const opcao = select.options[select.selectedIndex];
+  wrapper.querySelector('.rotulo').textContent = opcao ? opcao.textContent : '';
+}
+
+function toggleSelectCustom(id) {
+  const wrapper = document.querySelector('.select-custom[data-select="' + id + '"]');
+  if (!wrapper) return;
+  const jaAberto = wrapper.classList.contains('aberto');
+  fecharSelectsCustom_();
+  if (jaAberto) return;
+
+  const select = document.getElementById(id);
+  const painel = wrapper.querySelector('.select-custom-painel');
+  painel.innerHTML = Array.from(select.options).map(function (opt, indice) {
+    return '<div class="select-custom-opcao' + (indice === select.selectedIndex ? ' selecionada' : '') + '" data-indice="' + indice + '">' +
+      '<span>' + opt.textContent + '</span><i data-lucide="check"></i></div>';
+  }).join('');
+  painel.querySelectorAll('.select-custom-opcao').forEach(function (el) {
+    el.onclick = function () {
+      select.selectedIndex = Number(el.dataset.indice);
+      select.dispatchEvent(new Event('change'));
+      sincronizarRotuloSelectCustom_(id);
+      fecharSelectsCustom_();
+    };
+  });
+  if (window.lucide) lucide.createIcons();
+
+  wrapper.classList.add('aberto');
+}
+
+function fecharSelectsCustom_() {
+  document.querySelectorAll('.select-custom.aberto').forEach(function (w) { w.classList.remove('aberto'); });
+}
+
+document.addEventListener('click', function (ev) {
+  if (!ev.target.closest('.select-custom')) fecharSelectsCustom_();
+});
+document.addEventListener('keydown', function (ev) {
+  if (ev.key === 'Escape') fecharSelectsCustom_();
+});
+
+inicializarSelectsCustom_();

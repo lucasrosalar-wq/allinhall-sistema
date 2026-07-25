@@ -970,3 +970,32 @@ button.carregando::after {
 .btn-secundaria.carregando::after, .btn-fechar.carregando::after {
   border-color: rgba(17,24,39,.2); border-top-color: var(--preto);
 }
+
+/* Select customizado — desenhado por cima de cada <select> nativo (que fica
+   escondido mas continua funcionando; ver toggleSelectCustom em shared.js). */
+.select-custom { position: relative; width: 100%; }
+.select-custom-trigger {
+  display: flex; align-items: center; justify-content: space-between; gap: 8px;
+  width: 100%; height: 48px; padding: 0 14px; border: 1px solid var(--borda); border-radius: var(--raio-sm);
+  background: #fff; color: var(--preto); font-size: 14.5px; font-weight: 500; text-align: left;
+  transition: border-color .15s ease, box-shadow .15s ease;
+}
+.select-custom-trigger .rotulo { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.select-custom-trigger svg { width: 18px; height: 18px; color: var(--texto-2); flex-shrink: 0; transition: transform .2s var(--ease); }
+.select-custom.aberto .select-custom-trigger { border-color: var(--laranja); box-shadow: 0 0 0 3px rgba(249,115,22,.15); }
+.select-custom.aberto .select-custom-trigger svg { transform: rotate(180deg); }
+.select-custom-painel {
+  position: absolute; top: calc(100% + 6px); left: 0; right: 0; z-index: 30;
+  background: #fff; border: 1px solid var(--borda); border-radius: var(--raio-sm); box-shadow: var(--sombra);
+  padding: 6px; max-height: 260px; overflow-y: auto;
+  opacity: 0; transform: translateY(-4px); pointer-events: none; transition: opacity .15s var(--ease), transform .15s var(--ease);
+}
+.select-custom.aberto .select-custom-painel { opacity: 1; transform: translateY(0); pointer-events: auto; }
+.select-custom-opcao {
+  display: flex; align-items: center; justify-content: space-between; gap: 8px;
+  padding: 10px 12px; border-radius: 8px; font-size: 14px; color: var(--preto); cursor: pointer;
+}
+.select-custom-opcao:hover { background: var(--cinza); }
+.select-custom-opcao.selecionada { background: #FFF7ED; color: var(--laranja-escuro); font-weight: 600; }
+.select-custom-opcao svg { width: 15px; height: 15px; color: var(--laranja-escuro); flex-shrink: 0; visibility: hidden; }
+.select-custom-opcao.selecionada svg { visibility: visible; }
