@@ -44,7 +44,7 @@
           <a class="nav-item nav-subitem" href="#gestao" data-view="gestao" onclick="irParaView('gestao'); return false;"><i data-lucide="alert-circle"></i> Gestão</a>
         </div>
       </div>
-      <span class="nav-item-desabilitado" title="Em breve"><i data-lucide="shopping-cart"></i> Aquisição<span class="selo-em-breve">Em breve</span></span>
+      <a class="nav-item" href="#aquisicao" data-view="aquisicao" onclick="irParaView('aquisicao'); return false;"><i data-lucide="shopping-cart"></i> Aquisição<span class="selo-fila oculto" id="seloFilaPrecos">0</span></a>
     </nav>
     <div class="sidebar-info" id="sidebarInfoConferencia">
       <div class="sidebar-info-titulo">Como funciona</div>
@@ -323,6 +323,150 @@
   </div>
   </section>
 
+  <section id="viewAquisicao" class="view-aquisicao oculto">
+  <div class="container">
+    <div class="page-header">
+      <h2>Aquisição</h2>
+      <p>Lance o que você pagou e o sistema calcula o preço de venda pela margem de cada faixa</p>
+    </div>
+
+    <div id="avisoEstruturaAquisicao" class="aviso-estrutura oculto">
+      <strong>Planilha ainda sem as abas de Aquisição.</strong>
+      Abra a planilha, vá em <em>Extensões &gt; Apps Script</em> e rode a função
+      <code>configurarPlanilha</code> uma vez. Nada do que já existe é apagado — ela só cria
+      as abas novas (Compras, ComprasItens, RegrasMargem, DeParaProdutos) e as colunas
+      novas de Produtos.
+    </div>
+
+    <div id="bannerAquisicao" class="banner"></div>
+
+    <div class="cartoes-resumo">
+      <div class="cartao-resumo">
+        <span class="rotulo">Produtos com custo</span>
+        <strong id="resumoComCusto">—</strong>
+      </div>
+      <div class="cartao-resumo">
+        <span class="rotulo">Margem média hoje</span>
+        <strong id="resumoMargemMedia">—</strong>
+      </div>
+      <div class="cartao-resumo destaque">
+        <span class="rotulo">Aguardando ajuste</span>
+        <strong id="resumoNaFila">—</strong>
+      </div>
+    </div>
+
+    <div class="abas-internas">
+      <button type="button" class="aba-interna ativa" id="abaAquisicao-cupons" onclick="mudarAbaAquisicao('cupons')">Cupons</button>
+      <button type="button" class="aba-interna" id="abaAquisicao-precos" onclick="mudarAbaAquisicao('precos')">Ajuste de preço</button>
+      <button type="button" class="aba-interna" id="abaAquisicao-margens" onclick="mudarAbaAquisicao('margens')">Faixas de margem</button>
+    </div>
+
+    <!-- ABA: CUPONS -->
+    <div id="painelAquisicao-cupons">
+      <div class="painel-acoes-dia">
+        <h3>Novo cupom</h3>
+        <div class="subtitulo">O custo que entra aqui é o que alimenta o cálculo de preço.</div>
+
+        <div class="linha-dupla">
+          <div>
+            <label>Onde comprou</label>
+            <input type="text" id="mercadoCupom" placeholder="Ex: Atacadão, Assaí...">
+          </div>
+          <div>
+            <label>Data da compra</label>
+            <input type="date" id="dataCupom">
+          </div>
+        </div>
+
+        <label>Documento do cupom <span class="rotulo-opcional">(opcional)</span></label>
+        <input type="text" id="documentoCupom" placeholder="Número ou chave do cupom fiscal">
+
+        <label>Itens</label>
+        <div class="linha-add-item linha-add-cupom">
+          <input type="text" id="inputProdutoCupom" list="listaProdutosDatalistCupom" placeholder="Produto...">
+          <input type="number" id="inputQtdCupom" min="1" step="1" value="1" title="Quantidade">
+          <input type="number" id="inputCustoCupom" min="0" step="0.01" placeholder="Custo un." title="Custo unitário pago">
+          <button type="button" onclick="adicionarItemCupom()"><i data-lucide="plus"></i></button>
+        </div>
+        <input type="text" id="inputCodigoCupom" class="input-codigo" placeholder="Código de barras do item (opcional — acelera o reconhecimento nos próximos cupons)">
+        <datalist id="listaProdutosDatalistCupom"></datalist>
+        <div id="listaItensCupom" class="lista-itens-scroll"></div>
+
+        <div class="total-box">
+          <span>Total do cupom</span>
+          <strong id="totalCupom">R$ 0,00</strong>
+        </div>
+
+        <label>Observação <span class="rotulo-opcional">(opcional)</span></label>
+        <textarea id="observacaoCupom" rows="2" placeholder="Ex: compra de promoção, item em oferta..."></textarea>
+
+        <div id="bannerCupom" class="banner"></div>
+        <button class="btn-primaria" id="botaoSalvarCupom" onclick="salvarCupom()">Salvar cupom</button>
+      </div>
+
+      <div class="relacao-dia oculto" id="blocoPendentesVinculo">
+        <h3>Aguardando vínculo</h3>
+        <p class="texto-auxiliar">Itens lançados que ainda não sabemos a que produto do catálogo correspondem. Ligue uma vez — o sistema reconhece sozinho da próxima.</p>
+        <div id="listaPendentesVinculo"></div>
+      </div>
+
+      <div class="relacao-dia">
+        <h3>Cupons lançados</h3>
+        <div id="listaCupons"></div>
+      </div>
+    </div>
+
+    <!-- ABA: AJUSTE DE PREÇO -->
+    <div id="painelAquisicao-precos" class="oculto">
+      <div class="filtros">
+        <div>
+          <label>Faixa</label>
+          <select id="filtroCategoriaPreco" onchange="renderizarFilaPrecos()">
+            <option value="">Todas as faixas</option>
+          </select>
+        </div>
+        <div>
+          <label>Mostrar</label>
+          <select id="filtroModoPreco" onchange="renderizarFilaPrecos()">
+            <option value="ajuste">Só os que mudam de preço</option>
+            <option value="todos">Todos os produtos</option>
+            <option value="sem_custo">Sem custo lançado</option>
+          </select>
+        </div>
+        <div>
+          <label>Buscar</label>
+          <input type="text" id="buscaProdutoPreco" placeholder="Nome do produto..." oninput="renderizarFilaPrecos()">
+        </div>
+      </div>
+
+      <div class="barra-aplicar">
+        <button type="button" class="btn-selecionar-todos" onclick="selecionarTodosPrecos()">Marcar/desmarcar todos</button>
+        <span id="rotuloSelecaoPrecos">Nenhum preço selecionado</span>
+        <button type="button" class="btn-primaria" id="botaoAplicarPrecos" disabled onclick="aplicarPrecosSelecionados()">Aplicar preços</button>
+      </div>
+
+      <div id="bannerPrecos" class="banner"></div>
+      <div id="listaFilaPrecos"></div>
+    </div>
+
+    <!-- ABA: FAIXAS DE MARGEM -->
+    <div id="painelAquisicao-margens" class="oculto">
+      <div class="painel-acoes-dia">
+        <h3>Faixas de margem</h3>
+        <div class="subtitulo">
+          Quanto mais o item é levado por impulso, menos o morador compara o preço com o
+          mercado da rua — e mais margem ele suporta. Quanto mais recorrente, mais o item
+          vira referência de preço e menos margem aguenta.
+        </div>
+        <div id="listaRegrasMargem"></div>
+        <div class="texto-auxiliar" id="avisoSemFaixa"></div>
+        <div id="bannerMargens" class="banner"></div>
+        <button class="btn-primaria" id="botaoSalvarRegras" onclick="salvarRegrasMargem()">Salvar faixas</button>
+      </div>
+    </div>
+  </div>
+  </section>
+
   <footer class="rodape">© 2026 All in Hall · Telefone: 41 99828-8660</footer>
   </div>
 </div>
@@ -580,6 +724,7 @@
 <script src="conferencia.js"></script>
 <script src="gestao.js"></script>
 <script src="reposicao.js"></script>
+<script src="aquisicao.js"></script>
 <script>
   if (window.lucide) lucide.createIcons();
 </script>
