@@ -63,17 +63,19 @@ async function validarPin() {
 }
 
 // ===================== NAVEGAÇÃO ENTRE VIEWS (sidebar, sem reload) =====================
-const VIEWS_VALIDAS = ['conferencia', 'gestao', 'reposicao'];
+const VIEWS_VALIDAS = ['conferencia', 'gestao', 'reposicao', 'aquisicao'];
 let viewsIniciadas = {};
 const TITULOS_VIEW_ = {
   conferencia: 'Conferência — All in Hall',
   gestao: 'Gestão de Ocorrências — All in Hall',
-  reposicao: 'Reposição — All in Hall'
+  reposicao: 'Reposição — All in Hall',
+  aquisicao: 'Aquisição — All in Hall'
 };
 const INICIALIZADORES_VIEW_ = {
   conferencia: function () { inicializarConferencia(); },
   gestao: function () { inicializarGestao(); },
-  reposicao: function () { inicializarReposicao(); }
+  reposicao: function () { inicializarReposicao(); },
+  aquisicao: function () { inicializarAquisicao(); }
 };
 // Rodada a cada revisita (não só na primeira vez) — recarrega só os dados,
 // sem mexer em seleção de condomínio/filtros já escolhidos pela pessoa. Existe
@@ -83,7 +85,8 @@ const INICIALIZADORES_VIEW_ = {
 const ATUALIZADORES_VIEW_ = {
   conferencia: function () { carregarCalendario(); carregarFurosReposicao(); },
   gestao: function () { carregarOcorrencias(); carregarMiniCalendario(); },
-  reposicao: function () { carregarReposicoes(); }
+  reposicao: function () { carregarReposicoes(); },
+  aquisicao: function () { carregarAquisicao(); }
 };
 
 function irParaView(nome) {
@@ -92,9 +95,13 @@ function irParaView(nome) {
   document.querySelectorAll('.nav-item[data-view]').forEach(function (a) {
     a.classList.toggle('ativo', a.dataset.view === nome);
   });
-  document.getElementById('viewConferencia').classList.toggle('oculto', nome !== 'conferencia');
-  document.getElementById('viewGestao').classList.toggle('oculto', nome !== 'gestao');
-  document.getElementById('viewReposicao').classList.toggle('oculto', nome !== 'reposicao');
+  // Percorre VIEWS_VALIDAS em vez de listar os ids na mão: view nova aparece aqui
+  // só de ser registrada lá em cima, sem risco de ficar uma tela sempre visível
+  // por esquecimento.
+  VIEWS_VALIDAS.forEach(function (v) {
+    const secao = document.getElementById('view' + v.charAt(0).toUpperCase() + v.slice(1));
+    if (secao) secao.classList.toggle('oculto', v !== nome);
+  });
   const infoConferencia = document.getElementById('sidebarInfoConferencia');
   if (infoConferencia) infoConferencia.classList.toggle('oculto', nome !== 'conferencia');
 
@@ -177,7 +184,8 @@ function toggleGrupoMonitoramento() {
 // precisar mexer no código de nenhuma tela.
 const IDS_SELECT_CUSTOM_ = [
   'selectCondominio', 'filtroCondominio', 'filtroMes', 'filtroAno',
-  'condominioReposicao', 'filtroCondominioReposicao'
+  'condominioReposicao', 'filtroCondominioReposicao',
+  'filtroCategoriaPreco', 'filtroModoPreco'
 ];
 
 function inicializarSelectsCustom_() {

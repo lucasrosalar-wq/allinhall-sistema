@@ -925,12 +925,12 @@
 
 /* ===================== animações & micro-interações (compartilhado) ===================== */
 
-/* Troca de view pela sidebar (Conferência/Gestão/Reposição): a seção que acabou de
-   perder a classe .oculto (display:none -> block) reinicia a animação sozinha —
+/* Troca de view pela sidebar (Conferência/Gestão/Reposição/Aquisição): a seção que
+   acabou de perder a classe .oculto (display:none -> block) reinicia a animação sozinha —
    não precisa de JS, o navegador roda a animação sempre que o display deixa de ser none. */
 @keyframes entradaView { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 @media (prefers-reduced-motion: no-preference) {
-  .view-conferencia:not(.oculto), .view-gestao:not(.oculto), .view-reposicao:not(.oculto) {
+  .view-conferencia:not(.oculto), .view-gestao:not(.oculto), .view-reposicao:not(.oculto), .view-aquisicao:not(.oculto) {
     animation: entradaView .3s var(--ease) both;
   }
 }
@@ -1003,3 +1003,162 @@ button.carregando::after {
 .select-custom-opcao.selecionada { background: #FFF7ED; color: var(--laranja-escuro); font-weight: 600; }
 .select-custom-opcao svg { width: 15px; height: 15px; color: var(--laranja-escuro); flex-shrink: 0; visibility: hidden; }
 .select-custom-opcao.selecionada svg { visibility: visible; }
+
+/* ===================== AQUISIÇÃO ===================== */
+/* Custo entra por cupom, margem por faixa, preço sai sugerido. A tela mais
+   "densa" do sistema — a fila de ajuste mostra 5 números por produto, então o
+   layout vira tabela no desktop e empilha no celular. */
+
+.view-aquisicao .container { max-width: 1000px; margin: 0 auto; padding: 16px; flex: 1 0 auto; width: 100%; }
+@media (min-width: 900px) { .view-aquisicao .container { padding: 28px 24px; } }
+.view-aquisicao .page-header { margin-bottom: 18px; }
+.view-aquisicao .page-header h2 { font-size: 22px; }
+.view-aquisicao .page-header p { margin: 4px 0 0; font-size: 13.5px; color: var(--texto-2); }
+.view-aquisicao .painel-acoes-dia { margin-top: 0; }
+
+/* Contador de produtos esperando ajuste, na própria sidebar — a fila fica
+   visível de qualquer tela, senão ninguém lembra de voltar aqui. */
+.selo-fila {
+  margin-left: auto; min-width: 20px; padding: 1px 7px; border-radius: 20px;
+  background: var(--laranja); color: #fff; font-size: 10.5px; font-weight: 700; text-align: center;
+}
+
+.aviso-estrutura {
+  background: #FFF7ED; border: 1px solid #FED7AA; color: #9A3412;
+  border-radius: var(--raio-sm); padding: 14px 16px; font-size: 13px; line-height: 1.6; margin-bottom: 16px;
+}
+.aviso-estrutura code { background: #FFEDD5; padding: 1px 6px; border-radius: 6px; font-size: 12.5px; }
+
+/* --- cartões de resumo --- */
+.cartoes-resumo { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 18px; }
+@media (max-width: 600px) { .cartoes-resumo { grid-template-columns: 1fr; } }
+.cartao-resumo {
+  background: #fff; border: 1px solid var(--borda); border-radius: var(--raio-sm);
+  padding: 14px 16px; box-shadow: var(--sombra-sm);
+}
+.cartao-resumo .rotulo { display: block; font-size: 11px; font-weight: 600; color: var(--texto-2); text-transform: uppercase; letter-spacing: .04em; }
+.cartao-resumo strong { display: block; font-size: 22px; font-weight: 700; margin-top: 4px; }
+.cartao-resumo.destaque { border-color: #FED7AA; background: #FFF7ED; }
+.cartao-resumo.destaque strong { color: var(--laranja-escuro); }
+
+/* --- abas internas --- */
+.abas-internas {
+  display: flex; gap: 4px; background: #fff; border: 1px solid var(--borda);
+  border-radius: var(--raio-sm); padding: 4px; margin-bottom: 18px; box-shadow: var(--sombra-sm);
+}
+.aba-interna {
+  flex: 1; height: 38px; padding: 0 10px; border-radius: 10px; background: none;
+  font-size: 13px; font-weight: 600; color: var(--texto-2); white-space: nowrap;
+  overflow: hidden; text-overflow: ellipsis;
+}
+.aba-interna:hover { background: var(--cinza); }
+.aba-interna.ativa { background: var(--laranja); color: #fff; }
+.aba-interna.ativa:hover { background: var(--laranja-escuro); }
+
+/* --- formulário do cupom --- */
+.linha-add-cupom input[type="number"] { width: 110px; text-align: left; padding: 0 10px; }
+.linha-add-cupom input[type="number"]#inputQtdCupom { width: 62px; text-align: center; padding: 0 4px; }
+@media (max-width: 560px) {
+  .linha-add-cupom { flex-wrap: wrap; }
+  .linha-add-cupom input[type="text"] { flex: 1 1 100%; }
+  .linha-add-cupom input[type="number"] { flex: 1 1 0; width: auto; }
+}
+.input-codigo { margin-top: 8px; font-size: 12.5px; }
+.rotulo-opcional { text-transform: none; letter-spacing: 0; font-weight: 400; color: var(--cinza-status); }
+.texto-auxiliar { font-size: 12.5px; color: var(--texto-2); line-height: 1.55; margin: 8px 0 0; }
+.vinculo-ok { color: var(--verde); font-weight: 600; }
+.vinculo-pendente { color: var(--amarelo); font-weight: 600; }
+
+/* --- itens aguardando vínculo --- */
+.linha-vinculo {
+  display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+  background: #fff; border: 1px solid var(--borda); border-radius: var(--raio-sm);
+  padding: 12px 14px; margin-bottom: 8px;
+}
+.linha-vinculo .descricao-cupom { flex: 1; min-width: 180px; font-size: 13.5px; font-weight: 600; }
+.linha-vinculo .descricao-cupom .meta { display: block; font-size: 11.5px; font-weight: 400; color: var(--texto-2); margin-top: 2px; }
+.linha-vinculo select { flex: 1; min-width: 200px; }
+
+/* --- barra de aplicar --- */
+.barra-aplicar {
+  display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+  background: #fff; border: 1px solid var(--borda); border-radius: var(--raio-sm);
+  padding: 12px 14px; margin-bottom: 14px; box-shadow: var(--sombra-sm);
+  position: sticky; top: 8px; z-index: 5;
+}
+.barra-aplicar span { flex: 1; font-size: 12.5px; color: var(--texto-2); font-weight: 600; }
+.barra-aplicar .btn-primaria { width: auto; min-width: 170px; margin: 0; height: 38px; font-size: 13px; }
+.btn-selecionar-todos {
+  height: 34px; padding: 0 12px; background: var(--cinza); border-radius: 10px;
+  font-size: 12.5px; font-weight: 600; white-space: nowrap;
+}
+.btn-selecionar-todos:hover { background: #E2E8F0; }
+
+/* --- fila de ajuste de preço --- */
+.linha-preco {
+  display: grid; grid-template-columns: 28px minmax(0, 1.6fr) minmax(0, 1.7fr) minmax(0, 140px);
+  align-items: center; gap: 12px;
+  background: #fff; border: 1px solid var(--borda); border-radius: var(--raio-sm);
+  padding: 12px 14px; margin-bottom: 8px;
+}
+.linha-preco.com-alerta { border-color: #FCA5A5; background: #FFFBFB; }
+.linha-preco .celula-check { display: flex; justify-content: center; }
+.linha-preco .check-preco { width: 18px; height: 18px; accent-color: var(--laranja); cursor: pointer; }
+.linha-preco .check-vazio { display: block; width: 18px; height: 18px; }
+.linha-preco .nome-produto { font-size: 13.5px; font-weight: 600; line-height: 1.35; }
+.linha-preco .linha-controles { display: flex; align-items: center; gap: 6px; margin-top: 6px; flex-wrap: wrap; }
+.linha-preco .select-categoria {
+  height: 30px; padding: 0 8px; font-size: 12px; border-radius: 8px;
+  border: 1px solid var(--borda); background: #fff; max-width: 190px;
+}
+.linha-preco .btn-travar {
+  height: 30px; padding: 0 10px; border-radius: 8px; background: var(--cinza);
+  font-size: 11.5px; font-weight: 600; color: var(--texto-2);
+}
+.linha-preco .btn-travar:hover { background: #E2E8F0; }
+.linha-preco .btn-travar.ativo { background: #EFF6FF; color: var(--azul); border: 1px solid #BFDBFE; }
+
+.linha-preco .celula-numeros { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; }
+.linha-preco .par { min-width: 0; }
+.linha-preco .par span {
+  display: block; font-size: 10px; font-weight: 600; color: var(--cinza-status);
+  text-transform: uppercase; letter-spacing: .03em;
+}
+.linha-preco .par strong { display: block; font-size: 12.5px; font-weight: 700; margin-top: 1px; }
+.tag-margem-propria {
+  display: inline-block; margin-left: 4px; padding: 0 5px; border-radius: 6px;
+  background: #EFF6FF; color: var(--azul); font-size: 9.5px; font-weight: 700;
+  text-transform: uppercase; letter-spacing: .02em; vertical-align: middle;
+}
+
+.linha-preco .celula-sugestao { text-align: right; }
+.linha-preco .preco-sugerido { font-size: 16px; font-weight: 700; color: var(--preto); line-height: 1.2; }
+.linha-preco .preco-sugerido .variacao { display: block; font-size: 11.5px; font-weight: 700; color: var(--texto-2); margin-top: 2px; }
+.linha-preco .preco-sugerido .variacao.sobe { color: var(--verde); }
+.linha-preco .preco-sugerido .variacao.desce { color: var(--laranja-escuro); }
+.linha-preco .preco-sugerido.alerta { color: var(--vermelho); }
+.linha-preco .preco-sugerido.alerta .variacao { color: var(--vermelho); }
+.linha-preco .preco-sugerido.sem-dado { font-size: 12px; font-weight: 600; color: var(--cinza-status); }
+
+/* No celular a grade de 4 colunas não cabe — vira lista empilhada, com os
+   números lado a lado em duas colunas e a sugestão em destaque no fim. */
+@media (max-width: 760px) {
+  .linha-preco { grid-template-columns: 28px 1fr; row-gap: 10px; }
+  .linha-preco .celula-numeros { grid-column: 2; grid-template-columns: repeat(2, 1fr); gap: 8px; }
+  .linha-preco .celula-sugestao { grid-column: 2; text-align: left; border-top: 1px solid var(--borda); padding-top: 10px; }
+  .linha-preco .preco-sugerido .variacao { display: inline; margin-left: 8px; }
+  .barra-aplicar .btn-primaria { flex: 1 1 100%; min-width: 0; }
+}
+
+/* --- faixas de margem --- */
+.card-regra {
+  background: var(--creme); border: 1px solid var(--borda); border-radius: var(--raio-sm);
+  padding: 14px; margin-bottom: 10px;
+}
+.card-regra .topo-regra { display: flex; gap: 10px; align-items: center; }
+.card-regra .rotulo-regra { flex: 1; font-weight: 700; }
+.card-regra .campo-margem { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
+.card-regra .campo-margem input { width: 76px; text-align: center; font-weight: 700; }
+.card-regra .campo-margem span { font-size: 14px; font-weight: 700; color: var(--texto-2); }
+.card-regra .descricao-regra { margin-top: 8px; font-size: 12.5px; }
+.card-regra .rodape-regra { font-size: 11.5px; color: var(--texto-2); margin-top: 8px; font-weight: 600; }

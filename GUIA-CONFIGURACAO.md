@@ -2,8 +2,8 @@
 
 Este guia parte do zero. Ao final você terá: uma planilha Google funcionando como
 banco de dados, um Web App do Apps Script publicado, e uma página única
-(`index.html`, com as abas Conferência, Gestão e Reposição dentro de um só
-sistema) publicada e apontando para esse Web App.
+(`index.html`, com as abas Conferência, Gestão, Reposição e Aquisição dentro de
+um só sistema) publicada e apontando para esse Web App.
 
 Arquivos deste pacote (todos precisam ir juntos para o mesmo lugar — a página
 não funciona se algum faltar):
@@ -11,7 +11,7 @@ não funciona se algum faltar):
 - `index.html` — página única do sistema (login por PIN + as 3 abas)
 - `app.css` — estilo visual de tudo
 - `shared.js` — navegação entre abas, PIN, funções compartilhadas
-- `conferencia.js`, `gestao.js`, `reposicao.js` — lógica de cada aba
+- `conferencia.js`, `gestao.js`, `reposicao.js`, `aquisicao.js` — lógica de cada aba
 
 ---
 
@@ -34,9 +34,11 @@ não funciona se algum faltar):
      (Esse aviso aparece porque é um script seu, ainda não verificado pelo Google —
      é normal e seguro, pois você mesmo escreveu/colou o código.)
 8. Depois de rodar, deve aparecer um alerta "Planilha configurada com sucesso!".
-   Volte na planilha (aba do navegador) e confira que agora existem 5 abas:
-   `Ocorrencias`, `DiasFechados`, `Produtos`, `Pessoas`, `Condominios` — já com
-   cabeçalhos e dados iniciais (os 108 produtos, as pessoas e os condomínios).
+   Volte na planilha (aba do navegador) e confira que agora existem 10 abas:
+   `Ocorrencias`, `DiasFechados`, `Produtos`, `Pessoas`, `Condominios`,
+   `Reposicoes`, `Compras`, `ComprasItens`, `RegrasMargem` e `DeParaProdutos` —
+   já com cabeçalhos e dados iniciais (os 104 produtos com sua faixa de margem,
+   as pessoas, os condomínios e as 4 faixas de margem).
 
 ---
 
@@ -101,8 +103,8 @@ financeiras). O GitHub Pages publica **todo o conteúdo de um repositório públ
 na internet. Por isso, **não** suba a pasta inteira do projeto — crie um
 repositório **novo e separado**, contendo apenas os arquivos deste pacote
 (`index.html`, `app.css`, `shared.js`, `conferencia.js`, `gestao.js`,
-`reposicao.js`). O `Code.gs` não precisa ir para lá, ele já vive dentro do
-Apps Script.
+`reposicao.js`, `aquisicao.js`). O `Code.gs` não precisa ir para lá, ele já vive
+dentro do Apps Script.
 
 Passo a passo:
 
@@ -122,6 +124,7 @@ Passo a passo:
    - `conferencia.js`
    - `gestao.js`
    - `reposicao.js`
+   - `aquisicao.js`
 5. Vá em **Settings** (Configurações) do repositório → **Pages** (menu lateral).
 6. Em "Build and deployment" → "Source", escolha **Deploy from a branch** →
    branch `main` → pasta `/ (root)` → **Save**.
@@ -161,7 +164,8 @@ Tudo isso é feito **direto na planilha Google** (não precisa mexer no código)
 As páginas sempre carregam a versão mais recente ao abrir.
 
 ### Produtos (aba `Produtos`)
-- Colunas: `nome`, `preco`, `ativo`.
+- Colunas: `nome`, `preco`, `ativo`, `categoria`, `margem_pct`, `custo_atual`,
+  `data_custo`, `preco_travado`.
 - Para adicionar um produto novo: adicione uma linha no final com nome, preço
   (use ponto decimal, ex: `12.50`) e `ativo` = `TRUE`.
 - Para remover um produto das listas sem apagar o histórico: mude `ativo`
@@ -169,6 +173,100 @@ As páginas sempre carregam a versão mais recente ao abrir.
   esse produto continuam intactas.
 - Para mudar um preço: edite a coluna `preco` diretamente. Vale para os
   próximos registros; ocorrências já salvas mantêm o valor da época.
+- As 5 colunas do fim são da tela de **Aquisição** e é melhor mexer nelas por
+  lá, não na mão (veja a seção seguinte). Produto novo que você cadastrar aqui
+  nasce **sem faixa de margem** — e sem faixa o sistema não sugere preço pra
+  ele, de propósito.
+
+---
+
+## Aquisição — custo do cupom vira preço de venda
+
+A quarta aba do sistema. A ideia: você lança o que pagou, define quanta margem
+cada tipo de item aguenta, e o sistema calcula o preço de venda. **Ele sugere,
+você aprova** — nunca troca preço sozinho.
+
+### Se a sua planilha já existia antes da Aquisição
+
+Rode a função `configurarPlanilha` de novo (mesmo passo a passo da Parte 1,
+itens 6 e 7). Ela é segura de rodar quantas vezes for: não apaga nada, só
+cria as abas que faltam (`Compras`, `ComprasItens`, `RegrasMargem`,
+`DeParaProdutos`), acrescenta as colunas novas em `Produtos` e preenche a faixa
+de margem dos produtos do catálogo original que ainda estiverem sem faixa.
+Faixa que **você** já tiver escolhido nunca é sobrescrita.
+
+Enquanto você não rodar, a tela de Aquisição abre normal e avisa o que falta —
+e as outras três telas continuam funcionando sem nenhuma diferença.
+
+### As quatro faixas de margem
+
+A régua é de mercado, não de contabilidade: quanto mais o item é levado por
+impulso, menos o morador compara o preço com o mercado da rua — e mais margem
+ele suporta.
+
+| Faixa | Padrão | Tipo de item |
+|---|---|---|
+| Impulso | 65% | chocolate, energético, cerveja, salgadinho |
+| Conveniência | 45% | refrigerante, água, snack, higiene de emergência |
+| Recorrência | 30% | leite, café, pão, papel higiênico |
+| Básico | 20% | arroz, açúcar, óleo, macarrão |
+
+Os percentuais são editáveis na aba **Faixas de margem**, e os 104 produtos do
+catálogo já vêm classificados — revise, o chute inicial é meu, a decisão é sua.
+
+### O dia a dia
+
+1. **Cupons** — lance onde comprou, a data e os itens com o custo unitário pago.
+   Cada item vinculado a um produto do catálogo atualiza o `custo_atual` dele.
+   O código de barras é opcional, mas vale digitar: é por ele que o sistema
+   reconhece o item sozinho nos próximos cupons.
+2. **Ajuste de preço** — a fila do que ficou fora do alvo. Cada linha mostra
+   custo, preço de hoje, a margem que esse preço realmente entrega, a margem
+   alvo e o preço sugerido. Marque o que concorda e clique em aplicar.
+3. **Faixas de margem** — os percentuais de cada faixa.
+
+### O que o sistema nunca faz sozinho
+
+- **Não troca preço sem você aprovar.** Um cupom com promoção pontual mudaria
+  seu preço e ele voltaria na semana seguinte — preço balançando é o morador
+  percebendo.
+- **Não sugere preço de produto sem faixa.** Sem faixa escolhida, a decisão de
+  margem não foi tomada; o sistema não inventa uma.
+- **Não mexe em cobrança já registrada.** Ocorrências e Reposições guardam o
+  preço do dia em que foram feitas, então mudar o catálogo hoje não altera
+  nada que já foi cobrado.
+
+Variação acima de 20% entra na fila destacada em vermelho — quase sempre é
+promoção pontual ou custo digitado errado, vale conferir antes de aplicar.
+
+### Casos particulares
+
+- **Item com preço combinado que não pode variar**: use o botão **Travar** na
+  linha dele. O sistema para de sugerir preço pra aquele item.
+- **Item que foge da faixa**: preencha `margem_pct` na linha dele em `Produtos`.
+  Margem própria vence a da faixa.
+- **Item do cupom que o sistema não reconheceu**: ele cai em "Aguardando
+  vínculo", na aba Cupons. Ligue ao produto do catálogo uma vez — da próxima
+  o sistema reconhece sozinho (é a aba `DeParaProdutos` que guarda isso).
+
+### Preparado para a integração com a Pináculo
+
+A estrutura já está montada pra receber importação automática no lugar da
+digitação, sem refazer nada:
+
+- `Compras` tem a coluna `origem` — hoje sempre `manual`, é onde uma importação
+  se identifica.
+- `ComprasItens` guarda `descricao_cupom` e `codigo` separados do `produto` do
+  catálogo, que é exatamente o formato que um sistema externo entrega.
+- `DeParaProdutos` resolve o problema que toda integração esbarra: o nome que a
+  Pináculo usa não é o nome do seu catálogo. Cada vínculo feito à mão fica
+  guardado, então a importação acerta mais a cada rodada.
+- Itens que a importação não souber ligar caem no mesmo balde "Aguardando
+  vínculo" que já existe.
+
+Quando o acesso sair, o que falta é uma função que leia os dados de lá e chame
+`criarCompra_` com `origem: 'pinaculo'`. O resto do caminho — custo, margem,
+sugestão, aprovação — já está pronto e testado.
 
 ### Condomínios (aba `Condominios`)
 - Colunas: `nome_oficial`, `nome_curto`, `endereco`, `bairro`, `cidade`,
