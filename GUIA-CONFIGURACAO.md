@@ -295,6 +295,11 @@ mostra um selo:
 - **sem selo** — não teve certeza e deixou em branco. Escolha o produto, ou deixe
   em branco mesmo: o item é lançado no histórico e fica em "Aguardando vínculo".
 
+Cada linha aparece com **o número que o cupom deu ao item**, não uma contagem do
+sistema — assim dá para conferir contra o papel sem contar com o dedo. Quando
+linhas iguais foram somadas, o número mostra todas de uma vez: `1+2` para duas,
+`10…12` para três ou mais (passe o mouse para ver a lista completa).
+
 Você pode ajustar quantidade, custo unitário e vínculo de qualquer linha antes de
 lançar, remover linhas que não quer com o ×, e corrigir o mercado, a data e o
 documento no topo — útil quando a leitura da página vem com algo torto.

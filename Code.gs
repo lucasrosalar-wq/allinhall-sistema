@@ -1360,6 +1360,7 @@ function lerNfce_(params) {
     const custoAcimaDoPreco = precoVenda > 0 && item.custo_unit >= precoVenda;
 
     return {
+      numeros: item.numeros || [],
       descricao_cupom: item.descricao,
       codigo: item.codigo,
       unidade: item.unidade,
@@ -1489,10 +1490,15 @@ function primeiraLinhaComNome_(conteudo) {
 function extrairItensHtml_(html) {
   const itens = [];
   const blocos = html.match(/<tr[^>]*id="Item[^"]*"[^>]*>[\s\S]*?<\/tr>/g) || [];
-  blocos.forEach(function (bloco) {
+  blocos.forEach(function (bloco, indice) {
     const descricao = textoDeHtml_((bloco.match(/class="txtTit2?"[^>]*>([\s\S]*?)<\/span>/) || [])[1]);
     if (!descricao) return;
+    // O DANFE numera os itens no id da linha ("Item + 7"). É esse número que a
+    // pessoa vê no cupom impresso, então é ele que a tela mostra — assim dá pra
+    // conferir linha a linha contra o papel sem contar com o dedo.
+    const numero = Number((bloco.match(/id="Item\s*\+?\s*(\d+)"/) || [])[1]) || (indice + 1);
     itens.push({
+      numero: numero,
       descricao: descricao,
       codigo: ((bloco.match(/C[óo]digo:\s*([^)<]+)/) || [])[1] || '').trim(),
       qtd: numeroBr_((bloco.match(/Qtde\.?:\s*<\/strong>\s*([\d.,]+)/) || [])[1]),
@@ -1530,6 +1536,8 @@ function extrairItensTexto_(texto) {
     if (!descricao) continue;
 
     itens.push({
+      // Texto puro não traz o id da linha; a ordem de leitura é a mesma do cupom.
+      numero: itens.length + 1,
       descricao: descricao,
       codigo: codigo.trim(),
       qtd: numeroBr_((atual.match(/Qtde\.?:\s*([\d.,]+)/) || [])[1]),
@@ -1551,15 +1559,20 @@ function agruparItensIdenticos_(itens) {
   itens.forEach(function (i) {
     const chave = normalizarTexto_(i.codigo) + '|' + normalizarTexto_(i.descricao);
     if (!mapa[chave]) {
-      mapa[chave] = { descricao: i.descricao, codigo: i.codigo, unidade: i.unidade, qtd: 0, valor: 0 };
+      mapa[chave] = { descricao: i.descricao, codigo: i.codigo, unidade: i.unidade, qtd: 0, valor: 0, numeros: [] };
       ordem.push(chave);
     }
     mapa[chave].qtd += i.qtd;
     mapa[chave].valor += i.qtd * i.custo_unit;
+    // Guarda todos os números que viraram esta linha: quando 3 linhas iguais são
+    // somadas, a tela mostra os 3 números do cupom, e a conferência continua
+    // fechando com o papel.
+    if (i.numero) mapa[chave].numeros.push(i.numero);
   });
   return ordem.map(function (chave) {
     const a = mapa[chave];
     return {
+      numeros: a.numeros.sort(function (x, y) { return x - y; }),
       descricao: a.descricao,
       codigo: a.codigo,
       unidade: a.unidade,

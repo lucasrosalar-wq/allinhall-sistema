@@ -176,6 +176,7 @@ function renderizarItensCupom() {
       ? '<span class="vinculo-ok">' + escaparHtml_(item.produto) + '</span>'
       : '<span class="vinculo-pendente">sem vínculo no catálogo</span>';
     return '<div class="item-adicionado">' +
+      '<span class="numero-item">' + (indice + 1) + '</span>' +
       '<div class="info">' + escaparHtml_(item.descricao_cupom) +
         '<div class="qtd-preco">' + item.qtd + ' x ' + formatarMoeda(item.custo_unit) + ' · ' + vinculo + '</div>' +
       '</div>' +
@@ -290,7 +291,7 @@ async function lerNfce() {
       desconto: lido.desconto,
       valor_pago: lido.valor_pago,
       itens: lido.itens.map(function (i) {
-        return Object.assign({}, i, { custo_unit_bruto: i.custo_unit, desconto: 0 });
+        return Object.assign({}, i, { custo_unit_bruto: i.custo_unit, desconto: 0, numeros: i.numeros || [] });
       })
     };
     recalcularCustosRevisao_();
@@ -466,6 +467,18 @@ function blocoConciliacao_() {
   '</div>';
 }
 
+// Número da linha na tela. Vindo de importação, é o número que o próprio cupom
+// deu ao item — é ele que permite conferir contra o papel. Em cupom digitado à
+// mão ou reaberto pra edição não existe esse número, e aí vale a posição na lista.
+// Quando linhas iguais foram somadas, mostra todos os números que viraram uma só.
+function numeroDaLinha_(item, indice) {
+  const numeros = item.numeros || [];
+  if (numeros.length === 0) return String(indice + 1);
+  if (numeros.length === 1) return String(numeros[0]);
+  if (numeros.length === 2) return numeros[0] + '+' + numeros[1];
+  return numeros[0] + '…' + numeros[numeros.length - 1];
+}
+
 function renderizarRevisaoNfce() {
   const bloco = document.getElementById('blocoRevisaoNfce');
   if (!cupomEmRevisao) { bloco.classList.add('oculto'); return; }
@@ -542,6 +555,9 @@ function renderizarRevisaoNfce() {
 
     return '<div class="linha-revisao' + (suspeito ? ' suspeita' : '') + '">' +
       '<div class="cabecalho-revisao">' +
+        '<span class="numero-item"' + ((i.numeros || []).length > 1
+          ? ' title="Linhas ' + i.numeros.join(', ') + ' do cupom, somadas por serem o mesmo item"'
+          : '') + '>' + numeroDaLinha_(i, indice) + '</span>' +
         '<div class="desc">' + escaparHtml_(i.descricao_cupom) + selo +
           '<span class="meta">' + (i.codigo ? 'cód ' + escaparHtml_(i.codigo) + ' · ' : '') + escaparHtml_(i.unidade || '') + '</span>' +
         '</div>' +

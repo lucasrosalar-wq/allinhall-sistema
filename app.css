@@ -1324,3 +1324,16 @@ button.carregando::after {
 .lucro-cupom .destaque strong { color: var(--verde); }
 .lucro-cupom .destaque em { font-style: normal; font-weight: 700; color: var(--verde); }
 .lucro-cupom .fora { flex-basis: 100%; color: var(--amarelo); font-weight: 600; }
+
+/* Número do item. Na importação é o número que o próprio cupom deu à linha, pra
+   conferência contra o papel bater sem contar com o dedo. */
+.numero-item {
+  flex-shrink: 0; min-width: 26px; height: 22px; padding: 0 6px; border-radius: 6px;
+  background: var(--cinza); color: var(--texto-2);
+  font-size: 11.5px; font-weight: 700; font-variant-numeric: tabular-nums;
+  display: inline-flex; align-items: center; justify-content: center;
+}
+.linha-revisao .cabecalho-revisao { align-items: flex-start; }
+.linha-revisao .numero-item { margin-right: 10px; margin-top: 1px; }
+.linha-revisao.suspeita .numero-item { background: #FEE2E2; color: #B91C1C; }
+.item-adicionado .numero-item { margin-right: 10px; align-self: flex-start; margin-top: 1px; }
