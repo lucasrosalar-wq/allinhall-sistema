@@ -314,7 +314,20 @@ sairia alta.
 
 Como o sistema não tem como saber em qual item o mercado deu o abatimento, quem
 distribui é você — que está com o cupom na mão. Cada linha tem uma coluna
-**Desconto** em reais. Preencheu, o custo daquela linha cai só ali.
+**Desc. da linha** em reais. Preencheu, o custo daquela linha cai só ali.
+
+**O valor é sobre o total da linha, não por unidade** — do jeito que o cupom
+mostra. Quem divide pela quantidade é o sistema:
+
+```
+10 balas por R$ 100,00, com R$ 20,00 de desconto na compra
+  você digita: 20,00
+  o sistema entende: R$ 80,00 na linha, R$ 8,00 por unidade
+
+10 refrigerantes por R$ 150,00, com R$ 50,00 de desconto
+  você digita: 50,00
+  o sistema entende: R$ 100,00 na linha, R$ 10,00 por unidade
+```
 
 No topo fica o placar:
 

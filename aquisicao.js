@@ -446,7 +446,8 @@ function blocoConciliacao_() {
     ? '<div class="acoes-desconto">' +
         '<button type="button" onclick="ratearDescontoNasLinhas()">Ratear proporcionalmente</button>' +
         '<button type="button" class="secundario" onclick="limparDescontosItens()">Limpar</button>' +
-        '<span>Ou preencha a coluna <strong>Desconto</strong> de cada linha, se você sabe onde foi o abatimento.</span>' +
+        '<span>Ou preencha a coluna <strong>Desc. da linha</strong> item por item, se você sabe onde foi o abatimento. ' +
+          'O valor é o do cupom — sobre o total da linha, não por unidade.</span>' +
       '</div>'
     : '';
 
@@ -557,9 +558,14 @@ function renderizarRevisaoNfce() {
           '" onchange="mudarQtdNfce(' + indice + ', this.value)"></label>' +
         '<label class="campo-inline">Custo un.<input type="number" min="0" step="0.01" value="' + i.custo_unit_bruto.toFixed(2) +
           '" onchange="mudarCustoNfce(' + indice + ', this.value)"></label>' +
-        '<label class="campo-inline' + (i.desconto > 0 ? ' com-desconto' : '') + '">Desconto' +
+        // "da linha" no rótulo porque é a dúvida natural: o desconto vai sobre o
+        // total do item, como vem no cupom — não sobre a unidade. Quem divide
+        // pela quantidade é o sistema.
+        '<label class="campo-inline' + (i.desconto > 0 ? ' com-desconto' : '') + '">Desc. da linha' +
           '<input type="number" min="0" step="0.01" value="' + (Number(i.desconto) || 0).toFixed(2) +
-          '" onchange="mudarDescontoItem(' + indice + ', this.value)"></label>' +
+          '" title="Desconto em reais sobre o total desta linha (' + formatarMoeda(i.qtd * i.custo_unit_bruto) +
+          '), do jeito que aparece no cupom. O sistema divide pela quantidade." ' +
+          'onchange="mudarDescontoItem(' + indice + ', this.value)"></label>' +
         '<button type="button" class="btn-remover-revisao" onclick="removerItemNfce(' + indice + ')" title="Tirar do cupom">×</button>' +
       '</div>' +
     '</div>';
