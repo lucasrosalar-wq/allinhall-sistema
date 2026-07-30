@@ -9,7 +9,12 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
 <script src="https://unpkg.com/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
-<link rel="stylesheet" href="app.css">
+<!-- O ?v= no fim de cada arquivo local existe por um motivo prático: o GitHub Pages
+     entrega o index.html novo rapidinho, mas o navegador reaproveita o .css e o .js
+     que já tem guardados — e a tela fica misturando versão nova com antiga. Trocando
+     o número aqui, a URL muda e o navegador é obrigado a buscar tudo de novo.
+     SEMPRE mude este número ao publicar mudança em .css ou .js. -->
+<link rel="stylesheet" href="app.css?v=20260730a">
 </head>
 <body>
 
@@ -780,11 +785,11 @@
   </div>
 </div>
 
-<script src="shared.js"></script>
-<script src="conferencia.js"></script>
-<script src="gestao.js"></script>
-<script src="reposicao.js"></script>
-<script src="aquisicao.js"></script>
+<script src="shared.js?v=20260730a"></script>
+<script src="conferencia.js?v=20260730a"></script>
+<script src="gestao.js?v=20260730a"></script>
+<script src="reposicao.js?v=20260730a"></script>
+<script src="aquisicao.js?v=20260730a"></script>
 <script>
   if (window.lucide) lucide.createIcons();
 </script>

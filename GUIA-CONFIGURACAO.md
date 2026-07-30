@@ -134,6 +134,20 @@ Passo a passo:
    salva nos favoritos/tela inicial do tablet, e é esse mesmo link que dá pra
    mandar por WhatsApp como **texto** (nunca o arquivo).
 
+**Ao publicar mudança em `.css` ou `.js`, troque o número da versão.** No topo do
+`index.html` os arquivos locais são carregados assim:
+
+```html
+<link rel="stylesheet" href="app.css?v=20260730a">
+<script src="aquisicao.js?v=20260730a"></script>
+```
+
+Esse `?v=` existe por um motivo prático: o GitHub Pages entrega o `index.html`
+novo rapidinho, mas o navegador reaproveita o `.css` e o `.js` que já tem
+guardados — e a tela fica misturando versão nova com antiga, o que dá a impressão
+de que a mudança não subiu. Trocando o número (ex: `20260730a` → `20260730b`), a
+URL muda e o navegador é obrigado a buscar tudo de novo.
+
 Sempre que editar os arquivos depois (ex: trocar a URL do Web App de novo),
 edite direto pela interface do GitHub (ícone de lápis) e faça commit — o site
 atualiza sozinho em cerca de 1 minuto.
