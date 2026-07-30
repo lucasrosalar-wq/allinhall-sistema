@@ -242,7 +242,8 @@ fundamentado, a decisão é sua.
 
 ### O dia a dia
 
-1. **Cupons** — lance onde comprou, a data e os itens com o custo unitário pago.
+1. **Cupons** — importe pelo QR code do cupom (abaixo) ou lance à mão: onde
+   comprou, a data e os itens com o custo unitário pago.
    Cada item vinculado a um produto do catálogo atualiza o `custo_atual` dele.
    O código de barras é opcional, mas vale digitar: é por ele que o sistema
    reconhece o item sozinho nos próximos cupons.
@@ -264,6 +265,54 @@ fundamentado, a decisão é sua.
 
 Variação acima de 20% entra na fila destacada em vermelho — quase sempre é
 promoção pontual ou custo digitado errado, vale conferir antes de aplicar.
+
+### Importar pelo QR code do cupom (NFC-e)
+
+Todo cupom fiscal traz um QR code. Ele abre uma página pública da SEFAZ com o
+cupom inteiro: descrição, código, quantidade e valor unitário de cada item. Ler
+dali tira a digitação do caminho — e não depende de acesso a sistema de terceiro.
+
+Como usar:
+
+1. Escaneie o QR code do cupom com a câmera do celular.
+2. Copie o link que abrir (algo como
+   `https://www.fazenda.pr.gov.br/nfce/qrcode?p=4126...`).
+3. Cole no campo **Importar cupom fiscal** e clique em **Ler cupom**.
+4. Confira a lista que aparece e clique em **Lançar cupom**.
+
+Se o link não funcionar (SEFAZ fora do ar, página pedindo captcha), use a opção
+**"Colar o conteúdo da página"**: abra o link no navegador, selecione tudo
+(Ctrl+A), copie (Ctrl+C) e cole. O sistema entende tanto o HTML da página quanto
+o texto puro que o navegador copia.
+
+**A tela de revisão é obrigatória de propósito.** O sistema lê bem, mas não
+decide sozinho a que produto do seu catálogo cada item corresponde. Cada linha
+mostra um selo:
+
+- **aprendido** (verde) — vínculo que você já confirmou antes para esse mercado.
+- **palpite** (azul) — o sistema deduziu pelo nome. Confira. Ao confirmar, ele
+  aprende e na próxima vez esse item vem verde.
+- **sem selo** — não teve certeza e deixou em branco. Escolha o produto, ou deixe
+  em branco mesmo: o item é lançado no histórico e fica em "Aguardando vínculo".
+
+Linhas em vermelho pedem atenção redobrada: o sistema achou que **não é uma
+unidade de venda**, porque a descrição diz fardo/pack ou porque o custo unitário
+ficou acima do seu preço de venda. Corrija a quantidade e o custo unitário na
+própria linha, ou tire a linha do lançamento com o ×.
+
+Você pode ajustar quantidade, custo unitário e vínculo de qualquer linha antes de
+lançar, e remover linhas que não quer.
+
+**Como o casamento de nome funciona.** A descrição do cupom é abreviada e cada
+mercado abrevia diferente. O sistema compara palavra por palavra aceitando
+prefixo, que é como abreviação funciona: CHOC casa com CHOCOLATE, PIRAQ com
+PIRAQUÊ, JUNG com JUNGLE. Se as duas descrições declaram tamanho e os tamanhos
+não batem, não casa — é o que impede Oreo 270g de virar o Oreo 90g do catálogo.
+E se dois produtos empatam, não palpita nenhum: ambiguidade fica para você.
+
+Medido nos dois cupons reais (Muffato e Assaí, 53 itens): 33 das 44 descrições
+distintas saem pré-vinculadas corretas, e as 11 restantes são ambiguidade
+legítima. Relendo o mesmo cupom depois de confirmar, 100% vem como aprendido.
 
 ### Armadilhas que aparecem em cupom de verdade
 
@@ -314,9 +363,21 @@ digitação, sem refazer nada:
 - Itens que a importação não souber ligar caem no mesmo balde "Aguardando
   vínculo" que já existe.
 
-Quando o acesso sair, o que falta é uma função que leia os dados de lá e chame
-`criarCompra_` com `origem: 'pinaculo'`. O resto do caminho — custo, margem,
-sugestão, aprovação — já está pronto e testado.
+A importação de NFC-e (seção acima) já usa exatamente esse caminho, com
+`origem: 'nfce'` e o CNPJ do emitente como escopo do de-para. Ou seja: o encaixe
+não é teoria, já tem um consumidor real rodando.
+
+Quando o acesso à Pináculo sair, o que falta é uma função que leia os dados de lá
+e chame `criarCompra_` com `origem: 'pinaculo'`. O resto do caminho — custo,
+margem, sugestão, aprovação — já está pronto e testado.
+
+Vale notar o que a Pináculo agrega e o que não agrega. O **custo de compra** você
+já resolve pelo cupom, sem depender de ninguém. O que só ela tem é o **estoque** e
+o **giro** — quanto de cada item saiu, em quanto tempo. Isso abre uma régua de
+margem bem melhor que a atual: item que gira rápido aguenta margem menor com
+lucro total maior, item que encalha precisa de margem maior para valer a
+prateleira. Hoje a faixa é definida por tipo de produto; com giro, ela poderia
+ser definida por comportamento medido.
 
 ### Condomínios (aba `Condominios`)
 - Colunas: `nome_oficial`, `nome_curto`, `endereco`, `bairro`, `cidade`,

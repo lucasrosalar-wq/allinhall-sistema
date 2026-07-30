@@ -269,6 +269,8 @@ function tratarRequisicao_(params) {
         return respostaJson_({ ok: true, dados: atualizarProduto_(params) });
       case 'aplicarPrecos':
         return respostaJson_({ ok: true, dados: aplicarPrecos_(params) });
+      case 'lerNfce':
+        return respostaJson_({ ok: true, dados: lerNfce_(params) });
       default:
         return respostaJson_({ ok: false, erro: 'Ação desconhecida: ' + acao });
     }
@@ -936,6 +938,15 @@ function criarCompra_(params) {
     ];
     escreverLinhaComoTexto_(abaCompras, abaCompras.getLastRow() + 1, linhaCompra, [2, 8]);
 
+    // Um cupom traz o mesmo produto do catálogo em várias linhas — no cupom real,
+    // Bala Fini veio em 4 códigos (um por sabor) e Coca lata em 4 linhas. Gravar
+    // o custo linha por linha faria a última sobrescrever as outras, e o custo do
+    // produto passaria a ser o do último sabor em vez do da compra. Por isso as
+    // linhas vão inteiras pro histórico, mas o custo é consolidado por produto
+    // (média ponderada pela quantidade) e gravado uma vez só, no fim.
+    const consolidado = {};
+    const ordemProdutos = [];
+
     itens.forEach(function (item, indice) {
       const idItem = 'CI' + carimbo + '-' + indice + Math.floor(Math.random() * 90 + 10);
       const qtd = Number(item.qtd) || 0;
@@ -953,14 +964,23 @@ function criarCompra_(params) {
       abaItens.getRange(abaItens.getLastRow() + 1, 1, 1, linha.length).setValues([linha]);
 
       if (item.produto) {
-        registrarCustoProduto_(item.produto, custoUnit, params.data);
+        const nome = String(item.produto);
+        if (!consolidado[nome]) { consolidado[nome] = { qtd: 0, valor: 0 }; ordemProdutos.push(nome); }
+        consolidado[nome].qtd += qtd;
+        consolidado[nome].valor += qtd * custoUnit;
+
         // params.loja existe pra importação passar o CNPJ do emitente, que é um
         // escopo bem mais confiável que o nome digitado à mão.
         aprenderDePara_(item.codigo, item.descricao_cupom || item.produto, item.produto, params.origem || 'manual', params.loja || params.mercado);
       }
     });
 
-    return { id: idCompra, valor_total: arredondar2_(valorTotal) };
+    ordemProdutos.forEach(function (nome) {
+      const a = consolidado[nome];
+      if (a.qtd > 0) registrarCustoProduto_(nome, a.valor / a.qtd, params.data);
+    });
+
+    return { id: idCompra, valor_total: arredondar2_(valorTotal), produtos_com_custo: ordemProdutos.length };
   });
 }
 
@@ -1154,6 +1174,340 @@ function aplicarPrecos_(params) {
 
     return { aplicados: aplicados, ignorados: ignorados };
   });
+}
+
+// ===================== IMPORTAÇÃO DE NFC-e =====================
+// Todo cupom fiscal traz um QR code que abre uma página pública da SEFAZ com o
+// cupom inteiro em HTML — descrição, código, quantidade e valor unitário de cada
+// item. Ler dali é o que tira a digitação do caminho, e não depende de acesso a
+// sistema de terceiro nenhum.
+//
+// A página é da SEFAZ do Paraná (fazenda.pr.gov.br). Outros estados publicam o
+// mesmo dado em layout diferente — se um dia precisar, é aqui que se adapta.
+//
+// Esta função só LÊ e devolve para revisão na tela. Nada é gravado: quem grava é
+// criarCompra_, depois da pessoa conferir. Mesmo princípio do resto da Aquisição.
+
+function lerNfce_(params) {
+  const conteudo = obterHtmlNfce_(params);
+  const cupom = extrairNfce_(conteudo);
+  if (cupom.itens.length === 0) {
+    throw new Error('Não encontrei itens nessa página. Confira se o link é o do QR code do cupom (ou cole o conteúdo da página).');
+  }
+
+  const produtos = lerAbaComoObjetos_(NOMES_ABAS.PRODUTOS);
+  const dePara = lerAbaComoObjetosOpcional_(NOMES_ABAS.DE_PARA) || [];
+  const mapaDePara = {};
+  dePara.forEach(function (d) { mapaDePara[String(d.chave)] = String(d.produto || ''); });
+
+  const nomesCatalogo = produtos.map(function (p) { return String(p.nome); });
+  const precoPorNome = {};
+  produtos.forEach(function (p) { precoPorNome[String(p.nome)] = Number(p.preco) || 0; });
+
+  const escopo = cupom.cnpj || cupom.emitente;
+  const itens = agruparItensIdenticos_(cupom.itens).map(function (item) {
+    // Vínculo já aprendido vence qualquer palpite por nome: a pessoa confirmou
+    // aquele de-para uma vez, e o código da loja é chave exata.
+    const chave = chaveDePara_(item.codigo, item.descricao, escopo);
+    const aprendido = mapaDePara[chave] || '';
+
+    let sugerido = aprendido;
+    let origemVinculo = aprendido ? 'aprendido' : '';
+    if (!sugerido) {
+      const palpite = casarProdutoPorNome_(item.descricao, nomesCatalogo);
+      if (palpite) { sugerido = palpite; origemVinculo = 'palpite'; }
+    }
+
+    const precoVenda = precoPorNome[sugerido] || 0;
+    // Dois sinais de que a linha não é uma unidade de venda: a descrição diz que
+    // é fardo/pack, ou o custo unitário encostou no preço de venda. O segundo
+    // pega o caso real "PACK GUARANA ANT UN — 1 un × R$ 52,99", que entraria como
+    // se uma latinha custasse 52,99 e faria o sistema sugerir preço absurdo.
+    const pareceFardo = /\b(PACK|FARDO|ENGRAD|ENGRADADO)\b/.test(normalizarTexto_(item.descricao));
+    const custoAcimaDoPreco = precoVenda > 0 && item.custo_unit >= precoVenda;
+
+    return {
+      descricao_cupom: item.descricao,
+      codigo: item.codigo,
+      unidade: item.unidade,
+      qtd: item.qtd,
+      custo_unit: item.custo_unit,
+      custo_total: arredondar2_(item.qtd * item.custo_unit),
+      produto: sugerido,
+      origem_vinculo: origemVinculo,
+      preco_venda_atual: precoVenda,
+      alerta_fardo: pareceFardo,
+      alerta_custo_acima: custoAcimaDoPreco
+    };
+  });
+
+  return {
+    emitente: cupom.emitente,
+    cnpj: cupom.cnpj,
+    chave: cupom.chave,
+    data: cupom.data,
+    itens: itens,
+    total_itens: arredondar2_(itens.reduce(function (s, i) { return s + i.custo_total; }, 0)),
+    linhas_originais: cupom.itens.length
+  };
+}
+
+// Aceita o link do QR code (busca a página) ou o conteúdo já colado. O link é o
+// caminho normal; colar existe porque a busca pode falhar (SEFAZ fora do ar,
+// página exigindo captcha) e nesse caso a pessoa abre no navegador e copia.
+function obterHtmlNfce_(params) {
+  const colado = String(params.conteudo || '').trim();
+  if (colado) return colado;
+
+  const url = String(params.url || '').trim();
+  if (!url) throw new Error('Informe o link do QR code do cupom ou cole o conteúdo da página.');
+  if (url.indexOf('http') !== 0) throw new Error('O link precisa começar com http.');
+
+  let resposta;
+  try {
+    // O "p=" da URL da SEFAZ tem barras verticais, que precisam ir codificadas.
+    resposta = UrlFetchApp.fetch(url.replace(/\|/g, '%7C'), { muteHttpExceptions: true, followRedirects: true });
+  } catch (err) {
+    throw new Error('Não consegui acessar a página do cupom. Abra o link no navegador, copie a página e cole aqui.');
+  }
+  if (resposta.getResponseCode() !== 200) {
+    throw new Error('A página do cupom respondeu ' + resposta.getResponseCode() + '. Abra o link no navegador, copie a página e cole aqui.');
+  }
+  return resposta.getContentText();
+}
+
+function textoDeHtml_(trecho) {
+  return String(trecho || '')
+    .replace(/<[^>]+>/g, ' ')
+    .replace(/&nbsp;/g, ' ').replace(/&amp;/g, '&').replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>').replace(/&quot;/g, '"').replace(/&#39;/g, "'")
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+// "1.234,56" -> 1234.56
+function numeroBr_(texto) {
+  const limpo = String(texto || '').replace(/\./g, '').replace(',', '.');
+  const n = Number(limpo);
+  return isNaN(n) ? 0 : n;
+}
+
+function extrairNfce_(conteudo) {
+  const emitente = textoDeHtml_((conteudo.match(/class="txtTopo"[^>]*>([\s\S]*?)<\/div>/) || [])[1])
+    || primeiraLinhaComNome_(conteudo);
+  const cnpj = (conteudo.match(/CNPJ:\s*([\d.\/-]{14,})/) || [])[1] || '';
+  const chave = (conteudo.replace(/\s/g, '').match(/(\d{44})/) || [])[1] || '';
+  // O DANFE mostra dd/mm/aaaa hh:mm:ss; guardamos só a data, em ISO.
+  const dataBr = (conteudo.match(/(\d{2}\/\d{2}\/\d{4})/) || [])[1] || '';
+  const partes = dataBr.split('/');
+  const data = partes.length === 3 ? partes[2] + '-' + partes[1] + '-' + partes[0] : '';
+
+  // Duas formas de chegar aqui: o HTML da página (link buscado pelo servidor, ou
+  // arquivo salvo) e o texto puro que o navegador entrega num Ctrl+A/Ctrl+C — que
+  // não tem tag nenhuma. Os dois precisam funcionar, senão a alternativa de colar
+  // não serve pra nada justamente na hora em que o link falhou.
+  const itens = extrairItensHtml_(conteudo);
+  return {
+    emitente: emitente,
+    cnpj: cnpj,
+    chave: chave,
+    data: data,
+    itens: itens.length ? itens : extrairItensTexto_(conteudo)
+  };
+}
+
+// No texto puro não existe a div txtTopo pra dizer quem é o emitente. Mas o DANFE
+// sempre imprime o nome logo acima do CNPJ, então é a última linha com letras
+// antes da linha do CNPJ — bem mais firme que "primeira linha que parece nome",
+// que pegava cabeçalho de arquivo salvo em vez do mercado.
+function primeiraLinhaComNome_(conteudo) {
+  const linhas = String(conteudo).split(/[\r\n]+/).map(function (l) { return l.trim(); });
+  const indiceCnpj = linhas.findIndex(function (l) { return l.indexOf('CNPJ') !== -1; });
+  if (indiceCnpj > 0) {
+    for (let i = indiceCnpj - 1; i >= 0; i--) {
+      if (/[A-Za-zÀ-ÿ]{4}/.test(linhas[i])) return linhas[i];
+    }
+  }
+  return '';
+}
+
+function extrairItensHtml_(html) {
+  const itens = [];
+  const blocos = html.match(/<tr[^>]*id="Item[^"]*"[^>]*>[\s\S]*?<\/tr>/g) || [];
+  blocos.forEach(function (bloco) {
+    const descricao = textoDeHtml_((bloco.match(/class="txtTit2?"[^>]*>([\s\S]*?)<\/span>/) || [])[1]);
+    if (!descricao) return;
+    itens.push({
+      descricao: descricao,
+      codigo: ((bloco.match(/C[óo]digo:\s*([^)<]+)/) || [])[1] || '').trim(),
+      qtd: numeroBr_((bloco.match(/Qtde\.?:\s*<\/strong>\s*([\d.,]+)/) || [])[1]),
+      unidade: ((bloco.match(/UN:\s*<\/strong>\s*([^<]+)/) || [])[1] || '').trim(),
+      custo_unit: numeroBr_((bloco.match(/Vl\.?\s*Unit\.?:\s*<\/strong>\s*(?:&nbsp;|\s)*([\d.,]+)/) || [])[1])
+    });
+  });
+  return itens;
+}
+
+// No texto puro cada item vira algo como:
+//   JUNG END 500ML LIMAO (Código: 1216767)
+//   Qtde.:1  UN: Un  Vl. Unit.: 3,99   Vl. Total 3,99
+// O "(Código:" é a única âncora confiável: a descrição é o que vem antes dele, e
+// quantidade/unidade/valor são o que vem depois, até o próximo item.
+function extrairItensTexto_(texto) {
+  const pedacos = String(texto).split(/\(C[óo]digo:\s*/);
+  if (pedacos.length < 2) return [];
+
+  const itens = [];
+  for (let i = 1; i < pedacos.length; i++) {
+    const anterior = pedacos[i - 1];
+    const atual = pedacos[i];
+
+    const codigo = (atual.match(/^([^)]*)\)/) || [])[1];
+    if (codigo === undefined) continue;
+
+    // Descrição = último trecho de texto do pedaço anterior. Nas linhas seguintes
+    // à primeira, o pedaço anterior termina com "Vl. Total <valor>" e aí vem a
+    // descrição do item atual — pegar da última quebra de linha resolve os dois.
+    const linhas = anterior.split(/[\r\n]+/).map(function (l) { return l.trim(); }).filter(function (l) { return l; });
+    let descricao = linhas.length ? linhas[linhas.length - 1] : '';
+    // Se a descrição vier grudada num valor ("3,99 COOK PIRAQ 80G CHOC"), corta o número da frente.
+    descricao = descricao.replace(/^[\d.,]+\s+/, '').replace(/^Vl\.?\s*Total\s*/i, '').trim();
+    if (!descricao) continue;
+
+    itens.push({
+      descricao: descricao,
+      codigo: codigo.trim(),
+      qtd: numeroBr_((atual.match(/Qtde\.?:\s*([\d.,]+)/) || [])[1]),
+      unidade: ((atual.match(/UN:\s*([A-Za-z]+)/) || [])[1] || '').trim(),
+      custo_unit: numeroBr_((atual.match(/Vl\.?\s*Unit\.?:\s*([\d.,]+)/) || [])[1])
+    });
+  }
+  return itens;
+}
+
+// Um cupom repete a mesma linha várias vezes (no cupom real, "COOK PIRAQ 80G
+// BAUN" apareceu 3 vezes: 1, 1 e 18 unidades). Junta o que é literalmente o
+// mesmo item — mesmo código e mesma descrição — somando quantidade e tirando o
+// custo médio ponderado. Só isso: agrupar por produto do catálogo aqui seria
+// errado, porque o vínculo ainda vai passar pela revisão da pessoa.
+function agruparItensIdenticos_(itens) {
+  const mapa = {};
+  const ordem = [];
+  itens.forEach(function (i) {
+    const chave = normalizarTexto_(i.codigo) + '|' + normalizarTexto_(i.descricao);
+    if (!mapa[chave]) {
+      mapa[chave] = { descricao: i.descricao, codigo: i.codigo, unidade: i.unidade, qtd: 0, valor: 0 };
+      ordem.push(chave);
+    }
+    mapa[chave].qtd += i.qtd;
+    mapa[chave].valor += i.qtd * i.custo_unit;
+  });
+  return ordem.map(function (chave) {
+    const a = mapa[chave];
+    return {
+      descricao: a.descricao,
+      codigo: a.codigo,
+      unidade: a.unidade,
+      qtd: a.qtd,
+      custo_unit: a.qtd > 0 ? arredondar2_(a.valor / a.qtd) : 0
+    };
+  });
+}
+
+// ===================== CASAMENTO DE NOME =====================
+// A descrição do cupom é abreviada e cada mercado abrevia do seu jeito:
+// "CHOC GAROTO 80G CAJU" precisa virar "Chocolate Garoto 80g - Sabores".
+//
+// Não uso dicionário de abreviação (frágil, interminável): comparo palavra por
+// palavra aceitando prefixo, que é justamente como a abreviação funciona —
+// CHOC casa com CHOCOLATE, PIRAQ com PIRAQUÊ, JUNG com JUNGLE.
+//
+// Medido nos 53 itens de dois cupons reais: 33 de 44 descrições distintas saem
+// pré-vinculadas certas, e o que sobra é ambiguidade de verdade (tamanho que
+// mudou de embalagem, variante de sabor, produto que não está no catálogo).
+// Nada disso é gravado sem a pessoa confirmar na tela — o palpite só poupa
+// clique, nunca decide sozinho.
+
+const RUIDO_NOME_ = {
+  DE: 1, DA: 1, DO: 1, COM: 1, EM: 1, PARA: 1,
+  SABORES: 1, VARIADOS: 1, VARIADO: 1, DIVERSOS: 1,
+  UN: 1, PC: 1, LA: 1, CX: 1, TBL: 1, FAT: 1, TRAD: 1,
+  UNIDADES: 1, PACOTE: 1, CAIXA: 1, GARRAFA: 1
+};
+const PADRAO_TAMANHO_ = /^\d+(G|KG|ML|L|M|UN)$/;
+
+function tokensNome_(texto) {
+  return normalizarTexto_(texto).split(' ').filter(function (t) {
+    return t.length >= 2 && !RUIDO_NOME_[t];
+  });
+}
+
+// Uma letra de diferença em palavra longa — resolve CRISTAL x CRYSTAL, que é
+// grafia de marca que muda de um cupom pro outro.
+function diferencaDeUmaLetra_(a, b) {
+  if (Math.abs(a.length - b.length) > 1) return false;
+  if (a.length === b.length) {
+    let diferentes = 0;
+    for (let i = 0; i < a.length; i++) if (a.charAt(i) !== b.charAt(i)) diferentes++;
+    return diferentes === 1;
+  }
+  const curto = a.length < b.length ? a : b;
+  const longo = a.length < b.length ? b : a;
+  for (let i = 0; i < longo.length; i++) {
+    if (longo.slice(0, i) + longo.slice(i + 1) === curto) return true;
+  }
+  return false;
+}
+
+function tokensCasam_(a, b) {
+  if (a === b) return true;
+  if (a.length >= 3 && b.indexOf(a) === 0) return true;
+  if (b.length >= 3 && a.indexOf(b) === 0) return true;
+  if (a.length >= 5 && b.length >= 5 && diferencaDeUmaLetra_(a, b)) return true;
+  return false;
+}
+
+function pontuarCasamento_(descricao, nomeCatalogo) {
+  const tc = tokensNome_(descricao);
+  const tn = tokensNome_(nomeCatalogo);
+  if (tc.length === 0 || tn.length === 0) return -1;
+
+  // Se os dois declaram tamanho e os tamanhos não batem, não é o mesmo produto.
+  // É o que impede Oreo 270g de virar Oreo 90g, e Elma Chips 35g virar a de 40g.
+  const tamC = tc.filter(function (t) { return PADRAO_TAMANHO_.test(t); });
+  const tamN = tn.filter(function (t) { return PADRAO_TAMANHO_.test(t); });
+  if (tamC.length && tamN.length) {
+    const bate = tamC.some(function (a) { return tamN.some(function (b) { return tokensCasam_(a, b); }); });
+    if (!bate) return -1;
+  }
+
+  const casados = tc.filter(function (t) {
+    return tn.some(function (n) { return tokensCasam_(t, n); });
+  });
+  const palavras = casados.filter(function (t) { return !PADRAO_TAMANHO_.test(t); });
+  // Exige pelo menos uma palavra (não só o tamanho) e dois sinais no total —
+  // senão "80G" sozinho casaria com meio catálogo.
+  if (palavras.length < 1 || casados.length < 2) return -1;
+
+  // Palavra pesa mais que número; nome de catálogo mais enxuto desempata.
+  return palavras.length * 10 + casados.length - tn.length * 0.01;
+}
+
+function casarProdutoPorNome_(descricao, nomesCatalogo) {
+  let melhorNota = -1;
+  nomesCatalogo.forEach(function (nome) {
+    const nota = pontuarCasamento_(descricao, nome);
+    if (nota > melhorNota) melhorNota = nota;
+  });
+  if (melhorNota < 0) return '';
+
+  // Empate técnico no topo = ambiguidade real (ex: "COOK PIRAQ 80G CHOC" serve
+  // pro Cookie Piraquê e pro Biscoito Piraquê com cobertura de chocolate).
+  // Nesse caso não palpita: deixa a pessoa escolher, que é quem sabe.
+  const empatados = nomesCatalogo.filter(function (nome) {
+    return Math.abs(pontuarCasamento_(descricao, nome) - melhorNota) < 0.5;
+  });
+  return empatados.length === 1 ? empatados[0] : '';
 }
 
 function excluirReposicao_(params) {
