@@ -295,13 +295,51 @@ mostra um selo:
 - **sem selo** — não teve certeza e deixou em branco. Escolha o produto, ou deixe
   em branco mesmo: o item é lançado no histórico e fica em "Aguardando vínculo".
 
-Linhas em vermelho pedem atenção redobrada: o sistema achou que **não é uma
-unidade de venda**, porque a descrição diz fardo/pack ou porque o custo unitário
-ficou acima do seu preço de venda. Corrija a quantidade e o custo unitário na
-própria linha, ou tire a linha do lançamento com o ×.
-
 Você pode ajustar quantidade, custo unitário e vínculo de qualquer linha antes de
-lançar, e remover linhas que não quer.
+lançar, remover linhas que não quer com o ×, e corrigir o mercado, a data e o
+documento no topo — útil quando a leitura da página vem com algo torto.
+
+### Fardo: informe só quantas unidades vêm dentro
+
+Linhas em vermelho são as que o sistema achou que **não são uma unidade de
+venda** — porque a descrição diz fardo/pack, ou porque o custo unitário ficou
+acima do seu próprio preço de venda.
+
+O caso real: `PACK GUARANA ANT UN — 1 un × R$ 52,99`. Isso é um fardo de 12
+latinhas. Entrando como está, o sistema entenderia que uma latinha custa R$ 52,99
+e sugeriria vender a **R$ 85,89**.
+
+Na linha vermelha tem um campo **Unidades por fardo**. Digite `12` e clique em
+**Desmembrar** — o sistema faz a conta:
+
+```
+Fardo de 12 un desmembrado: R$ 52,99 ÷ 12 = R$ 4,42/un
+```
+
+Quantidade vira 12, custo unitário vira R$ 4,42, e o total do cupom continua
+R$ 929,37 — o valor pago não muda, muda em quantas unidades ele se divide. Aí a
+sugestão sai R$ 7,49, que é preço de latinha.
+
+Você só informa o número que o sistema não tem como saber. A conta é dele.
+
+Se o alerta estiver errado — é unidade mesmo, só é um item caro — clique em
+**É unidade mesmo** e o aviso sai.
+
+### Editar um cupom lançado
+
+No cartão de cada cupom em "Cupons lançados" tem **Editar**. Abre o mesmo bloco de
+revisão com tudo carregado: mercado, data, documento, observação e todos os itens.
+
+Dá para corrigir quantidade, custo, vínculo, remover item e mudar o cabeçalho.
+Ao salvar, o custo dos produtos daquele cupom é recalculado.
+
+Duas coisas para saber:
+
+- **Produto que você tirar do cupom mantém o custo que estava.** O sistema não tem
+  como saber qual era o custo antes daquele lançamento. Para corrigir um custo, o
+  caminho é lançar o custo certo.
+- **Editar não mexe em preço.** Preço só muda pela aba Ajuste de preço, com a sua
+  aprovação — como todo o resto.
 
 **Como o casamento de nome funciona.** A descrição do cupom é abreviada e cada
 mercado abrevia diferente. O sistema compara palavra por palavra aceitando

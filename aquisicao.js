@@ -247,10 +247,13 @@ async function excluirCupom(id) {
   }
 }
 
-// ===================== IMPORTAÇÃO DE NFC-e =====================
-// O cupom lido fica aqui até a pessoa confirmar. Nada é gravado antes disso:
-// a leitura é boa, mas quem decide o vínculo de cada item é ela.
-let cupomLido = null;
+// ===================== IMPORTAÇÃO E EDIÇÃO DE CUPOM =====================
+// O mesmo bloco de revisão serve pros dois casos, de propósito: conferir um cupom
+// que acabou de ser importado e editar um cupom já lançado são o mesmo trabalho —
+// olhar linha por linha, arrumar vínculo, quantidade e custo. Duas telas
+// separadas pra isso viravam duas telas pra manter em sincronia.
+let cupomEmRevisao = null;      // { id?, mercado, cnpj, data, documento, observacao, itens[] }
+let modoRevisao = 'importar';   // 'importar' | 'editar'
 
 function alternarColarNfce() {
   document.getElementById('blocoColarNfce').classList.toggle('oculto');
@@ -267,12 +270,24 @@ async function lerNfce() {
   const botao = document.getElementById('botaoLerNfce');
   botao.disabled = true;
   botao.classList.add('carregando');
-  mostrarBannerNfce_('', '');
+  mostrarBannerNfce_('carregando', 'Lendo o cupom... isso pode levar alguns segundos.');
   try {
     // POST porque o conteúdo colado da página é grande demais pra querystring.
     const resposta = await chamarApi({ action: 'lerNfce', url: url, conteudo: conteudo }, 'POST');
     if (!resposta.ok) throw new Error(resposta.erro || 'Não foi possível ler o cupom.');
-    cupomLido = resposta.dados;
+
+    const lido = resposta.dados;
+    modoRevisao = 'importar';
+    cupomEmRevisao = {
+      mercado: lido.emitente,
+      cnpj: lido.cnpj,
+      data: lido.data,
+      documento: lido.chave,
+      observacao: '',
+      linhas_originais: lido.linhas_originais,
+      itens: lido.itens
+    };
+    mostrarBannerNfce_('', '');
     renderizarRevisaoNfce();
     document.getElementById('blocoRevisaoNfce').scrollIntoView({ behavior: 'smooth', block: 'start' });
   } catch (err) {
@@ -283,34 +298,86 @@ async function lerNfce() {
   }
 }
 
+// Abre um cupom já lançado no mesmo bloco de revisão.
+function editarCupom(id) {
+  const compra = dadosAquisicao.compras.find(function (c) { return c.id === id; });
+  if (!compra) return;
+
+  modoRevisao = 'editar';
+  cupomEmRevisao = {
+    id: compra.id,
+    mercado: compra.mercado,
+    cnpj: '',
+    data: compra.data,
+    documento: compra.documento,
+    observacao: compra.observacao,
+    itens: compra.itens.map(function (i) {
+      const produto = dadosAquisicao.produtos.find(function (p) { return p.nome === i.produto; });
+      return {
+        descricao_cupom: i.descricao_cupom,
+        codigo: i.codigo,
+        unidade: '',
+        qtd: i.quantidade,
+        custo_unit: i.custo_unit,
+        custo_total: i.custo_total,
+        produto: i.produto,
+        origem_vinculo: i.produto ? 'confirmado' : '',
+        preco_venda_atual: produto ? produto.preco : 0,
+        alerta_fardo: false,
+        alerta_custo_acima: !!(produto && produto.preco > 0 && i.custo_unit >= produto.preco)
+      };
+    })
+  };
+  renderizarRevisaoNfce();
+  document.getElementById('blocoRevisaoNfce').scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
 function mostrarBannerNfce_(tipo, mensagem) {
   const banner = document.getElementById('bannerNfce');
   banner.className = 'banner ' + tipo;
   banner.textContent = mensagem;
 }
 
+function mudarCabecalhoRevisao() {
+  if (!cupomEmRevisao) return;
+  cupomEmRevisao.mercado = document.getElementById('mercadoRevisao').value;
+  cupomEmRevisao.data = document.getElementById('dataRevisao').value;
+  cupomEmRevisao.documento = document.getElementById('documentoRevisao').value;
+  cupomEmRevisao.observacao = document.getElementById('observacaoRevisao').value;
+}
+
 function renderizarRevisaoNfce() {
   const bloco = document.getElementById('blocoRevisaoNfce');
-  if (!cupomLido) { bloco.classList.add('oculto'); return; }
+  if (!cupomEmRevisao) { bloco.classList.add('oculto'); return; }
   bloco.classList.remove('oculto');
 
-  const juntadas = cupomLido.linhas_originais - cupomLido.itens.length;
-  document.getElementById('subtituloRevisaoNfce').textContent =
-    cupomLido.emitente + ' · ' + (cupomLido.data ? formatarDataBR(cupomLido.data) : 'sem data') +
-    ' · ' + cupomLido.itens.length + ' itens' +
-    (juntadas > 0 ? ' (' + juntadas + ' linha(s) repetida(s) já somada(s))' : '');
+  const editando = modoRevisao === 'editar';
+  document.getElementById('tituloRevisaoNfce').textContent = editando ? 'Editar cupom' : 'Confira antes de lançar';
+  document.getElementById('rotuloTotalRevisao').textContent = editando ? 'Total do cupom' : 'Total a lançar';
+  document.getElementById('botaoLancarNfce').textContent = editando ? 'Salvar alterações' : 'Lançar cupom';
 
-  const semVinculo = cupomLido.itens.filter(function (i) { return !i.produto; }).length;
-  const palpites = cupomLido.itens.filter(function (i) { return i.origem_vinculo === 'palpite'; }).length;
-  const fardos = cupomLido.itens.filter(function (i) { return i.alerta_fardo || i.alerta_custo_acima; }).length;
+  const juntadas = (cupomEmRevisao.linhas_originais || 0) - cupomEmRevisao.itens.length;
+  document.getElementById('subtituloRevisaoNfce').textContent = editando
+    ? 'Alterar quantidade, custo ou vínculo recalcula o custo dos produtos deste cupom.'
+    : cupomEmRevisao.itens.length + ' itens lidos' +
+      (juntadas > 0 ? ' · ' + juntadas + ' linha(s) repetida(s) já somada(s)' : '');
+
+  document.getElementById('mercadoRevisao').value = cupomEmRevisao.mercado || '';
+  document.getElementById('dataRevisao').value = cupomEmRevisao.data || '';
+  document.getElementById('documentoRevisao').value = cupomEmRevisao.documento || '';
+  document.getElementById('observacaoRevisao').value = cupomEmRevisao.observacao || '';
+
+  const suspeitos = cupomEmRevisao.itens.filter(function (i) { return itemSuspeito_(i); }).length;
+  const palpites = cupomEmRevisao.itens.filter(function (i) { return i.origem_vinculo === 'palpite'; }).length;
+  const semVinculo = cupomEmRevisao.itens.filter(function (i) { return !i.produto; }).length;
 
   const avisos = [];
-  if (fardos) avisos.push('<div class="aviso-revisao grave"><strong>' + fardos + ' item(ns) parecem fardo/pack.</strong> ' +
-    'O custo aí é do fardo inteiro, não da unidade. Corrija a quantidade e o custo unitário, ou deixe sem vínculo.</div>');
-  if (palpites) avisos.push('<div class="aviso-revisao"><strong>' + palpites + ' vínculo(s) são palpite do sistema</strong> (marcados em azul). ' +
-    'Confira — na próxima vez que esse item aparecer, ele vem já aprendido.</div>');
+  if (suspeitos) avisos.push('<div class="aviso-revisao grave"><strong>' + suspeitos + ' item(ns) parecem ser fardo, não unidade.</strong> ' +
+    'Informe quantas unidades vêm no fardo no campo da própria linha — o sistema divide o custo pra você.</div>');
+  if (palpites) avisos.push('<div class="aviso-revisao"><strong>' + palpites + ' vínculo(s) são palpite do sistema</strong> (em azul). ' +
+    'Confira — ao confirmar, ele aprende e na próxima vez esse item vem verde.</div>');
   if (semVinculo) avisos.push('<div class="aviso-revisao"><strong>' + semVinculo + ' item(ns) sem vínculo.</strong> ' +
-    'Escolha o produto do catálogo, ou deixe em branco: eles são lançados no histórico e ficam esperando em "Aguardando vínculo".</div>');
+    'Escolha o produto, ou deixe em branco: o item entra no histórico e fica em "Aguardando vínculo".</div>');
   document.getElementById('avisosRevisaoNfce').innerHTML = avisos.join('');
 
   const opcoes = '<option value="">Sem vínculo</option>' +
@@ -319,110 +386,194 @@ function renderizarRevisaoNfce() {
     }).join('');
 
   const lista = document.getElementById('listaRevisaoNfce');
-  lista.innerHTML = cupomLido.itens.map(function (i, indice) {
-    const suspeito = i.alerta_fardo || i.alerta_custo_acima;
+  lista.innerHTML = cupomEmRevisao.itens.map(function (i, indice) {
+    const suspeito = itemSuspeito_(i);
     const selo = i.origem_vinculo === 'palpite'
       ? '<span class="selo-vinculo palpite">palpite</span>'
       : (i.origem_vinculo === 'aprendido' ? '<span class="selo-vinculo aprendido">aprendido</span>' : '');
-    const motivoSuspeita = i.alerta_fardo
-      ? 'a descrição indica fardo/pack'
-      : 'o custo unitário está acima do preço de venda (' + formatarMoeda(i.preco_venda_atual) + ')';
+
+    // O bloco do fardo pede o único número que só a pessoa sabe — quantas unidades
+    // vêm no fardo. O resto (quantidade final e custo por unidade) é conta, e conta
+    // é trabalho do sistema. A versão anterior pedia os dois números já calculados,
+    // e era isso que confundia na hora de lançar.
+    const blocoFardo = suspeito
+      ? '<div class="bloco-fardo">' +
+          '<div class="motivo-fardo">' +
+            (i.alerta_fardo
+              ? 'A descrição indica fardo/pack.'
+              : 'O custo unitário (' + formatarMoeda(i.custo_unit) + ') está acima do seu preço de venda (' + formatarMoeda(i.preco_venda_atual) + ').') +
+          '</div>' +
+          '<div class="acao-fardo">' +
+            '<label>Unidades por fardo' +
+              '<input type="number" min="2" step="1" id="unidadesFardo-' + indice + '" placeholder="ex: 12">' +
+            '</label>' +
+            '<button type="button" onclick="desmembrarFardo(' + indice + ')">Desmembrar</button>' +
+            '<button type="button" class="btn-fardo-ignorar" onclick="ignorarAlertaFardo(' + indice + ')">É unidade mesmo</button>' +
+          '</div>' +
+        '</div>'
+      : '';
+
+    const notaDesmembrado = i.desmembrado
+      ? '<div class="nota-desmembrado">Fardo de ' + i.desmembrado + ' un desmembrado: ' +
+          formatarMoeda(i.custo_total) + ' ÷ ' + i.qtd + ' = ' + formatarMoeda(i.custo_unit) + '/un</div>'
+      : '';
 
     return '<div class="linha-revisao' + (suspeito ? ' suspeita' : '') + '">' +
       '<div class="cabecalho-revisao">' +
         '<div class="desc">' + escaparHtml_(i.descricao_cupom) + selo +
-          '<span class="meta">' + (i.codigo ? 'cód ' + escaparHtml_(i.codigo) + ' · ' : '') + i.unidade + '</span>' +
+          '<span class="meta">' + (i.codigo ? 'cód ' + escaparHtml_(i.codigo) + ' · ' : '') + escaparHtml_(i.unidade || '') + '</span>' +
         '</div>' +
         '<div class="valor">' + formatarMoeda(i.custo_total) + '</div>' +
       '</div>' +
-      (suspeito ? '<div class="alerta-linha">Confira: ' + motivoSuspeita + '.</div>' : '') +
+      blocoFardo +
+      notaDesmembrado +
       '<div class="controles-revisao">' +
         '<select onchange="mudarVinculoNfce(' + indice + ', this.value)">' + opcoes + '</select>' +
         '<label class="campo-inline">Qtd<input type="number" min="0" step="1" value="' + i.qtd +
           '" onchange="mudarQtdNfce(' + indice + ', this.value)"></label>' +
-        '<label class="campo-inline">Custo un.<input type="number" min="0" step="0.01" value="' + i.custo_unit +
+        '<label class="campo-inline">Custo un.<input type="number" min="0" step="0.01" value="' + i.custo_unit.toFixed(2) +
           '" onchange="mudarCustoNfce(' + indice + ', this.value)"></label>' +
-        '<button type="button" class="btn-remover-revisao" onclick="removerItemNfce(' + indice + ')" title="Tirar do lançamento">×</button>' +
+        '<button type="button" class="btn-remover-revisao" onclick="removerItemNfce(' + indice + ')" title="Tirar do cupom">×</button>' +
       '</div>' +
     '</div>';
   }).join('');
 
   lista.querySelectorAll('.linha-revisao').forEach(function (el, indice) {
-    el.querySelector('select').value = cupomLido.itens[indice].produto || '';
+    el.querySelector('select').value = cupomEmRevisao.itens[indice].produto || '';
   });
 
   document.getElementById('totalRevisaoNfce').textContent = formatarMoeda(
-    cupomLido.itens.reduce(function (s, i) { return s + i.custo_total; }, 0));
+    cupomEmRevisao.itens.reduce(function (s, i) { return s + i.custo_total; }, 0));
+}
+
+// Linha que provavelmente não é uma unidade de venda. Deixa de ser suspeita depois
+// de desmembrada ou quando a pessoa diz que é unidade mesmo.
+function itemSuspeito_(item) {
+  if (item.desmembrado || item.fardo_ignorado) return false;
+  return !!(item.alerta_fardo || item.alerta_custo_acima);
+}
+
+function desmembrarFardo(indice) {
+  const item = cupomEmRevisao.itens[indice];
+  const campo = document.getElementById('unidadesFardo-' + indice);
+  const unidades = Math.floor(Number(campo.value) || 0);
+  if (unidades < 2) {
+    mostrarBannerRevisaoNfce_('erro', 'Informe quantas unidades vêm no fardo (2 ou mais).');
+    campo.focus();
+    return;
+  }
+
+  // O valor pago na linha é o que o cupom diz e não muda — o que muda é em quantas
+  // unidades ele se divide. Guardo o custo unitário com precisão cheia pra soma do
+  // cupom continuar batendo com o papel; a tela mostra 2 casas.
+  const valorDaLinha = item.qtd * item.custo_unit;
+  item.qtd = item.qtd * unidades;
+  item.custo_unit = valorDaLinha / item.qtd;
+  item.custo_total = Math.round(valorDaLinha * 100) / 100;
+  item.desmembrado = unidades;
+
+  // Com o custo por unidade correto, o alerta de "custo acima do preço" precisa ser
+  // reavaliado: se ainda estiver acima, continua valendo o aviso.
+  item.alerta_fardo = false;
+  item.alerta_custo_acima = !!(item.preco_venda_atual > 0 && item.custo_unit >= item.preco_venda_atual);
+  if (item.alerta_custo_acima) item.desmembrado = 0;
+
+  mostrarBannerRevisaoNfce_('', '');
+  renderizarRevisaoNfce();
+}
+
+function ignorarAlertaFardo(indice) {
+  cupomEmRevisao.itens[indice].fardo_ignorado = true;
+  renderizarRevisaoNfce();
 }
 
 function mudarVinculoNfce(indice, produto) {
-  cupomLido.itens[indice].produto = produto;
+  const item = cupomEmRevisao.itens[indice];
+  item.produto = produto;
   // Escolha da pessoa deixa de ser palpite — e some o selo azul.
-  cupomLido.itens[indice].origem_vinculo = produto ? 'confirmado' : '';
+  item.origem_vinculo = produto ? 'confirmado' : '';
+  // Vinculado a outro produto, o preço de venda de referência muda, e com ele o
+  // alerta de custo acima do preço.
+  const doCatalogo = dadosAquisicao.produtos.find(function (p) { return p.nome === produto; });
+  item.preco_venda_atual = doCatalogo ? doCatalogo.preco : 0;
+  item.alerta_custo_acima = !!(item.preco_venda_atual > 0 && item.custo_unit >= item.preco_venda_atual);
   renderizarRevisaoNfce();
 }
 
 function mudarQtdNfce(indice, valor) {
-  const item = cupomLido.itens[indice];
-  item.qtd = Math.max(0, Number(valor) || 0);
+  const item = cupomEmRevisao.itens[indice];
+  item.qtd = Math.max(0, Math.floor(Number(valor) || 0));
   item.custo_total = Math.round(item.qtd * item.custo_unit * 100) / 100;
   renderizarRevisaoNfce();
 }
 
 function mudarCustoNfce(indice, valor) {
-  const item = cupomLido.itens[indice];
+  const item = cupomEmRevisao.itens[indice];
   item.custo_unit = Math.max(0, Number(String(valor).replace(',', '.')) || 0);
   item.custo_total = Math.round(item.qtd * item.custo_unit * 100) / 100;
+  item.alerta_custo_acima = !!(item.preco_venda_atual > 0 && item.custo_unit >= item.preco_venda_atual);
   renderizarRevisaoNfce();
 }
 
 function removerItemNfce(indice) {
-  cupomLido.itens.splice(indice, 1);
-  if (cupomLido.itens.length === 0) { cancelarRevisaoNfce(); return; }
+  cupomEmRevisao.itens.splice(indice, 1);
+  if (cupomEmRevisao.itens.length === 0) { cancelarRevisaoNfce(); return; }
   renderizarRevisaoNfce();
 }
 
 function cancelarRevisaoNfce() {
-  cupomLido = null;
+  cupomEmRevisao = null;
+  modoRevisao = 'importar';
   document.getElementById('blocoRevisaoNfce').classList.add('oculto');
   document.getElementById('urlNfce').value = '';
   document.getElementById('conteudoNfce').value = '';
+  mostrarBannerRevisaoNfce_('', '');
 }
 
 async function lancarNfce() {
-  if (!cupomLido || cupomLido.itens.length === 0) return;
+  if (!cupomEmRevisao || cupomEmRevisao.itens.length === 0) return;
+  mudarCabecalhoRevisao();
 
-  const validos = cupomLido.itens.filter(function (i) { return i.qtd > 0 && i.custo_unit > 0; });
+  if (!cupomEmRevisao.mercado) { mostrarBannerRevisaoNfce_('erro', 'Informe onde a compra foi feita.'); return; }
+  if (!cupomEmRevisao.data) { mostrarBannerRevisaoNfce_('erro', 'Informe a data da compra.'); return; }
+
+  const validos = cupomEmRevisao.itens.filter(function (i) { return i.qtd > 0 && i.custo_unit > 0; });
   if (validos.length === 0) {
     mostrarBannerRevisaoNfce_('erro', 'Nenhum item com quantidade e custo válidos.');
     return;
   }
 
+  const editando = modoRevisao === 'editar';
   const botao = document.getElementById('botaoLancarNfce');
   botao.disabled = true;
   botao.classList.add('carregando');
   try {
     const resposta = await chamarApi({
-      action: 'criarCompra',
-      data: cupomLido.data,
-      mercado: cupomLido.emitente,
+      action: editando ? 'atualizarCompra' : 'criarCompra',
+      id: cupomEmRevisao.id,
+      data: cupomEmRevisao.data,
+      mercado: cupomEmRevisao.mercado,
       // O CNPJ é o escopo do de-para: bem mais confiável que o nome do mercado,
-      // que muda de grafia a cada digitação.
-      loja: cupomLido.cnpj,
-      documento: cupomLido.chave,
-      origem: 'nfce',
+      // que muda de grafia a cada digitação. Na edição de um cupom antigo não
+      // temos o CNPJ, e aí o nome do mercado serve de escopo.
+      loja: cupomEmRevisao.cnpj || cupomEmRevisao.mercado,
+      documento: cupomEmRevisao.documento,
+      observacao: cupomEmRevisao.observacao,
+      origem: editando ? undefined : 'nfce',
       itens: validos.map(function (i) {
         return { produto: i.produto, descricao_cupom: i.descricao_cupom, codigo: i.codigo, qtd: i.qtd, custo_unit: i.custo_unit };
       })
     }, 'POST');
-    if (!resposta.ok) throw new Error(resposta.erro || 'Erro ao lançar.');
+    if (!resposta.ok) throw new Error(resposta.erro || 'Erro ao salvar.');
 
     const comCusto = resposta.dados.produtos_com_custo || 0;
     cancelarRevisaoNfce();
-    mostrarBannerNfce_('sucesso', 'Cupom lançado. ' + comCusto + ' produto(s) com custo atualizado — confira a aba Ajuste de preço.');
+    mostrarBannerNfce_('sucesso', (editando ? 'Cupom atualizado. ' : 'Cupom lançado. ') +
+      comCusto + ' produto(s) com custo atualizado — confira a aba Ajuste de preço.');
     await carregarAquisicao();
+    await recarregarBootstrap_();
   } catch (err) {
-    mostrarBannerRevisaoNfce_('erro', 'Falha ao lançar. Verifique a conexão e tente novamente.');
+    mostrarBannerRevisaoNfce_('erro', 'Falha ao salvar. Verifique a conexão e tente novamente.');
   } finally {
     botao.disabled = false;
     botao.classList.remove('carregando');
@@ -458,6 +609,7 @@ function renderizarCupons() {
       '<div class="itens">' + escaparHtml_(resumo) + '</div>' +
       aviso +
       '<div class="acoes-relacao">' +
+        '<button type="button" onclick="editarCupom(\'' + c.id + '\')">Editar</button>' +
         '<button type="button" class="btn-excluir-relacao" onclick="excluirCupom(\'' + c.id + '\')">Excluir</button>' +
       '</div>' +
     '</div>';

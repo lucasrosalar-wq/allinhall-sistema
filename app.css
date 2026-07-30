@@ -1214,3 +1214,37 @@ button.carregando::after {
   background: none; color: var(--vermelho); border: 1px solid #FCA5A5; font-size: 18px; line-height: 1;
 }
 .btn-remover-revisao:hover { background: #FEF2F2; }
+
+/* --- desmembrar fardo --- */
+/* Pede o único número que a pessoa sabe (unidades no fardo) e faz a conta. Antes
+   isso era um texto pedindo pra ela mesma corrigir quantidade e custo unitário,
+   o que virava divisão de cabeça na hora de lançar. */
+.bloco-fardo {
+  background: #FEF2F2; border: 1px solid #FCA5A5; border-radius: 10px;
+  padding: 10px 12px; margin-top: 10px;
+}
+.bloco-fardo .motivo-fardo { font-size: 12px; color: #B91C1C; font-weight: 600; line-height: 1.45; }
+.bloco-fardo .acao-fardo { display: flex; align-items: flex-end; gap: 8px; margin-top: 8px; flex-wrap: wrap; }
+.bloco-fardo .acao-fardo label {
+  display: flex; flex-direction: column; gap: 2px; margin: 0; flex-shrink: 0;
+  font-size: 10px; font-weight: 600; color: var(--texto-2); text-transform: uppercase; letter-spacing: .03em;
+}
+.bloco-fardo .acao-fardo input { width: 96px; height: 34px; text-align: center; font-size: 12.5px; background: #fff; }
+.bloco-fardo .acao-fardo button {
+  height: 34px; padding: 0 12px; border-radius: 10px; background: var(--vermelho); color: #fff;
+  font-size: 12.5px; font-weight: 600; flex-shrink: 0;
+}
+.bloco-fardo .acao-fardo button:hover { background: #DC2626; }
+.bloco-fardo .acao-fardo button.btn-fardo-ignorar {
+  background: none; color: var(--texto-2); border: 1px solid var(--borda);
+}
+.bloco-fardo .acao-fardo button.btn-fardo-ignorar:hover { background: var(--cinza); color: var(--preto); }
+
+.nota-desmembrado {
+  font-size: 11.5px; color: #15803D; font-weight: 600; margin-top: 8px;
+  background: #F0FDF4; border-radius: 8px; padding: 6px 10px;
+}
+
+/* Cabeçalho editável do bloco de revisão (serve pra importar e pra editar). */
+#blocoRevisaoNfce .linha-dupla { margin-top: 4px; }
+#blocoRevisaoNfce > label:first-of-type { margin-top: 12px; }

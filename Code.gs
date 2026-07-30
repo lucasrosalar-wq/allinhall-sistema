@@ -259,6 +259,8 @@ function tratarRequisicao_(params) {
         return respostaJson_({ ok: true, dados: obterAquisicao_() });
       case 'criarCompra':
         return respostaJson_({ ok: true, dados: criarCompra_(params) });
+      case 'atualizarCompra':
+        return respostaJson_({ ok: true, dados: atualizarCompra_(params) });
       case 'excluirCompra':
         return respostaJson_({ ok: true, dados: excluirCompra_(params) });
       case 'vincularItemCompra':
@@ -914,73 +916,130 @@ function obterAquisicao_() {
 function criarCompra_(params) {
   return comTravamento_(function () {
     const abaCompras = obterAba_(NOMES_ABAS.COMPRAS);
-    const abaItens = obterAba_(NOMES_ABAS.COMPRAS_ITENS);
     const itens = params.itens || [];
     if (itens.length === 0) throw new Error('Informe ao menos um item do cupom.');
 
-    const agora = agora_();
     const carimbo = Utilities.formatDate(new Date(), FUSO_HORARIO, 'yyyyMMddHHmmss');
     const idCompra = 'CP' + carimbo + Math.floor(Math.random() * 90 + 10);
 
-    const valorTotal = itens.reduce(function (soma, item) {
-      return soma + (Number(item.qtd) || 0) * (Number(item.custo_unit) || 0);
-    }, 0);
+    escreverLinhaComoTexto_(abaCompras, abaCompras.getLastRow() + 1, montarLinhaCompra_(idCompra, params, itens), [2, 8]);
+    const resultado = gravarItensCompra_(idCompra, itens, params);
+    return { id: idCompra, valor_total: resultado.valor_total, produtos_com_custo: resultado.produtos_com_custo };
+  });
+}
 
-    const linhaCompra = [
+function somaItens_(itens) {
+  return itens.reduce(function (soma, item) {
+    return soma + (Number(item.qtd) || 0) * (Number(item.custo_unit) || 0);
+  }, 0);
+}
+
+function montarLinhaCompra_(idCompra, params, itens) {
+  return [
+    idCompra,
+    params.data,
+    params.mercado || '',
+    params.documento || '',
+    arredondar2_(somaItens_(itens)),
+    params.observacao || '',
+    params.origem || 'manual',
+    agora_()
+  ];
+}
+
+// Sem trava própria — sempre chamada de dentro de um comTravamento_.
+// Escreve as linhas de item, ensina o de-para e grava o custo dos produtos.
+// Compartilhada por criarCompra_ e atualizarCompra_ de propósito: são o mesmo
+// trabalho, e duplicar isso era o caminho garantido pra editar um cupom passar a
+// calcular o custo diferente de lançar um.
+function gravarItensCompra_(idCompra, itens, params) {
+  const abaItens = obterAba_(NOMES_ABAS.COMPRAS_ITENS);
+  const carimbo = Utilities.formatDate(new Date(), FUSO_HORARIO, 'yyyyMMddHHmmss');
+
+  // Um cupom traz o mesmo produto do catálogo em várias linhas — no cupom real,
+  // Bala Fini veio em 4 códigos (um por sabor) e Coca lata em 4 linhas. Gravar
+  // o custo linha por linha faria a última sobrescrever as outras, e o custo do
+  // produto passaria a ser o do último sabor em vez do da compra. Por isso as
+  // linhas vão inteiras pro histórico, mas o custo é consolidado por produto
+  // (média ponderada pela quantidade) e gravado uma vez só, no fim.
+  const consolidado = {};
+  const ordemProdutos = [];
+
+  itens.forEach(function (item, indice) {
+    const idItem = 'CI' + carimbo + '-' + indice + Math.floor(Math.random() * 90 + 10);
+    const qtd = Number(item.qtd) || 0;
+    const custoUnit = Number(item.custo_unit) || 0;
+    const linha = [
+      idItem,
       idCompra,
-      params.data,
-      params.mercado || '',
-      params.documento || '',
-      arredondar2_(valorTotal),
-      params.observacao || '',
-      params.origem || 'manual',
-      agora
+      item.descricao_cupom || item.produto || '',
+      item.codigo || '',
+      item.produto || '',
+      qtd,
+      custoUnit,
+      arredondar2_(qtd * custoUnit)
     ];
-    escreverLinhaComoTexto_(abaCompras, abaCompras.getLastRow() + 1, linhaCompra, [2, 8]);
+    abaItens.getRange(abaItens.getLastRow() + 1, 1, 1, linha.length).setValues([linha]);
 
-    // Um cupom traz o mesmo produto do catálogo em várias linhas — no cupom real,
-    // Bala Fini veio em 4 códigos (um por sabor) e Coca lata em 4 linhas. Gravar
-    // o custo linha por linha faria a última sobrescrever as outras, e o custo do
-    // produto passaria a ser o do último sabor em vez do da compra. Por isso as
-    // linhas vão inteiras pro histórico, mas o custo é consolidado por produto
-    // (média ponderada pela quantidade) e gravado uma vez só, no fim.
-    const consolidado = {};
-    const ordemProdutos = [];
+    if (item.produto) {
+      const nome = String(item.produto);
+      if (!consolidado[nome]) { consolidado[nome] = { qtd: 0, valor: 0 }; ordemProdutos.push(nome); }
+      consolidado[nome].qtd += qtd;
+      consolidado[nome].valor += qtd * custoUnit;
 
-    itens.forEach(function (item, indice) {
-      const idItem = 'CI' + carimbo + '-' + indice + Math.floor(Math.random() * 90 + 10);
-      const qtd = Number(item.qtd) || 0;
-      const custoUnit = Number(item.custo_unit) || 0;
-      const linha = [
-        idItem,
-        idCompra,
-        item.descricao_cupom || item.produto || '',
-        item.codigo || '',
-        item.produto || '',
-        qtd,
-        custoUnit,
-        arredondar2_(qtd * custoUnit)
-      ];
-      abaItens.getRange(abaItens.getLastRow() + 1, 1, 1, linha.length).setValues([linha]);
+      // params.loja existe pra importação passar o CNPJ do emitente, que é um
+      // escopo bem mais confiável que o nome digitado à mão.
+      aprenderDePara_(item.codigo, item.descricao_cupom || item.produto, item.produto, params.origem || 'manual', params.loja || params.mercado);
+    }
+  });
 
-      if (item.produto) {
-        const nome = String(item.produto);
-        if (!consolidado[nome]) { consolidado[nome] = { qtd: 0, valor: 0 }; ordemProdutos.push(nome); }
-        consolidado[nome].qtd += qtd;
-        consolidado[nome].valor += qtd * custoUnit;
+  ordemProdutos.forEach(function (nome) {
+    const a = consolidado[nome];
+    if (a.qtd > 0) registrarCustoProduto_(nome, a.valor / a.qtd, params.data);
+  });
 
-        // params.loja existe pra importação passar o CNPJ do emitente, que é um
-        // escopo bem mais confiável que o nome digitado à mão.
-        aprenderDePara_(item.codigo, item.descricao_cupom || item.produto, item.produto, params.origem || 'manual', params.loja || params.mercado);
-      }
-    });
+  return { valor_total: arredondar2_(somaItens_(itens)), produtos_com_custo: ordemProdutos.length };
+}
 
-    ordemProdutos.forEach(function (nome) {
-      const a = consolidado[nome];
-      if (a.qtd > 0) registrarCustoProduto_(nome, a.valor / a.qtd, params.data);
-    });
+// Reescreve um cupom já lançado: cabeçalho, itens e o custo que eles produzem.
+// Os itens antigos são apagados e regravados em vez de casados um a um — o que a
+// pessoa mandou é a verdade do cupom agora, e tentar adivinhar quais linhas
+// "são as mesmas" só criaria caso estranho quando ela apaga e adiciona junto.
+//
+// Custo de produto que saiu do cupom na edição fica como estava: o sistema não
+// tem como saber qual era o custo anterior àquele lançamento. Mesmo critério do
+// excluirCompra_ — pra corrigir um custo, o caminho é lançar o custo certo.
+function atualizarCompra_(params) {
+  return comTravamento_(function () {
+    const itens = params.itens || [];
+    if (itens.length === 0) throw new Error('O cupom precisa ter ao menos um item.');
 
-    return { id: idCompra, valor_total: arredondar2_(valorTotal), produtos_com_custo: ordemProdutos.length };
+    const abaCompras = obterAba_(NOMES_ABAS.COMPRAS);
+    const valores = abaCompras.getDataRange().getValues();
+    const colId = valores[0].indexOf('id');
+
+    let linhaCompra = 0;
+    for (let i = 1; i < valores.length; i++) {
+      if (String(valores[i][colId]) === String(params.id)) { linhaCompra = i + 1; break; }
+    }
+    if (!linhaCompra) throw new Error('Compra não encontrada: ' + params.id);
+
+    // Preserva a origem registrada no lançamento (manual/nfce): editar um cupom
+    // importado não o transforma num cupom digitado à mão.
+    const colOrigem = valores[0].indexOf('origem');
+    const origemGravada = String(valores[linhaCompra - 1][colOrigem] || 'manual');
+    const comOrigem = Object.assign({}, params, { origem: params.origem || origemGravada });
+
+    const abaItens = obterAba_(NOMES_ABAS.COMPRAS_ITENS);
+    const valoresItens = abaItens.getDataRange().getValues();
+    const colCompraId = valoresItens[0].indexOf('compra_id');
+    for (let i = valoresItens.length - 1; i >= 1; i--) {
+      if (String(valoresItens[i][colCompraId]) === String(params.id)) abaItens.deleteRow(i + 1);
+    }
+
+    escreverLinhaComoTexto_(abaCompras, linhaCompra, montarLinhaCompra_(params.id, comOrigem, itens), [2, 8]);
+    const resultado = gravarItensCompra_(params.id, itens, comOrigem);
+    return { id: params.id, valor_total: resultado.valor_total, produtos_com_custo: resultado.produtos_com_custo };
   });
 }
 
