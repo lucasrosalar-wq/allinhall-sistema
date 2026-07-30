@@ -390,6 +390,32 @@ Você só informa o número que o sistema não tem como saber. A conta é dele.
 Se o alerta estiver errado — é unidade mesmo, só é um item caro — clique em
 **É unidade mesmo** e o aviso sai.
 
+### Lucro previsto por cupom e por mês
+
+Cada cupom lançado mostra três números, e a aba Cupons tem um bloco somando por mês:
+
+```
+Custo das compras   R$   675,89
+Venda prevista      R$ 1.104,34
+Lucro previsto      R$   428,45   (63,4% sobre o custo)
+```
+
+**"Previsto" é literal, e a distinção importa.** É o que aquele estoque rende
+**se for todo vendido ao preço de hoje** — não é dinheiro que já entrou. Este
+sistema não registra venda nenhuma: ele conhece o que entrou (cupom), o que
+sumiu da prateleira sem pagar (furo) e o que foi cobrado disso. A venda paga
+acontece no sistema da Pináculo.
+
+Só entram na conta os itens vinculados a um produto do catálogo **e** com preço
+de venda definido — sem preço não há o que projetar. Os que ficam de fora
+aparecem contados, com o custo deles, para a diferença entre o total do cupom e
+a base do cálculo nunca ficar sem explicação.
+
+Como o cálculo usa o preço de hoje, aplicar preços na aba Ajuste de preço muda
+estes números na hora — e é assim que dá para ver o ajuste valendo em reais. No
+cupom real do Muffato, aplicar os 16 preços sugeridos levou o lucro previsto de
+R$ 428,45 para R$ 484,02.
+
 ### Editar um cupom lançado
 
 No cartão de cada cupom em "Cupons lançados" tem **Editar**. Abre o mesmo bloco de
