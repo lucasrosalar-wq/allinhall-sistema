@@ -911,6 +911,7 @@ function obterAquisicao_() {
     compras: comprasComItens,
     pendentes: pendentes,
     lucroPorMes: agruparLucroPorMes_(comprasComItens),
+    painel: montarPainelGestao_(comprasComItens, produtos, regras),
     estruturaPendente: estruturaPendente,
     limiteAlertaPct: LIMIAR_ALERTA_VARIACAO_PCT
   };
@@ -949,6 +950,208 @@ function calcularLucroCompra_(itens, precoPorProduto) {
     itens_fora: itensFora,
     custo_fora: arredondar2_(custoFora)
   };
+}
+
+// ===================== PAINEL DE GESTÃO =====================
+// Tudo aqui é derivado do que já existe (compras, itens, catálogo) — nenhum número
+// novo é inventado, e nenhum vira "realizado". Continua valendo o mesmo alerta do
+// lucro previsto: o sistema conhece a compra e o preço de prateleira, não a venda.
+//
+// A conta mora no servidor junto com o resto pra tela e planilha nunca divergirem.
+function montarPainelGestao_(compras, produtos, regras) {
+  const precoPorProduto = {};
+  const produtoPorNome = {};
+  produtos.forEach(function (p) { precoPorProduto[p.nome] = p.preco; produtoPorNome[p.nome] = p; });
+
+  // Quantidade e custo comprados por produto — a base pra medir oportunidade e
+  // ranquear produto por lucro. Sem volume de venda, o volume de COMPRA é o
+  // proxy honesto: é o que de fato passou pela prateleira.
+  const compradoPorProduto = {};
+  compras.forEach(function (c) {
+    c.itens.forEach(function (i) {
+      if (!i.produto) return;
+      if (!compradoPorProduto[i.produto]) compradoPorProduto[i.produto] = { qtd: 0, custo: 0 };
+      compradoPorProduto[i.produto].qtd += Number(i.quantidade) || 0;
+      compradoPorProduto[i.produto].custo += Number(i.custo_total) || 0;
+    });
+  });
+
+  return {
+    meses: resumirPeriodos_(compras, 7),
+    anos: resumirPeriodos_(compras, 4),
+    mercados: resumirMercados_(compras),
+    faixas: resumirFaixas_(produtos, regras),
+    oportunidade: medirOportunidade_(produtos, compradoPorProduto),
+    cobertura: medirCobertura_(produtos),
+    topProdutos: ranquearProdutos_(compradoPorProduto, produtoPorNome)
+  };
+}
+
+// tamanhoChave 7 = 'yyyy-MM' (mês); 4 = 'yyyy' (ano). Mesma conta, recorte diferente.
+function resumirPeriodos_(compras, tamanhoChave) {
+  const mapa = {};
+  compras.forEach(function (c) {
+    const chave = String(c.data || '').slice(0, tamanhoChave);
+    if (chave.length !== tamanhoChave) return;
+    if (!mapa[chave]) {
+      mapa[chave] = { periodo: chave, compras: 0, custo: 0, venda_prevista: 0, lucro_previsto: 0,
+                      desconto: 0, itens: 0, itens_fora: 0, custo_fora: 0 };
+    }
+    const m = mapa[chave];
+    m.compras++;
+    m.custo += c.lucro.custo;
+    m.venda_prevista += c.lucro.venda_prevista;
+    m.lucro_previsto += c.lucro.lucro_previsto;
+    m.itens_fora += c.lucro.itens_fora;
+    m.custo_fora += c.lucro.custo_fora;
+    c.itens.forEach(function (i) {
+      m.itens++;
+      m.desconto += Number(i.desconto) || 0;
+    });
+  });
+
+  return Object.keys(mapa).sort().reverse().map(function (chave) {
+    const m = mapa[chave];
+    const bruto = m.custo + m.custo_fora + m.desconto;
+    return Object.assign(m, {
+      custo: arredondar2_(m.custo),
+      venda_prevista: arredondar2_(m.venda_prevista),
+      lucro_previsto: arredondar2_(m.lucro_previsto),
+      desconto: arredondar2_(m.desconto),
+      custo_fora: arredondar2_(m.custo_fora),
+      margem_pct: m.custo > 0 ? arredondar2_((m.lucro_previsto / m.custo) * 100) : null,
+      // Quanto o desconto obtido representa do que o cupom pedia. É o termômetro
+      // de barganha da operação, e some se ninguém preencher a coluna de desconto.
+      desconto_pct: bruto > 0 ? arredondar2_((m.desconto / bruto) * 100) : null
+    });
+  });
+}
+
+// Onde vale mais a pena comprar. Duas lojas com o mesmo gasto podem render margens
+// bem diferentes — sem esse recorte, isso fica invisível.
+function resumirMercados_(compras) {
+  const mapa = {};
+  compras.forEach(function (c) {
+    const nome = String(c.mercado || 'Sem mercado').trim() || 'Sem mercado';
+    if (!mapa[nome]) mapa[nome] = { mercado: nome, compras: 0, custo: 0, venda_prevista: 0, lucro_previsto: 0, desconto: 0 };
+    const m = mapa[nome];
+    m.compras++;
+    m.custo += c.lucro.custo;
+    m.venda_prevista += c.lucro.venda_prevista;
+    m.lucro_previsto += c.lucro.lucro_previsto;
+    c.itens.forEach(function (i) { m.desconto += Number(i.desconto) || 0; });
+  });
+
+  return Object.keys(mapa).map(function (nome) {
+    const m = mapa[nome];
+    return Object.assign(m, {
+      custo: arredondar2_(m.custo),
+      venda_prevista: arredondar2_(m.venda_prevista),
+      lucro_previsto: arredondar2_(m.lucro_previsto),
+      desconto: arredondar2_(m.desconto),
+      margem_pct: m.custo > 0 ? arredondar2_((m.lucro_previsto / m.custo) * 100) : null
+    });
+  }).sort(function (a, b) { return b.custo - a.custo; });
+}
+
+// Faixa por faixa: quanto do catálogo está nela, quantos já têm custo, e —
+// o que interessa — a distância entre a margem que ela pratica e a que ela mira.
+function resumirFaixas_(produtos, regras) {
+  const linhas = regras.map(function (r) {
+    const daFaixa = produtos.filter(function (p) { return p.categoria === r.categoria; });
+    const comCusto = daFaixa.filter(function (p) { return p.custo_atual > 0 && p.margem_atual_pct !== null; });
+    const media = comCusto.length
+      ? comCusto.reduce(function (s, p) { return s + p.margem_atual_pct; }, 0) / comCusto.length
+      : null;
+    return {
+      categoria: r.categoria,
+      rotulo: r.rotulo,
+      margem_alvo_pct: r.margem_pct,
+      produtos: daFaixa.length,
+      com_custo: comCusto.length,
+      margem_media_pct: media === null ? null : arredondar2_(media),
+      fora_do_alvo: daFaixa.filter(function (p) { return p.precisa_ajuste; }).length
+    };
+  });
+
+  const semFaixa = produtos.filter(function (p) { return !p.categoria; });
+  if (semFaixa.length) {
+    linhas.push({
+      categoria: '', rotulo: 'Sem faixa', margem_alvo_pct: null,
+      produtos: semFaixa.length,
+      com_custo: semFaixa.filter(function (p) { return p.custo_atual > 0; }).length,
+      margem_media_pct: null, fora_do_alvo: 0
+    });
+  }
+  return linhas;
+}
+
+// O número mais acionável do painel: quanto lucro está parado na fila de ajuste.
+// Mede em cima do volume já comprado de cada produto — "se o que você comprou
+// tivesse sido vendido ao preço sugerido em vez do atual, o lucro seria X a mais".
+function medirOportunidade_(produtos, compradoPorProduto) {
+  const detalhe = [];
+  let total = 0;
+
+  produtos.forEach(function (p) {
+    if (!p.precisa_ajuste || !p.preco_sugerido) return;
+    const comprado = compradoPorProduto[p.nome];
+    if (!comprado || !(comprado.qtd > 0)) return;
+    const ganho = comprado.qtd * (p.preco_sugerido - p.preco);
+    total += ganho;
+    detalhe.push({
+      nome: p.nome,
+      categoria: p.categoria,
+      qtd_comprada: comprado.qtd,
+      preco: p.preco,
+      preco_sugerido: p.preco_sugerido,
+      variacao_pct: p.variacao_pct,
+      ganho: arredondar2_(ganho)
+    });
+  });
+
+  detalhe.sort(function (a, b) { return Math.abs(b.ganho) - Math.abs(a.ganho); });
+  return {
+    produtos: detalhe.length,
+    ganho_total: arredondar2_(total),
+    detalhe: detalhe.slice(0, 12)
+  };
+}
+
+function medirCobertura_(produtos) {
+  const ativos = produtos.filter(function (p) { return p.ativo; });
+  return {
+    total: produtos.length,
+    ativos: ativos.length,
+    com_custo: produtos.filter(function (p) { return p.custo_atual > 0; }).length,
+    sem_faixa: produtos.filter(function (p) { return !p.categoria; }).length,
+    travados: produtos.filter(function (p) { return p.preco_travado; }).length,
+    na_fila: produtos.filter(function (p) { return p.precisa_ajuste; }).length
+  };
+}
+
+// Onde o dinheiro está concentrado. Ordenado por lucro previsto em reais, não por
+// margem percentual: 200% de margem num item que você compra 2 unidades importa
+// menos que 40% num que você compra 150.
+function ranquearProdutos_(compradoPorProduto, produtoPorNome) {
+  const linhas = [];
+  Object.keys(compradoPorProduto).forEach(function (nome) {
+    const p = produtoPorNome[nome];
+    if (!p || !(p.preco > 0)) return;
+    const comprado = compradoPorProduto[nome];
+    const custoUnit = comprado.qtd > 0 ? comprado.custo / comprado.qtd : 0;
+    if (!(custoUnit > 0)) return;
+    linhas.push({
+      nome: nome,
+      categoria: p.categoria,
+      qtd: comprado.qtd,
+      custo: arredondar2_(comprado.custo),
+      venda_prevista: arredondar2_(comprado.qtd * p.preco),
+      lucro_previsto: arredondar2_(comprado.qtd * p.preco - comprado.custo),
+      margem_pct: arredondar2_(((p.preco - custoUnit) / custoUnit) * 100)
+    });
+  });
+  return linhas.sort(function (a, b) { return b.lucro_previsto - a.lucro_previsto; }).slice(0, 12);
 }
 
 function agruparLucroPorMes_(compras) {

@@ -56,7 +56,8 @@ async function validarPin() {
     bootstrap = resposta.dados;
     document.getElementById('telaPin').classList.add('oculto');
     document.getElementById('app').classList.remove('oculto');
-    irParaView(location.hash.slice(1) || 'conferencia');
+    const partes = (location.hash.slice(1) || 'conferencia').split('/');
+    irParaView(partes[0], partes[1]);
   } catch (err) {
     document.getElementById('erroPin').textContent = 'Falha de conexão. Verifique a internet e tente novamente.';
   }
@@ -89,11 +90,16 @@ const ATUALIZADORES_VIEW_ = {
   aquisicao: function () { carregarAquisicao(); }
 };
 
-function irParaView(nome) {
+// `sub` só é usado pela Aquisição, que tem sub-abas na própria sidebar (Cupons,
+// Ajuste de preço, Faixas de margem, Gestão). As outras views ignoram.
+function irParaView(nome, sub) {
   if (VIEWS_VALIDAS.indexOf(nome) === -1) nome = 'conferencia';
 
   document.querySelectorAll('.nav-item[data-view]').forEach(function (a) {
     a.classList.toggle('ativo', a.dataset.view === nome);
+  });
+  document.querySelectorAll('.nav-item[data-sub]').forEach(function (a) {
+    a.classList.toggle('ativo', nome === 'aquisicao' && a.dataset.sub === (sub || abaAquisicaoAtiva));
   });
   // Percorre VIEWS_VALIDAS em vez de listar os ids na mão: view nova aparece aqui
   // só de ser registrada lá em cima, sem risco de ficar uma tela sempre visível
@@ -107,6 +113,10 @@ function irParaView(nome) {
 
   document.title = TITULOS_VIEW_[nome];
 
+  // A sub-aba é escolhida antes de iniciar/atualizar: assim a tela já abre no
+  // painel certo em vez de piscar no anterior.
+  if (nome === 'aquisicao' && sub) mudarAbaAquisicao(sub);
+
   if (!viewsIniciadas[nome]) {
     viewsIniciadas[nome] = true;
     INICIALIZADORES_VIEW_[nome]();
@@ -117,7 +127,8 @@ function irParaView(nome) {
   // Só fecha a gaveta no mobile — no desktop a sidebar é persistente (recolher ali é
   // uma escolha manual da pessoa, não algo pra acontecer sozinho a cada navegação).
   if (!window.matchMedia('(min-width: 1024px)').matches) toggleSidebar(false);
-  if (location.hash.slice(1) !== nome) location.hash = nome;
+  const alvoHash = nome === 'aquisicao' ? nome + '/' + (sub || abaAquisicaoAtiva) : nome;
+  if (location.hash.slice(1) !== alvoHash) location.hash = alvoHash;
 }
 
 // ===================== MODAIS =====================
@@ -165,6 +176,9 @@ function sair() {
 }
 function toggleGrupoMonitoramento() {
   document.getElementById('grupoMonitoramento').classList.toggle('aberto');
+}
+function toggleGrupoAquisicao() {
+  document.getElementById('grupoAquisicao').classList.toggle('aberto');
 }
 
 // ===================== SOMBRA DINÂMICA DO CABEÇALHO AO ROLAR =====================

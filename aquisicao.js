@@ -47,11 +47,17 @@ function formatarPct_(valor) {
 }
 
 // ===================== ABAS INTERNAS =====================
-const ABAS_AQUISICAO_ = ['cupons', 'precos', 'margens'];
+const ABAS_AQUISICAO_ = ['cupons', 'precos', 'margens', 'gestao'];
 
 function mudarAbaAquisicao(nome) {
   if (ABAS_AQUISICAO_.indexOf(nome) === -1) nome = 'cupons';
   abaAquisicaoAtiva = nome;
+
+  // Os três cartões gerais do topo saem no painel de Gestão: ele traz os mesmos
+  // números com mais contexto logo abaixo, e repetir na mesma tela só divide a
+  // atenção.
+  const resumo = document.querySelector('.view-aquisicao .cartoes-resumo');
+  if (resumo) resumo.classList.toggle('oculto', nome === 'gestao');
   ABAS_AQUISICAO_.forEach(function (aba) {
     const botao = document.getElementById('abaAquisicao-' + aba);
     const painel = document.getElementById('painelAquisicao-' + aba);
@@ -84,6 +90,7 @@ async function carregarAquisicao() {
     renderizarCupons();
     renderizarLucroMes();
     renderizarPendentes();
+    renderizarPainel();
   } catch (err) {
     banner.className = 'banner erro';
     banner.textContent = 'Não foi possível carregar a Aquisição. Verifique a conexão e tente novamente.';
@@ -1071,6 +1078,371 @@ async function alternarTravaPreco(indice) {
   } catch (err) {
     mostrarBannerPrecos_('erro', 'Não foi possível travar/destravar esse preço.');
   }
+}
+
+// ===================== PAINEL DE GESTÃO =====================
+// Gráficos em SVG feito à mão, sem biblioteca: o app inteiro é assim, e uma
+// dependência a mais só pra desenhar barra não se paga.
+//
+// Cores das séries validadas contra daltonismo e contraste (ΔE 24,7 protanopia,
+// ambas acima de 3:1 no fundo claro). O laranja da marca (#F97316) reprova
+// contraste como preenchimento grande, então ele fica no chrome — botão, aba
+// ativa — e as séries usam o passo mais escuro.
+
+const MESES_CURTOS_ = ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez'];
+
+function moedaCurta_(valor) {
+  const n = Number(valor) || 0;
+  if (Math.abs(n) >= 1000) return 'R$ ' + (n / 1000).toLocaleString('pt-BR', { maximumFractionDigits: 1 }) + 'k';
+  return formatarMoeda(n);
+}
+
+function svg_(conteudo, largura, altura) {
+  return '<svg viewBox="0 0 ' + largura + ' ' + altura + '" preserveAspectRatio="none" role="img">' + conteudo + '</svg>';
+}
+
+// Tooltip único, reaproveitado por todos os gráficos.
+function dicaGrafico_(mostrar, ev, html) {
+  let dica = document.getElementById('dicaGrafico');
+  if (!dica) {
+    dica = document.createElement('div');
+    dica.id = 'dicaGrafico';
+    dica.className = 'dica-grafico';
+    document.body.appendChild(dica);
+  }
+  if (!mostrar) { dica.classList.remove('visivel'); return; }
+  dica.innerHTML = html;
+  dica.classList.add('visivel');
+  const margem = 14;
+  const largura = dica.offsetWidth;
+  let x = ev.clientX + margem;
+  if (x + largura > window.innerWidth - 8) x = ev.clientX - largura - margem;
+  dica.style.left = x + 'px';
+  dica.style.top = Math.max(8, ev.clientY - dica.offsetHeight - margem) + 'px';
+}
+
+function anosDisponiveis_() {
+  const painel = dadosAquisicao.painel;
+  if (!painel) return [];
+  return painel.anos.map(function (a) { return a.periodo; });
+}
+
+function renderizarPainel() {
+  const painel = dadosAquisicao.painel;
+  const vazio = document.getElementById('painelVazio');
+  const conteudo = document.getElementById('painelConteudo');
+  if (!painel || painel.anos.length === 0) {
+    vazio.classList.remove('oculto');
+    conteudo.classList.add('oculto');
+    return;
+  }
+  vazio.classList.add('oculto');
+  conteudo.classList.remove('oculto');
+
+  const select = document.getElementById('filtroAnoPainel');
+  const anos = anosDisponiveis_();
+  if (select.options.length !== anos.length) {
+    select.innerHTML = anos.map(function (a) { return '<option value="' + a + '">' + a + '</option>'; }).join('');
+  }
+  const ano = select.value && anos.indexOf(select.value) !== -1 ? select.value : anos[0];
+  select.value = ano;
+
+  const doAno = painel.anos.find(function (a) { return a.periodo === ano; }) || painel.anos[0];
+  const mesesDoAno = painel.meses.filter(function (m) { return m.periodo.slice(0, 4) === ano; });
+
+  renderizarTilesPainel_(doAno, painel);
+  renderizarOportunidade_(painel.oportunidade);
+  renderizarGraficoMeses_(mesesDoAno, ano);
+  renderizarGraficoMargem_(mesesDoAno, ano);
+  renderizarMercados_(painel.mercados);
+  renderizarGraficoFaixas_(painel.faixas);
+  renderizarTabelaProdutos_(painel.topProdutos);
+  renderizarCobertura_(painel.cobertura);
+}
+
+function renderizarTilesPainel_(ano, painel) {
+  const tiles = [
+    { rotulo: 'Investido em compras', valor: formatarMoeda(ano.custo),
+      nota: ano.compras + ' cupom(ns) no ano' },
+    { rotulo: 'Faturamento previsto', valor: formatarMoeda(ano.venda_prevista),
+      nota: 'se vender tudo ao preço de hoje' },
+    { rotulo: 'Lucro previsto', valor: formatarMoeda(ano.lucro_previsto), destaque: true,
+      nota: ano.margem_pct === null ? '—' : formatarPct_(ano.margem_pct).replace('+', '') + ' sobre o custo' },
+    { rotulo: 'Desconto obtido', valor: formatarMoeda(ano.desconto),
+      nota: ano.desconto_pct ? formatarPct_(ano.desconto_pct).replace('+', '') + ' do que o cupom pedia' : 'nenhum lançado' }
+  ];
+  document.getElementById('tilesPainel').innerHTML = tiles.map(function (t) {
+    return '<div class="tile-painel' + (t.destaque ? ' destaque' : '') + '">' +
+      '<span class="rotulo">' + t.rotulo + '</span>' +
+      '<strong>' + t.valor + '</strong>' +
+      '<span class="nota">' + t.nota + '</span>' +
+    '</div>';
+  }).join('');
+}
+
+function renderizarOportunidade_(op) {
+  const bloco = document.getElementById('blocoOportunidade');
+  if (!op || op.produtos === 0) {
+    bloco.innerHTML = '<div class="op-vazia"><strong>Nenhum preço pendente.</strong> ' +
+      'Todo produto com custo lançado já está no alvo da própria faixa.</div>';
+    return;
+  }
+  const linhas = op.detalhe.map(function (d) {
+    const sobe = d.ganho >= 0;
+    return '<tr>' +
+      '<td>' + escaparHtml_(d.nome) + '</td>' +
+      '<td class="num">' + d.qtd_comprada + '</td>' +
+      '<td class="num">' + formatarMoeda(d.preco) + '</td>' +
+      '<td class="num">' + formatarMoeda(d.preco_sugerido) + '</td>' +
+      '<td class="num ' + (sobe ? 'ganho' : 'perda') + '">' + (sobe ? '+' : '') + formatarMoeda(d.ganho) + '</td>' +
+    '</tr>';
+  }).join('');
+
+  bloco.innerHTML =
+    '<div class="op-topo">' +
+      '<div>' +
+        '<span class="rotulo">Parado na fila de ajuste</span>' +
+        '<strong>' + formatarMoeda(op.ganho_total) + '</strong>' +
+        '<span class="nota">em ' + op.produtos + ' produto(s) — é o quanto o volume que você já comprou renderia a mais ' +
+          'se estivesse no preço sugerido. Aplique na aba Ajuste de preço.</span>' +
+      '</div>' +
+    '</div>' +
+    '<div class="tabela-rolagem"><table class="tabela-painel">' +
+      '<thead><tr><th>Produto</th><th class="num">Comprado</th><th class="num">Preço hoje</th>' +
+      '<th class="num">Sugerido</th><th class="num">Diferença</th></tr></thead>' +
+      '<tbody>' + linhas + '</tbody>' +
+    '</table></div>';
+}
+
+// Barras empilhadas: custo embaixo, lucro em cima. A altura total é o faturamento
+// previsto — encoda a relação real (custo + lucro = faturamento) em vez de tratar
+// as três como séries independentes.
+function renderizarGraficoMeses_(meses, ano) {
+  const alvo = document.getElementById('graficoMeses');
+  const porMes = {};
+  meses.forEach(function (m) { porMes[Number(m.periodo.slice(5, 7))] = m; });
+
+  const topo = Math.max.apply(null, meses.map(function (m) { return m.venda_prevista; }).concat([1]));
+  const A = 190, LARGURA_BARRA = 34, ESPACO = 12;
+  const L = 12 * (LARGURA_BARRA + ESPACO);
+  const escala = function (v) { return (v / topo) * (A - 26); };
+
+  let corpo = '';
+  // Grade recessiva: 4 linhas horizontais, sem eixo desenhado.
+  for (let i = 1; i <= 4; i++) {
+    const y = A - 26 - ((A - 26) / 4) * i + 26;
+    corpo += '<line x1="0" y1="' + y + '" x2="' + L + '" y2="' + y + '" class="grade"/>';
+  }
+
+  for (let mes = 1; mes <= 12; mes++) {
+    const x = (mes - 1) * (LARGURA_BARRA + ESPACO) + ESPACO / 2;
+    const m = porMes[mes];
+    if (!m) continue;
+    const hCusto = escala(m.custo);
+    const hLucro = escala(m.lucro_previsto);
+    // 2px de respiro entre os dois segmentos, como manda a anatomia de empilhado.
+    const yCusto = A - hCusto;
+    const yLucro = yCusto - hLucro - 2;
+    corpo += '<rect x="' + x + '" y="' + yCusto + '" width="' + LARGURA_BARRA + '" height="' + Math.max(hCusto, 1) + '" rx="3" class="barra-custo"/>';
+    if (hLucro > 0) {
+      corpo += '<rect x="' + x + '" y="' + yLucro + '" width="' + LARGURA_BARRA + '" height="' + Math.max(hLucro, 1) + '" rx="3" class="barra-lucro"/>';
+    }
+  }
+
+  const rotulos = [];
+  for (let mes = 1; mes <= 12; mes++) {
+    const m = porMes[mes];
+    rotulos.push('<div class="rotulo-mes' + (m ? ' tem-dado' : '') + '"' +
+      (m ? ' data-mes="' + mes + '"' : '') + '>' + MESES_CURTOS_[mes - 1] + '</div>');
+  }
+
+  alvo.innerHTML = '<div class="grafico-barras">' + svg_(corpo, L, A) +
+    '<div class="eixo-meses">' + rotulos.join('') + '</div></div>';
+
+  // Hover na coluna inteira (alvo maior que a barra), como manda a interação.
+  alvo.querySelectorAll('.rotulo-mes.tem-dado').forEach(function (el) {
+    const m = porMes[Number(el.dataset.mes)];
+    el.onmousemove = function (ev) {
+      dicaGrafico_(true, ev,
+        '<strong>' + MESES_CURTOS_[Number(el.dataset.mes) - 1] + '/' + ano + '</strong>' +
+        '<span><i class="marca" style="background:var(--serie-custo)"></i>Custo <b>' + formatarMoeda(m.custo) + '</b></span>' +
+        '<span><i class="marca" style="background:var(--serie-lucro)"></i>Lucro previsto <b>' + formatarMoeda(m.lucro_previsto) + '</b></span>' +
+        '<span class="total">Faturamento previsto <b>' + formatarMoeda(m.venda_prevista) + '</b></span>' +
+        '<span class="total">Margem <b>' + (m.margem_pct === null ? '—' : formatarPct_(m.margem_pct).replace('+', '')) + '</b></span>');
+    };
+    el.onmouseleave = function () { dicaGrafico_(false); };
+  });
+}
+
+// Série única: sem legenda, o título já nomeia. Linha de 2px, ponto de 8px só nos
+// meses com dado.
+function renderizarGraficoMargem_(meses, ano) {
+  const alvo = document.getElementById('graficoMargem');
+  const comDado = meses.filter(function (m) { return m.margem_pct !== null; })
+    .slice().sort(function (a, b) { return a.periodo.localeCompare(b.periodo); });
+
+  if (comDado.length === 0) {
+    alvo.innerHTML = '<div class="grafico-vazio">Sem margem calculada neste ano.</div>';
+    return;
+  }
+
+  const A = 190, L = 12 * 46;
+  const topo = Math.max.apply(null, comDado.map(function (m) { return m.margem_pct; }).concat([10])) * 1.15;
+  const x = function (mes) { return (mes - 0.5) * 46; };
+  const y = function (v) { return A - 22 - (v / topo) * (A - 44); };
+
+  let corpo = '';
+  for (let i = 1; i <= 4; i++) {
+    const yy = 22 + ((A - 44) / 4) * (4 - i);
+    corpo += '<line x1="0" y1="' + yy + '" x2="' + L + '" y2="' + yy + '" class="grade"/>';
+  }
+  // Sem referência de escala a grade vira enfeite. Um rótulo no topo basta —
+  // os valores de cada mês já vão diretos embaixo das bolinhas.
+  corpo += '<text x="0" y="14" class="rotulo-escala">' + Math.round(topo) + '%</text>';
+
+  const pontos = comDado.map(function (m) { return [x(Number(m.periodo.slice(5, 7))), y(m.margem_pct)]; });
+  if (pontos.length > 1) {
+    corpo += '<polyline points="' + pontos.map(function (p) { return p[0] + ',' + p[1]; }).join(' ') + '" class="linha-margem"/>';
+  }
+  pontos.forEach(function (p) { corpo += '<circle cx="' + p[0] + '" cy="' + p[1] + '" r="4.5" class="ponto-margem"/>'; });
+
+  const rotulos = [];
+  for (let mes = 1; mes <= 12; mes++) {
+    const m = comDado.find(function (x2) { return Number(x2.periodo.slice(5, 7)) === mes; });
+    rotulos.push('<div class="rotulo-mes' + (m ? ' tem-dado' : '') + '"' + (m ? ' data-mes="' + mes + '"' : '') + '>' +
+      MESES_CURTOS_[mes - 1] + (m ? '<b>' + Math.round(m.margem_pct) + '%</b>' : '') + '</div>');
+  }
+
+  alvo.innerHTML = '<div class="grafico-barras">' + svg_(corpo, L, A) +
+    '<div class="eixo-meses">' + rotulos.join('') + '</div></div>';
+
+  alvo.querySelectorAll('.rotulo-mes.tem-dado').forEach(function (el) {
+    const m = comDado.find(function (x2) { return Number(x2.periodo.slice(5, 7)) === Number(el.dataset.mes); });
+    el.onmousemove = function (ev) {
+      dicaGrafico_(true, ev, '<strong>' + MESES_CURTOS_[Number(el.dataset.mes) - 1] + '/' + ano + '</strong>' +
+        '<span class="total">Margem prevista <b>' + formatarPct_(m.margem_pct).replace('+', '') + '</b></span>' +
+        '<span class="total">Sobre custo de <b>' + formatarMoeda(m.custo) + '</b></span>');
+    };
+    el.onmouseleave = function () { dicaGrafico_(false); };
+  });
+}
+
+// Magnitude de uma medida por categoria = uma cor só, intensidade pelo tamanho da
+// barra. Categórico aqui seria colorir por colorir.
+function renderizarMercados_(mercados) {
+  const alvo = document.getElementById('graficoMercados');
+  if (!mercados.length) { alvo.innerHTML = '<div class="grafico-vazio">Nenhuma compra lançada.</div>'; return; }
+
+  const topo = Math.max.apply(null, mercados.map(function (m) { return m.custo; }).concat([1]));
+  alvo.innerHTML = '<div class="barras-h">' + mercados.map(function (m) {
+    return '<div class="barra-h" data-mercado="' + escaparHtml_(m.mercado) + '">' +
+      '<div class="rotulo-h">' + escaparHtml_(m.mercado) + '</div>' +
+      '<div class="trilho"><div class="preenchimento" style="width:' + Math.max((m.custo / topo) * 100, 2) + '%"></div></div>' +
+      '<div class="valor-h">' + moedaCurta_(m.custo) + '</div>' +
+    '</div>';
+  }).join('') + '</div>';
+
+  alvo.querySelectorAll('.barra-h').forEach(function (el) {
+    const m = mercados.find(function (x) { return x.mercado === el.dataset.mercado; });
+    el.onmousemove = function (ev) {
+      dicaGrafico_(true, ev, '<strong>' + escaparHtml_(m.mercado) + '</strong>' +
+        '<span class="total">Investido <b>' + formatarMoeda(m.custo) + '</b></span>' +
+        '<span class="total">Lucro previsto <b>' + formatarMoeda(m.lucro_previsto) + '</b></span>' +
+        '<span class="total">Margem <b>' + (m.margem_pct === null ? '—' : formatarPct_(m.margem_pct).replace('+', '')) + '</b></span>' +
+        '<span class="total">' + m.compras + ' cupom(ns)</span>');
+    };
+    el.onmouseleave = function () { dicaGrafico_(false); };
+  });
+
+  document.getElementById('tabelaMercados').innerHTML =
+    '<thead><tr><th>Mercado</th><th class="num">Cupons</th><th class="num">Investido</th>' +
+    '<th class="num">Lucro previsto</th><th class="num">Margem</th></tr></thead><tbody>' +
+    mercados.map(function (m) {
+      return '<tr><td>' + escaparHtml_(m.mercado) + '</td>' +
+        '<td class="num">' + m.compras + '</td>' +
+        '<td class="num">' + formatarMoeda(m.custo) + '</td>' +
+        '<td class="num">' + formatarMoeda(m.lucro_previsto) + '</td>' +
+        '<td class="num forte">' + (m.margem_pct === null ? '—' : formatarPct_(m.margem_pct).replace('+', '')) + '</td></tr>';
+    }).join('') + '</tbody>';
+}
+
+// Praticado × alvo lado a lado. O alvo vira um traço vertical sobre a barra do
+// praticado: dá pra ler a distância sem comparar duas barras separadas.
+function renderizarGraficoFaixas_(faixas) {
+  const alvo = document.getElementById('graficoFaixas');
+  const comDado = faixas.filter(function (f) { return f.com_custo > 0 || f.margem_alvo_pct !== null; });
+  if (!comDado.length) { alvo.innerHTML = '<div class="grafico-vazio">Sem faixa configurada.</div>'; return; }
+
+  const topo = Math.max.apply(null, comDado.map(function (f) {
+    return Math.max(f.margem_media_pct || 0, f.margem_alvo_pct || 0);
+  }).concat([10])) * 1.12;
+
+  alvo.innerHTML = '<div class="barras-h faixas">' + comDado.map(function (f) {
+    const praticado = f.margem_media_pct;
+    const larguraPraticado = praticado === null ? 0 : (praticado / topo) * 100;
+    const posAlvo = f.margem_alvo_pct === null ? null : (f.margem_alvo_pct / topo) * 100;
+    // Uma cor só pra "margem praticada". Pintar de outra cor quem passou do alvo
+    // faria a cor significar o rank em vez da série — e a legenda passaria a
+    // mentir. A distância pro alvo já se lê na posição do traço.
+    return '<div class="barra-h" data-faixa="' + escaparHtml_(f.rotulo) + '">' +
+      '<div class="rotulo-h">' + escaparHtml_(f.rotulo) + '<span>' + f.com_custo + '/' + f.produtos + ' com custo</span></div>' +
+      '<div class="trilho">' +
+        '<div class="preenchimento" style="width:' + Math.max(larguraPraticado, 0) + '%"></div>' +
+        (posAlvo === null ? '' : '<div class="marca-alvo" style="left:' + posAlvo + '%" title="Alvo da faixa"></div>') +
+      '</div>' +
+      '<div class="valor-h">' + (praticado === null ? '—' : Math.round(praticado) + '%') + '</div>' +
+    '</div>';
+  }).join('') + '</div>' +
+  '<div class="legenda-grafico"><span><i class="marca" style="background:var(--serie-lucro)"></i> Margem praticada</span>' +
+  '<span><i class="marca traco"></i> Alvo da faixa</span></div>';
+
+  alvo.querySelectorAll('.barra-h').forEach(function (el) {
+    const f = comDado.find(function (x) { return x.rotulo === el.dataset.faixa; });
+    el.onmousemove = function (ev) {
+      dicaGrafico_(true, ev, '<strong>' + escaparHtml_(f.rotulo) + '</strong>' +
+        '<span class="total">Praticada <b>' + (f.margem_media_pct === null ? '—' : Math.round(f.margem_media_pct) + '%') + '</b></span>' +
+        '<span class="total">Alvo <b>' + (f.margem_alvo_pct === null ? '—' : f.margem_alvo_pct + '%') + '</b></span>' +
+        '<span class="total">' + f.produtos + ' produto(s), ' + f.com_custo + ' com custo</span>' +
+        '<span class="total">' + f.fora_do_alvo + ' fora do alvo</span>');
+    };
+    el.onmouseleave = function () { dicaGrafico_(false); };
+  });
+}
+
+function renderizarTabelaProdutos_(produtos) {
+  const tabela = document.getElementById('tabelaProdutos');
+  if (!produtos.length) {
+    tabela.innerHTML = '<tbody><tr><td class="vazio-celula">Nenhum produto com custo e preço ainda.</td></tr></tbody>';
+    return;
+  }
+  tabela.innerHTML =
+    '<thead><tr><th>Produto</th><th class="num">Comprado</th><th class="num">Custo</th>' +
+    '<th class="num">Faturamento previsto</th><th class="num">Lucro previsto</th><th class="num">Margem</th></tr></thead><tbody>' +
+    produtos.map(function (p) {
+      return '<tr><td>' + escaparHtml_(p.nome) + '</td>' +
+        '<td class="num">' + p.qtd + '</td>' +
+        '<td class="num">' + formatarMoeda(p.custo) + '</td>' +
+        '<td class="num">' + formatarMoeda(p.venda_prevista) + '</td>' +
+        '<td class="num forte">' + formatarMoeda(p.lucro_previsto) + '</td>' +
+        '<td class="num">' + Math.round(p.margem_pct) + '%</td></tr>';
+    }).join('') + '</tbody>';
+}
+
+function renderizarCobertura_(c) {
+  const itens = [
+    { rotulo: 'Produtos no catálogo', valor: c.total },
+    { rotulo: 'Já com custo', valor: c.com_custo, atencao: c.com_custo < c.total },
+    { rotulo: 'Sem faixa de margem', valor: c.sem_faixa, atencao: c.sem_faixa > 0 },
+    { rotulo: 'Preço travado', valor: c.travados },
+    { rotulo: 'Na fila de ajuste', valor: c.na_fila, atencao: c.na_fila > 0 }
+  ];
+  document.getElementById('tilesCobertura').innerHTML = itens.map(function (i) {
+    // 'atencao' e não 'aviso': já existe um .aviso no app (o box do template de
+    // cobrança) que traz ícone via ::before e mexe no display do strong — reusar o
+    // nome fazia esse estilo vazar pra cá.
+    return '<div class="tile-cobertura' + (i.atencao ? ' atencao' : '') + '">' +
+      '<strong>' + i.valor + '</strong><span>' + i.rotulo + '</span></div>';
+  }).join('');
 }
 
 // ===================== FAIXAS DE MARGEM =====================

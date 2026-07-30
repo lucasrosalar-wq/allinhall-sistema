@@ -14,7 +14,7 @@
      que já tem guardados — e a tela fica misturando versão nova com antiga. Trocando
      o número aqui, a URL muda e o navegador é obrigado a buscar tudo de novo.
      SEMPRE mude este número ao publicar mudança em .css ou .js. -->
-<link rel="stylesheet" href="app.css?v=20260730a">
+<link rel="stylesheet" href="app.css?v=20260730b">
 </head>
 <body>
 
@@ -49,7 +49,19 @@
           <a class="nav-item nav-subitem" href="#gestao" data-view="gestao" onclick="irParaView('gestao'); return false;"><i data-lucide="alert-circle"></i> Gestão</a>
         </div>
       </div>
-      <a class="nav-item" href="#aquisicao" data-view="aquisicao" onclick="irParaView('aquisicao'); return false;"><i data-lucide="shopping-cart"></i> Aquisição<span class="selo-fila oculto" id="seloFilaPrecos">0</span></a>
+      <div class="nav-grupo aberto" id="grupoAquisicao">
+        <button type="button" class="nav-item nav-item-grupo" id="botaoGrupoAquisicao" onclick="toggleGrupoAquisicao()">
+          <i data-lucide="shopping-cart"></i> Aquisição
+          <span class="selo-fila oculto" id="seloFilaPrecos">0</span>
+          <i data-lucide="chevron-down" class="icone-chevron-grupo"></i>
+        </button>
+        <div class="nav-subitens" id="subitensAquisicao">
+          <a class="nav-item nav-subitem" href="#aquisicao/cupons" data-sub="cupons" onclick="irParaView('aquisicao', 'cupons'); return false;"><i data-lucide="receipt"></i> Cupons</a>
+          <a class="nav-item nav-subitem" href="#aquisicao/precos" data-sub="precos" onclick="irParaView('aquisicao', 'precos'); return false;"><i data-lucide="tag"></i> Ajuste de preço</a>
+          <a class="nav-item nav-subitem" href="#aquisicao/margens" data-sub="margens" onclick="irParaView('aquisicao', 'margens'); return false;"><i data-lucide="sliders-horizontal"></i> Faixas de margem</a>
+          <a class="nav-item nav-subitem" href="#aquisicao/gestao" data-sub="gestao" onclick="irParaView('aquisicao', 'gestao'); return false;"><i data-lucide="bar-chart-3"></i> Gestão</a>
+        </div>
+      </div>
     </nav>
     <div class="sidebar-info" id="sidebarInfoConferencia">
       <div class="sidebar-info-titulo">Como funciona</div>
@@ -360,12 +372,6 @@
       </div>
     </div>
 
-    <div class="abas-internas">
-      <button type="button" class="aba-interna ativa" id="abaAquisicao-cupons" onclick="mudarAbaAquisicao('cupons')">Cupons</button>
-      <button type="button" class="aba-interna" id="abaAquisicao-precos" onclick="mudarAbaAquisicao('precos')">Ajuste de preço</button>
-      <button type="button" class="aba-interna" id="abaAquisicao-margens" onclick="mudarAbaAquisicao('margens')">Faixas de margem</button>
-    </div>
-
     <!-- ABA: CUPONS -->
     <div id="painelAquisicao-cupons">
       <div class="painel-acoes-dia painel-importar">
@@ -512,6 +518,92 @@
 
       <div id="bannerPrecos" class="banner"></div>
       <div id="listaFilaPrecos"></div>
+    </div>
+
+    <!-- ABA: GESTÃO (painel) -->
+    <div id="painelAquisicao-gestao" class="oculto">
+      <div class="painel-topo">
+        <div>
+          <h3>Painel de gestão</h3>
+          <p>Faturamento previsto, margens e onde está o dinheiro. Tudo derivado das compras lançadas e do preço de prateleira de hoje.</p>
+        </div>
+        <label class="filtro-ano">Ano
+          <select id="filtroAnoPainel" onchange="renderizarPainel()"></select>
+        </label>
+      </div>
+
+      <div id="painelVazio" class="vazio-relacao oculto">
+        Nenhum cupom lançado ainda. O painel se preenche sozinho a partir do primeiro.
+      </div>
+
+      <div id="painelConteudo">
+        <div class="tiles-painel" id="tilesPainel"></div>
+
+        <div class="bloco-painel destaque-oportunidade" id="blocoOportunidade"></div>
+
+        <div class="grade-graficos">
+          <figure class="bloco-painel">
+            <figcaption>
+              <h4>Custo e lucro previsto por mês</h4>
+              <p>A altura da barra é o faturamento previsto: o que você pagou mais o que ele renderia.</p>
+            </figcaption>
+            <div class="legenda-grafico">
+              <span><i class="marca" style="background:var(--serie-custo)"></i> Custo</span>
+              <span><i class="marca" style="background:var(--serie-lucro)"></i> Lucro previsto</span>
+            </div>
+            <div class="area-grafico" id="graficoMeses"></div>
+          </figure>
+
+          <figure class="bloco-painel">
+            <figcaption>
+              <h4>Margem prevista por mês</h4>
+              <p>Quanto por cento sobre o custo cada mês de compra devolveria.</p>
+            </figcaption>
+            <div class="area-grafico" id="graficoMargem"></div>
+          </figure>
+        </div>
+
+        <div class="grade-graficos">
+          <figure class="bloco-painel">
+            <figcaption>
+              <h4>Onde você compra</h4>
+              <p>Mesmo gasto em mercados diferentes pode render margens diferentes.</p>
+            </figcaption>
+            <div class="area-grafico" id="graficoMercados"></div>
+            <div class="tabela-rolagem"><table class="tabela-painel" id="tabelaMercados"></table></div>
+          </figure>
+
+          <figure class="bloco-painel">
+            <figcaption>
+              <h4>Faixa a faixa: praticado × alvo</h4>
+              <p>A distância entre a margem que cada faixa entrega hoje e a que ela mira.</p>
+            </figcaption>
+            <div class="area-grafico" id="graficoFaixas"></div>
+          </figure>
+        </div>
+
+        <div class="bloco-painel">
+          <figcaption>
+            <h4>Produtos que mais rendem</h4>
+            <p>Ordenado por lucro previsto em reais, não por percentual — margem alta em item de pouco volume vale menos que margem média em item de giro.</p>
+          </figcaption>
+          <div class="tabela-rolagem"><table class="tabela-painel" id="tabelaProdutos"></table></div>
+        </div>
+
+        <div class="bloco-painel">
+          <figcaption>
+            <h4>Cobertura do catálogo</h4>
+            <p>Quanto do catálogo o painel já enxerga. Produto sem custo ou sem faixa fica fora de toda conta acima.</p>
+          </figcaption>
+          <div class="tiles-cobertura" id="tilesCobertura"></div>
+        </div>
+
+        <p class="rodape-painel">
+          <strong>Todo valor aqui é previsto, não realizado.</strong> O sistema conhece o que você comprou e a que
+          preço o item está na prateleira — a venda em si acontece no sistema da Pináculo. Servem para decidir
+          preço e compra, não para fechar caixa.
+        </p>
+      </div>
     </div>
 
     <!-- ABA: FAIXAS DE MARGEM -->
@@ -785,11 +877,11 @@
   </div>
 </div>
 
-<script src="shared.js?v=20260730a"></script>
-<script src="conferencia.js?v=20260730a"></script>
-<script src="gestao.js?v=20260730a"></script>
-<script src="reposicao.js?v=20260730a"></script>
-<script src="aquisicao.js?v=20260730a"></script>
+<script src="shared.js?v=20260730b"></script>
+<script src="conferencia.js?v=20260730b"></script>
+<script src="gestao.js?v=20260730b"></script>
+<script src="reposicao.js?v=20260730b"></script>
+<script src="aquisicao.js?v=20260730b"></script>
 <script>
   if (window.lucide) lucide.createIcons();
 </script>
