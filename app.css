@@ -1162,3 +1162,55 @@ button.carregando::after {
 .card-regra .campo-margem span { font-size: 14px; font-weight: 700; color: var(--texto-2); }
 .card-regra .descricao-regra { margin-top: 8px; font-size: 12.5px; }
 .card-regra .rodape-regra { font-size: 11.5px; color: var(--texto-2); margin-top: 8px; font-weight: 600; }
+
+/* --- importação de NFC-e --- */
+.painel-importar { margin-bottom: 16px; }
+.linha-importar { display: flex; gap: 8px; margin-top: 10px; }
+.linha-importar input { flex: 1; min-width: 0; }
+.linha-importar .btn-primaria { width: auto; min-width: 130px; margin: 0; flex-shrink: 0; }
+@media (max-width: 560px) {
+  .linha-importar { flex-wrap: wrap; }
+  .linha-importar input, .linha-importar .btn-primaria { flex: 1 1 100%; }
+}
+.link-alternativa {
+  background: none; padding: 0; margin-top: 10px; height: auto;
+  font-size: 12.5px; font-weight: 600; color: var(--laranja-escuro); text-decoration: underline;
+}
+.link-alternativa:hover { color: var(--laranja); background: none; }
+
+.aviso-revisao {
+  background: var(--creme); border: 1px solid var(--borda); border-left: 3px solid var(--azul);
+  border-radius: var(--raio-sm); padding: 10px 12px; margin: 10px 0; font-size: 12.5px; line-height: 1.55;
+}
+.aviso-revisao.grave { border-left-color: var(--vermelho); background: #FFFBFB; }
+
+.linha-revisao {
+  background: #fff; border: 1px solid var(--borda); border-radius: var(--raio-sm);
+  padding: 12px 14px; margin-bottom: 8px;
+}
+.linha-revisao.suspeita { border-color: #FCA5A5; background: #FFFBFB; }
+.linha-revisao .cabecalho-revisao { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; }
+.linha-revisao .desc { font-size: 13.5px; font-weight: 600; min-width: 0; }
+.linha-revisao .desc .meta { display: block; font-size: 11.5px; font-weight: 400; color: var(--texto-2); margin-top: 2px; }
+.linha-revisao .valor { font-size: 13.5px; font-weight: 700; white-space: nowrap; }
+.linha-revisao .alerta-linha { font-size: 11.5px; color: #B91C1C; font-weight: 600; margin-top: 6px; }
+
+.selo-vinculo {
+  display: inline-block; margin-left: 6px; padding: 1px 6px; border-radius: 6px;
+  font-size: 9.5px; font-weight: 700; text-transform: uppercase; letter-spacing: .02em; vertical-align: middle;
+}
+.selo-vinculo.palpite { background: #EFF6FF; color: var(--azul); }
+.selo-vinculo.aprendido { background: #F0FDF4; color: #15803D; }
+
+.controles-revisao { display: flex; align-items: flex-end; gap: 8px; margin-top: 10px; flex-wrap: wrap; }
+.controles-revisao select { flex: 1; min-width: 180px; height: 34px; font-size: 12.5px; }
+.controles-revisao .campo-inline {
+  display: flex; flex-direction: column; gap: 2px; margin: 0; flex-shrink: 0;
+  font-size: 10px; font-weight: 600; color: var(--texto-2); text-transform: uppercase; letter-spacing: .03em;
+}
+.controles-revisao .campo-inline input { width: 84px; height: 34px; text-align: center; font-size: 12.5px; }
+.btn-remover-revisao {
+  width: 34px; height: 34px; flex-shrink: 0; border-radius: 10px;
+  background: none; color: var(--vermelho); border: 1px solid #FCA5A5; font-size: 18px; line-height: 1;
+}
+.btn-remover-revisao:hover { background: #FEF2F2; }

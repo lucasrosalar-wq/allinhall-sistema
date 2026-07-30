@@ -363,9 +363,43 @@
 
     <!-- ABA: CUPONS -->
     <div id="painelAquisicao-cupons">
+      <div class="painel-acoes-dia painel-importar">
+        <h3>Importar cupom fiscal</h3>
+        <div class="subtitulo">
+          Escaneie o QR code do cupom, copie o link que abrir e cole aqui. O sistema
+          lê os itens, junta as linhas repetidas e já sugere o produto do catálogo.
+        </div>
+        <div class="linha-importar">
+          <input type="text" id="urlNfce" placeholder="https://www.fazenda.pr.gov.br/nfce/qrcode?p=...">
+          <button type="button" class="btn-primaria" id="botaoLerNfce" onclick="lerNfce()">Ler cupom</button>
+        </div>
+        <button type="button" class="link-alternativa" onclick="alternarColarNfce()">
+          Não consegue usar o link? Colar o conteúdo da página
+        </button>
+        <div id="blocoColarNfce" class="oculto">
+          <label>Conteúdo da página do cupom</label>
+          <textarea id="conteudoNfce" rows="4" placeholder="Abra o link no navegador, selecione tudo (Ctrl+A), copie (Ctrl+C) e cole aqui."></textarea>
+        </div>
+        <div id="bannerNfce" class="banner"></div>
+      </div>
+
+      <div id="blocoRevisaoNfce" class="painel-acoes-dia oculto">
+        <h3>Confira antes de lançar</h3>
+        <div class="subtitulo" id="subtituloRevisaoNfce">—</div>
+        <div id="avisosRevisaoNfce"></div>
+        <div id="listaRevisaoNfce"></div>
+        <div class="total-box">
+          <span>Total a lançar</span>
+          <strong id="totalRevisaoNfce">R$ 0,00</strong>
+        </div>
+        <div id="bannerRevisaoNfce" class="banner"></div>
+        <button class="btn-primaria" id="botaoLancarNfce" onclick="lancarNfce()">Lançar cupom</button>
+        <button class="btn-fechar" onclick="cancelarRevisaoNfce()">Cancelar</button>
+      </div>
+
       <div class="painel-acoes-dia">
         <h3>Novo cupom</h3>
-        <div class="subtitulo">O custo que entra aqui é o que alimenta o cálculo de preço.</div>
+        <div class="subtitulo">Digitação manual — use quando não tiver o QR code em mãos.</div>
 
         <div class="linha-dupla">
           <div>

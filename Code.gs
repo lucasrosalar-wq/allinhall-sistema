@@ -59,14 +59,24 @@ const CONDOMINIOS_SEED = ['Walk Soho', 'Walk Brigadeiro', 'Parque das Pedreiras'
 // ===================== PRECIFICAÇÃO =====================
 // Faixas de margem por comportamento de compra. A lógica é de mercado, não de
 // contabilidade: quanto mais o item é comprado por impulso, menos o morador
-// compara o preço com o mercado da rua — e mais margem ele suporta. Quanto mais
-// recorrente/básico o item, mais ele vira referência de preço e menos margem
-// aguenta. Servem de padrão inicial; a pessoa edita tudo pela tela de Aquisição.
+// compara o preço com o mercado da rua — e mais margem ele suporta.
+//
+// Os percentuais NÃO são teoria: são a mediana da margem que a operação já
+// praticava, medida a partir dos custos reais de dois cupons (Muffato e Assaí,
+// 29/07/2026, 53 itens, 26 produtos do catálogo). A primeira versão usava uma
+// régua de supermercado (65/45/30/20) e o resultado era ruim — sugeria cortar
+// 42% no molho de tomate e 37% no apresuntado. Faz sentido num mercado com
+// concorrente a 50 metros; não faz num minimercado dentro do condomínio, onde
+// o morador desce de pijama às 23h e não tem com o que comparar.
+//
+// Calibrado assim, o sistema não muda o nível de preço da operação — ele alinha
+// quem está fora da linha dos próprios pares. Revise pela tela de Aquisição
+// conforme mais cupons entrarem; Básico em especial saiu de só 2 observações.
 const REGRAS_MARGEM_SEED = [
-  ['impulso', 'Impulso', 65, 'Chocolate, energético, cerveja, salgadinho. Levado na vontade do momento, quase ninguém compara preço.', 1],
-  ['conveniencia', 'Conveniência', 45, 'Refrigerante, água, snack, higiene de emergência. Levado pela praticidade de ter ali.', 2],
-  ['recorrencia', 'Recorrência', 30, 'Leite, café, pão, papel higiênico. Levado sempre — o morador sabe quanto custa fora.', 3],
-  ['basico', 'Básico', 20, 'Arroz, açúcar, óleo, macarrão. Referência de preço forte, margem curta de propósito.', 4]
+  ['impulso', 'Impulso', 68, 'Chocolate, energético, cerveja, salgadinho. Levado na vontade do momento, quase ninguém compara preço.', 1],
+  ['conveniencia', 'Conveniência', 62, 'Refrigerante, água, snack, higiene de emergência. Levado pela praticidade de ter ali.', 2],
+  ['recorrencia', 'Recorrência', 39, 'Leite, café, pão, papel higiênico. Levado sempre — o morador sabe quanto custa fora.', 3],
+  ['basico', 'Básico', 104, 'Arroz, açúcar, óleo, macarrão. Base medida em poucos itens ainda — confira conforme entrarem mais cupons.', 4]
 ];
 
 // Terminações de preço "de prateleira". O preço calculado sempre sobe até a
@@ -259,6 +269,8 @@ function tratarRequisicao_(params) {
         return respostaJson_({ ok: true, dados: atualizarProduto_(params) });
       case 'aplicarPrecos':
         return respostaJson_({ ok: true, dados: aplicarPrecos_(params) });
+      case 'lerNfce':
+        return respostaJson_({ ok: true, dados: lerNfce_(params) });
       default:
         return respostaJson_({ ok: false, erro: 'Ação desconhecida: ' + acao });
     }
@@ -668,20 +680,57 @@ function identificarFuroReposicao_(params) {
 
 // ===================== AQUISIÇÃO: CUSTO, MARGEM E PREÇO =====================
 
-// Chave de reconhecimento de um item de cupom. O código (EAN) do mercado é o que
-// existe de mais estável, então ele manda quando vem preenchido; sem código,
-// sobra a descrição impressa, normalizada (sem acento, sem pontuação, sem espaço
-// duplo) pra "COCA COLA 2L" e "Coca-Cola  2l" caírem na mesma chave.
-function chaveDePara_(codigo, descricao) {
-  const cod = String(codigo || '').trim();
-  if (cod) return 'cod:' + cod;
-  const texto = String(descricao || '')
+function normalizarTexto_(valor) {
+  return String(valor || '')
     .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
     .toUpperCase()
     .replace(/[^A-Z0-9 ]/g, ' ')
     .replace(/\s+/g, ' ')
     .trim();
-  return 'desc:' + texto;
+}
+
+// Um código de barras de verdade (GTIN-8/12/13/14) vale em qualquer mercado do
+// mundo. O código impresso no cupom quase nunca é isso: é o código interno da
+// loja. Nos cupons reais que serviram de base, o Assaí chama o Detergente Limpol
+// de "675" e a Coca lata de "1053361" — números curtos, sequenciais, que outro
+// mercado usa pra outra coisa qualquer. Confundir os dois faz o sistema vincular
+// produto errado sozinho e sem avisar, que é o pior tipo de erro que existe aqui.
+// O dígito verificador é o que separa um caso do outro com segurança.
+function ehGtinValido_(codigo) {
+  const digitos = String(codigo || '').trim();
+  if (!/^\d+$/.test(digitos)) return false;
+  if ([8, 12, 13, 14].indexOf(digitos.length) === -1) return false;
+
+  let soma = 0;
+  // Da direita pra esquerda, fora o dígito verificador, os pesos alternam 3 e 1.
+  for (let i = digitos.length - 2; i >= 0; i--) {
+    const peso = (digitos.length - i) % 2 === 0 ? 3 : 1;
+    soma += Number(digitos.charAt(i)) * peso;
+  }
+  const verificador = (10 - (soma % 10)) % 10;
+  return verificador === Number(digitos.charAt(digitos.length - 1));
+}
+
+// Escopo de loja pra chave do de-para. Diferente de normalizarTexto_, aqui a
+// pontuação é removida em vez de virar espaço: um CNPJ colapsa nos dígitos
+// ("06.057.223/0403-94" -> "06057223040394") e o nome digitado colapsa numa
+// palavra só, então "Atacadão", "atacadao " e "ATACADÃO" caem no mesmo escopo.
+function normalizarEscopo_(valor) {
+  return normalizarTexto_(valor).replace(/ /g, '');
+}
+
+// Chave de reconhecimento de um item de cupom, em três níveis:
+//  - código de barras válido -> chave global; aprendida num mercado, vale em todos
+//  - qualquer outro código   -> chave presa ao mercado (é código interno dele)
+//  - sem código              -> descrição normalizada, também presa ao mercado,
+//    porque a abreviação impressa é escolha da loja ("CHOC GAROTO 80G CAJU")
+// `loja` aceita CNPJ ou nome do mercado — os dois passam pelo mesmo normalizador.
+function chaveDePara_(codigo, descricao, loja) {
+  const cod = String(codigo || '').trim();
+  if (cod && ehGtinValido_(cod)) return 'ean:' + cod;
+  const escopo = normalizarEscopo_(loja) || 'SEMLOJA';
+  if (cod) return 'cod:' + escopo + ':' + normalizarTexto_(cod);
+  return 'desc:' + escopo + ':' + normalizarTexto_(descricao);
 }
 
 function arredondarPrecoComercial_(valor) {
@@ -889,6 +938,15 @@ function criarCompra_(params) {
     ];
     escreverLinhaComoTexto_(abaCompras, abaCompras.getLastRow() + 1, linhaCompra, [2, 8]);
 
+    // Um cupom traz o mesmo produto do catálogo em várias linhas — no cupom real,
+    // Bala Fini veio em 4 códigos (um por sabor) e Coca lata em 4 linhas. Gravar
+    // o custo linha por linha faria a última sobrescrever as outras, e o custo do
+    // produto passaria a ser o do último sabor em vez do da compra. Por isso as
+    // linhas vão inteiras pro histórico, mas o custo é consolidado por produto
+    // (média ponderada pela quantidade) e gravado uma vez só, no fim.
+    const consolidado = {};
+    const ordemProdutos = [];
+
     itens.forEach(function (item, indice) {
       const idItem = 'CI' + carimbo + '-' + indice + Math.floor(Math.random() * 90 + 10);
       const qtd = Number(item.qtd) || 0;
@@ -906,12 +964,23 @@ function criarCompra_(params) {
       abaItens.getRange(abaItens.getLastRow() + 1, 1, 1, linha.length).setValues([linha]);
 
       if (item.produto) {
-        registrarCustoProduto_(item.produto, custoUnit, params.data);
-        aprenderDePara_(item.codigo, item.descricao_cupom || item.produto, item.produto, params.origem || 'manual');
+        const nome = String(item.produto);
+        if (!consolidado[nome]) { consolidado[nome] = { qtd: 0, valor: 0 }; ordemProdutos.push(nome); }
+        consolidado[nome].qtd += qtd;
+        consolidado[nome].valor += qtd * custoUnit;
+
+        // params.loja existe pra importação passar o CNPJ do emitente, que é um
+        // escopo bem mais confiável que o nome digitado à mão.
+        aprenderDePara_(item.codigo, item.descricao_cupom || item.produto, item.produto, params.origem || 'manual', params.loja || params.mercado);
       }
     });
 
-    return { id: idCompra, valor_total: arredondar2_(valorTotal) };
+    ordemProdutos.forEach(function (nome) {
+      const a = consolidado[nome];
+      if (a.qtd > 0) registrarCustoProduto_(nome, a.valor / a.qtd, params.data);
+    });
+
+    return { id: idCompra, valor_total: arredondar2_(valorTotal), produtos_com_custo: ordemProdutos.length };
   });
 }
 
@@ -944,9 +1013,11 @@ function registrarCustoProduto_(nomeProduto, custoUnit, dataCompra) {
 // A memória que faz a digitação diminuir a cada cupom: uma vez que a pessoa
 // disse que "CHOC LACTA 80G" é o "Chocolate Lacta 80g - Sabores" do catálogo,
 // o sistema não pergunta de novo.
-function aprenderDePara_(codigo, descricao, produto, origem) {
+// `loja` é o escopo da chave (ver chaveDePara_): hoje o nome do mercado digitado,
+// e o CNPJ quando a importação de NFC-e passar a preencher.
+function aprenderDePara_(codigo, descricao, produto, origem, loja) {
   const aba = obterAba_(NOMES_ABAS.DE_PARA);
-  const chave = chaveDePara_(codigo, descricao);
+  const chave = chaveDePara_(codigo, descricao, loja);
   const valores = aba.getDataRange().getValues();
   const cabecalho = valores[0];
   const colChave = cabecalho.indexOf('chave');
@@ -961,6 +1032,21 @@ function aprenderDePara_(codigo, descricao, produto, origem) {
   }
   escreverLinhaComoTexto_(aba, aba.getLastRow() + 1, [chave, descricao || '', produto, origem || 'manual', agora_()], [5]);
   return { criado: true };
+}
+
+// Mercado que originou uma compra — o escopo da chave do de-para. Devolve string
+// vazia se a compra não for achada; aí a chave cai no escopo 'SEM LOJA', que é
+// impreciso mas nunca vincula errado o item de outro mercado.
+function lojaDaCompra_(compraId) {
+  const aba = obterAba_(NOMES_ABAS.COMPRAS);
+  const valores = aba.getDataRange().getValues();
+  const cabecalho = valores[0];
+  const colId = cabecalho.indexOf('id');
+  const colMercado = cabecalho.indexOf('mercado');
+  for (let i = 1; i < valores.length; i++) {
+    if (String(valores[i][colId]) === String(compraId)) return String(valores[i][colMercado] || '');
+  }
+  return '';
 }
 
 // Liga um item de cupom que ficou sem produto a um produto do catálogo (ou troca
@@ -980,7 +1066,9 @@ function vincularItemCompra_(params) {
         const codigo = valores[i][cabecalho.indexOf('codigo')];
         const descricao = valores[i][cabecalho.indexOf('descricao_cupom')];
         registrarCustoProduto_(params.produto, custoUnit, params.data || '');
-        aprenderDePara_(codigo, descricao, params.produto, 'manual');
+        // A chave do de-para é presa ao mercado, então o vínculo tem que ser
+        // aprendido no escopo da compra que originou o item — não solto.
+        aprenderDePara_(codigo, descricao, params.produto, 'manual', lojaDaCompra_(valores[i][cabecalho.indexOf('compra_id')]));
         return { vinculado: true };
       }
     }
@@ -1086,6 +1174,340 @@ function aplicarPrecos_(params) {
 
     return { aplicados: aplicados, ignorados: ignorados };
   });
+}
+
+// ===================== IMPORTAÇÃO DE NFC-e =====================
+// Todo cupom fiscal traz um QR code que abre uma página pública da SEFAZ com o
+// cupom inteiro em HTML — descrição, código, quantidade e valor unitário de cada
+// item. Ler dali é o que tira a digitação do caminho, e não depende de acesso a
+// sistema de terceiro nenhum.
+//
+// A página é da SEFAZ do Paraná (fazenda.pr.gov.br). Outros estados publicam o
+// mesmo dado em layout diferente — se um dia precisar, é aqui que se adapta.
+//
+// Esta função só LÊ e devolve para revisão na tela. Nada é gravado: quem grava é
+// criarCompra_, depois da pessoa conferir. Mesmo princípio do resto da Aquisição.
+
+function lerNfce_(params) {
+  const conteudo = obterHtmlNfce_(params);
+  const cupom = extrairNfce_(conteudo);
+  if (cupom.itens.length === 0) {
+    throw new Error('Não encontrei itens nessa página. Confira se o link é o do QR code do cupom (ou cole o conteúdo da página).');
+  }
+
+  const produtos = lerAbaComoObjetos_(NOMES_ABAS.PRODUTOS);
+  const dePara = lerAbaComoObjetosOpcional_(NOMES_ABAS.DE_PARA) || [];
+  const mapaDePara = {};
+  dePara.forEach(function (d) { mapaDePara[String(d.chave)] = String(d.produto || ''); });
+
+  const nomesCatalogo = produtos.map(function (p) { return String(p.nome); });
+  const precoPorNome = {};
+  produtos.forEach(function (p) { precoPorNome[String(p.nome)] = Number(p.preco) || 0; });
+
+  const escopo = cupom.cnpj || cupom.emitente;
+  const itens = agruparItensIdenticos_(cupom.itens).map(function (item) {
+    // Vínculo já aprendido vence qualquer palpite por nome: a pessoa confirmou
+    // aquele de-para uma vez, e o código da loja é chave exata.
+    const chave = chaveDePara_(item.codigo, item.descricao, escopo);
+    const aprendido = mapaDePara[chave] || '';
+
+    let sugerido = aprendido;
+    let origemVinculo = aprendido ? 'aprendido' : '';
+    if (!sugerido) {
+      const palpite = casarProdutoPorNome_(item.descricao, nomesCatalogo);
+      if (palpite) { sugerido = palpite; origemVinculo = 'palpite'; }
+    }
+
+    const precoVenda = precoPorNome[sugerido] || 0;
+    // Dois sinais de que a linha não é uma unidade de venda: a descrição diz que
+    // é fardo/pack, ou o custo unitário encostou no preço de venda. O segundo
+    // pega o caso real "PACK GUARANA ANT UN — 1 un × R$ 52,99", que entraria como
+    // se uma latinha custasse 52,99 e faria o sistema sugerir preço absurdo.
+    const pareceFardo = /\b(PACK|FARDO|ENGRAD|ENGRADADO)\b/.test(normalizarTexto_(item.descricao));
+    const custoAcimaDoPreco = precoVenda > 0 && item.custo_unit >= precoVenda;
+
+    return {
+      descricao_cupom: item.descricao,
+      codigo: item.codigo,
+      unidade: item.unidade,
+      qtd: item.qtd,
+      custo_unit: item.custo_unit,
+      custo_total: arredondar2_(item.qtd * item.custo_unit),
+      produto: sugerido,
+      origem_vinculo: origemVinculo,
+      preco_venda_atual: precoVenda,
+      alerta_fardo: pareceFardo,
+      alerta_custo_acima: custoAcimaDoPreco
+    };
+  });
+
+  return {
+    emitente: cupom.emitente,
+    cnpj: cupom.cnpj,
+    chave: cupom.chave,
+    data: cupom.data,
+    itens: itens,
+    total_itens: arredondar2_(itens.reduce(function (s, i) { return s + i.custo_total; }, 0)),
+    linhas_originais: cupom.itens.length
+  };
+}
+
+// Aceita o link do QR code (busca a página) ou o conteúdo já colado. O link é o
+// caminho normal; colar existe porque a busca pode falhar (SEFAZ fora do ar,
+// página exigindo captcha) e nesse caso a pessoa abre no navegador e copia.
+function obterHtmlNfce_(params) {
+  const colado = String(params.conteudo || '').trim();
+  if (colado) return colado;
+
+  const url = String(params.url || '').trim();
+  if (!url) throw new Error('Informe o link do QR code do cupom ou cole o conteúdo da página.');
+  if (url.indexOf('http') !== 0) throw new Error('O link precisa começar com http.');
+
+  let resposta;
+  try {
+    // O "p=" da URL da SEFAZ tem barras verticais, que precisam ir codificadas.
+    resposta = UrlFetchApp.fetch(url.replace(/\|/g, '%7C'), { muteHttpExceptions: true, followRedirects: true });
+  } catch (err) {
+    throw new Error('Não consegui acessar a página do cupom. Abra o link no navegador, copie a página e cole aqui.');
+  }
+  if (resposta.getResponseCode() !== 200) {
+    throw new Error('A página do cupom respondeu ' + resposta.getResponseCode() + '. Abra o link no navegador, copie a página e cole aqui.');
+  }
+  return resposta.getContentText();
+}
+
+function textoDeHtml_(trecho) {
+  return String(trecho || '')
+    .replace(/<[^>]+>/g, ' ')
+    .replace(/&nbsp;/g, ' ').replace(/&amp;/g, '&').replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>').replace(/&quot;/g, '"').replace(/&#39;/g, "'")
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+// "1.234,56" -> 1234.56
+function numeroBr_(texto) {
+  const limpo = String(texto || '').replace(/\./g, '').replace(',', '.');
+  const n = Number(limpo);
+  return isNaN(n) ? 0 : n;
+}
+
+function extrairNfce_(conteudo) {
+  const emitente = textoDeHtml_((conteudo.match(/class="txtTopo"[^>]*>([\s\S]*?)<\/div>/) || [])[1])
+    || primeiraLinhaComNome_(conteudo);
+  const cnpj = (conteudo.match(/CNPJ:\s*([\d.\/-]{14,})/) || [])[1] || '';
+  const chave = (conteudo.replace(/\s/g, '').match(/(\d{44})/) || [])[1] || '';
+  // O DANFE mostra dd/mm/aaaa hh:mm:ss; guardamos só a data, em ISO.
+  const dataBr = (conteudo.match(/(\d{2}\/\d{2}\/\d{4})/) || [])[1] || '';
+  const partes = dataBr.split('/');
+  const data = partes.length === 3 ? partes[2] + '-' + partes[1] + '-' + partes[0] : '';
+
+  // Duas formas de chegar aqui: o HTML da página (link buscado pelo servidor, ou
+  // arquivo salvo) e o texto puro que o navegador entrega num Ctrl+A/Ctrl+C — que
+  // não tem tag nenhuma. Os dois precisam funcionar, senão a alternativa de colar
+  // não serve pra nada justamente na hora em que o link falhou.
+  const itens = extrairItensHtml_(conteudo);
+  return {
+    emitente: emitente,
+    cnpj: cnpj,
+    chave: chave,
+    data: data,
+    itens: itens.length ? itens : extrairItensTexto_(conteudo)
+  };
+}
+
+// No texto puro não existe a div txtTopo pra dizer quem é o emitente. Mas o DANFE
+// sempre imprime o nome logo acima do CNPJ, então é a última linha com letras
+// antes da linha do CNPJ — bem mais firme que "primeira linha que parece nome",
+// que pegava cabeçalho de arquivo salvo em vez do mercado.
+function primeiraLinhaComNome_(conteudo) {
+  const linhas = String(conteudo).split(/[\r\n]+/).map(function (l) { return l.trim(); });
+  const indiceCnpj = linhas.findIndex(function (l) { return l.indexOf('CNPJ') !== -1; });
+  if (indiceCnpj > 0) {
+    for (let i = indiceCnpj - 1; i >= 0; i--) {
+      if (/[A-Za-zÀ-ÿ]{4}/.test(linhas[i])) return linhas[i];
+    }
+  }
+  return '';
+}
+
+function extrairItensHtml_(html) {
+  const itens = [];
+  const blocos = html.match(/<tr[^>]*id="Item[^"]*"[^>]*>[\s\S]*?<\/tr>/g) || [];
+  blocos.forEach(function (bloco) {
+    const descricao = textoDeHtml_((bloco.match(/class="txtTit2?"[^>]*>([\s\S]*?)<\/span>/) || [])[1]);
+    if (!descricao) return;
+    itens.push({
+      descricao: descricao,
+      codigo: ((bloco.match(/C[óo]digo:\s*([^)<]+)/) || [])[1] || '').trim(),
+      qtd: numeroBr_((bloco.match(/Qtde\.?:\s*<\/strong>\s*([\d.,]+)/) || [])[1]),
+      unidade: ((bloco.match(/UN:\s*<\/strong>\s*([^<]+)/) || [])[1] || '').trim(),
+      custo_unit: numeroBr_((bloco.match(/Vl\.?\s*Unit\.?:\s*<\/strong>\s*(?:&nbsp;|\s)*([\d.,]+)/) || [])[1])
+    });
+  });
+  return itens;
+}
+
+// No texto puro cada item vira algo como:
+//   JUNG END 500ML LIMAO (Código: 1216767)
+//   Qtde.:1  UN: Un  Vl. Unit.: 3,99   Vl. Total 3,99
+// O "(Código:" é a única âncora confiável: a descrição é o que vem antes dele, e
+// quantidade/unidade/valor são o que vem depois, até o próximo item.
+function extrairItensTexto_(texto) {
+  const pedacos = String(texto).split(/\(C[óo]digo:\s*/);
+  if (pedacos.length < 2) return [];
+
+  const itens = [];
+  for (let i = 1; i < pedacos.length; i++) {
+    const anterior = pedacos[i - 1];
+    const atual = pedacos[i];
+
+    const codigo = (atual.match(/^([^)]*)\)/) || [])[1];
+    if (codigo === undefined) continue;
+
+    // Descrição = último trecho de texto do pedaço anterior. Nas linhas seguintes
+    // à primeira, o pedaço anterior termina com "Vl. Total <valor>" e aí vem a
+    // descrição do item atual — pegar da última quebra de linha resolve os dois.
+    const linhas = anterior.split(/[\r\n]+/).map(function (l) { return l.trim(); }).filter(function (l) { return l; });
+    let descricao = linhas.length ? linhas[linhas.length - 1] : '';
+    // Se a descrição vier grudada num valor ("3,99 COOK PIRAQ 80G CHOC"), corta o número da frente.
+    descricao = descricao.replace(/^[\d.,]+\s+/, '').replace(/^Vl\.?\s*Total\s*/i, '').trim();
+    if (!descricao) continue;
+
+    itens.push({
+      descricao: descricao,
+      codigo: codigo.trim(),
+      qtd: numeroBr_((atual.match(/Qtde\.?:\s*([\d.,]+)/) || [])[1]),
+      unidade: ((atual.match(/UN:\s*([A-Za-z]+)/) || [])[1] || '').trim(),
+      custo_unit: numeroBr_((atual.match(/Vl\.?\s*Unit\.?:\s*([\d.,]+)/) || [])[1])
+    });
+  }
+  return itens;
+}
+
+// Um cupom repete a mesma linha várias vezes (no cupom real, "COOK PIRAQ 80G
+// BAUN" apareceu 3 vezes: 1, 1 e 18 unidades). Junta o que é literalmente o
+// mesmo item — mesmo código e mesma descrição — somando quantidade e tirando o
+// custo médio ponderado. Só isso: agrupar por produto do catálogo aqui seria
+// errado, porque o vínculo ainda vai passar pela revisão da pessoa.
+function agruparItensIdenticos_(itens) {
+  const mapa = {};
+  const ordem = [];
+  itens.forEach(function (i) {
+    const chave = normalizarTexto_(i.codigo) + '|' + normalizarTexto_(i.descricao);
+    if (!mapa[chave]) {
+      mapa[chave] = { descricao: i.descricao, codigo: i.codigo, unidade: i.unidade, qtd: 0, valor: 0 };
+      ordem.push(chave);
+    }
+    mapa[chave].qtd += i.qtd;
+    mapa[chave].valor += i.qtd * i.custo_unit;
+  });
+  return ordem.map(function (chave) {
+    const a = mapa[chave];
+    return {
+      descricao: a.descricao,
+      codigo: a.codigo,
+      unidade: a.unidade,
+      qtd: a.qtd,
+      custo_unit: a.qtd > 0 ? arredondar2_(a.valor / a.qtd) : 0
+    };
+  });
+}
+
+// ===================== CASAMENTO DE NOME =====================
+// A descrição do cupom é abreviada e cada mercado abrevia do seu jeito:
+// "CHOC GAROTO 80G CAJU" precisa virar "Chocolate Garoto 80g - Sabores".
+//
+// Não uso dicionário de abreviação (frágil, interminável): comparo palavra por
+// palavra aceitando prefixo, que é justamente como a abreviação funciona —
+// CHOC casa com CHOCOLATE, PIRAQ com PIRAQUÊ, JUNG com JUNGLE.
+//
+// Medido nos 53 itens de dois cupons reais: 33 de 44 descrições distintas saem
+// pré-vinculadas certas, e o que sobra é ambiguidade de verdade (tamanho que
+// mudou de embalagem, variante de sabor, produto que não está no catálogo).
+// Nada disso é gravado sem a pessoa confirmar na tela — o palpite só poupa
+// clique, nunca decide sozinho.
+
+const RUIDO_NOME_ = {
+  DE: 1, DA: 1, DO: 1, COM: 1, EM: 1, PARA: 1,
+  SABORES: 1, VARIADOS: 1, VARIADO: 1, DIVERSOS: 1,
+  UN: 1, PC: 1, LA: 1, CX: 1, TBL: 1, FAT: 1, TRAD: 1,
+  UNIDADES: 1, PACOTE: 1, CAIXA: 1, GARRAFA: 1
+};
+const PADRAO_TAMANHO_ = /^\d+(G|KG|ML|L|M|UN)$/;
+
+function tokensNome_(texto) {
+  return normalizarTexto_(texto).split(' ').filter(function (t) {
+    return t.length >= 2 && !RUIDO_NOME_[t];
+  });
+}
+
+// Uma letra de diferença em palavra longa — resolve CRISTAL x CRYSTAL, que é
+// grafia de marca que muda de um cupom pro outro.
+function diferencaDeUmaLetra_(a, b) {
+  if (Math.abs(a.length - b.length) > 1) return false;
+  if (a.length === b.length) {
+    let diferentes = 0;
+    for (let i = 0; i < a.length; i++) if (a.charAt(i) !== b.charAt(i)) diferentes++;
+    return diferentes === 1;
+  }
+  const curto = a.length < b.length ? a : b;
+  const longo = a.length < b.length ? b : a;
+  for (let i = 0; i < longo.length; i++) {
+    if (longo.slice(0, i) + longo.slice(i + 1) === curto) return true;
+  }
+  return false;
+}
+
+function tokensCasam_(a, b) {
+  if (a === b) return true;
+  if (a.length >= 3 && b.indexOf(a) === 0) return true;
+  if (b.length >= 3 && a.indexOf(b) === 0) return true;
+  if (a.length >= 5 && b.length >= 5 && diferencaDeUmaLetra_(a, b)) return true;
+  return false;
+}
+
+function pontuarCasamento_(descricao, nomeCatalogo) {
+  const tc = tokensNome_(descricao);
+  const tn = tokensNome_(nomeCatalogo);
+  if (tc.length === 0 || tn.length === 0) return -1;
+
+  // Se os dois declaram tamanho e os tamanhos não batem, não é o mesmo produto.
+  // É o que impede Oreo 270g de virar Oreo 90g, e Elma Chips 35g virar a de 40g.
+  const tamC = tc.filter(function (t) { return PADRAO_TAMANHO_.test(t); });
+  const tamN = tn.filter(function (t) { return PADRAO_TAMANHO_.test(t); });
+  if (tamC.length && tamN.length) {
+    const bate = tamC.some(function (a) { return tamN.some(function (b) { return tokensCasam_(a, b); }); });
+    if (!bate) return -1;
+  }
+
+  const casados = tc.filter(function (t) {
+    return tn.some(function (n) { return tokensCasam_(t, n); });
+  });
+  const palavras = casados.filter(function (t) { return !PADRAO_TAMANHO_.test(t); });
+  // Exige pelo menos uma palavra (não só o tamanho) e dois sinais no total —
+  // senão "80G" sozinho casaria com meio catálogo.
+  if (palavras.length < 1 || casados.length < 2) return -1;
+
+  // Palavra pesa mais que número; nome de catálogo mais enxuto desempata.
+  return palavras.length * 10 + casados.length - tn.length * 0.01;
+}
+
+function casarProdutoPorNome_(descricao, nomesCatalogo) {
+  let melhorNota = -1;
+  nomesCatalogo.forEach(function (nome) {
+    const nota = pontuarCasamento_(descricao, nome);
+    if (nota > melhorNota) melhorNota = nota;
+  });
+  if (melhorNota < 0) return '';
+
+  // Empate técnico no topo = ambiguidade real (ex: "COOK PIRAQ 80G CHOC" serve
+  // pro Cookie Piraquê e pro Biscoito Piraquê com cobertura de chocolate).
+  // Nesse caso não palpita: deixa a pessoa escolher, que é quem sabe.
+  const empatados = nomesCatalogo.filter(function (nome) {
+    return Math.abs(pontuarCasamento_(descricao, nome) - melhorNota) < 0.5;
+  });
+  return empatados.length === 1 ? empatados[0] : '';
 }
 
 function excluirReposicao_(params) {

@@ -206,17 +206,44 @@ ele suporta.
 
 | Faixa | Padrão | Tipo de item |
 |---|---|---|
-| Impulso | 65% | chocolate, energético, cerveja, salgadinho |
-| Conveniência | 45% | refrigerante, água, snack, higiene de emergência |
-| Recorrência | 30% | leite, café, pão, papel higiênico |
-| Básico | 20% | arroz, açúcar, óleo, macarrão |
+| Impulso | 68% | chocolate, energético, cerveja, salgadinho |
+| Conveniência | 62% | refrigerante, água, snack, higiene de emergência |
+| Recorrência | 39% | leite, café, pão, papel higiênico |
+| Básico | 104% | arroz, açúcar, óleo, macarrão |
+
+**De onde vêm esses números.** Não são teoria: são a mediana da margem que a
+operação já praticava, medida com os custos reais de dois cupons (Muffato e
+Assaí, 53 itens, 26 produtos do catálogo). A primeira versão usava uma régua de
+supermercado (65/45/30/20) e o resultado era ruim — sugeria cortar 42% no molho
+de tomate e 37% no apresuntado. Faz sentido num mercado com concorrente a 50
+metros; não faz num minimercado dentro do condomínio, onde o morador desce de
+pijama às 23h e não tem com o que comparar.
+
+Calibrado na prática real, o sistema não mexe no nível de preço da operação —
+ele alinha quem está fora da linha dos próprios pares. Nos 26 produtos medidos,
+16 sobem e 8 descem, e os maiores movimentos são justamente os itens
+descolados: Red Bull e chocolate Garoto estão com metade da margem dos outros
+itens de impulso (sobem ~27%), e o apresuntado está com quase o triplo da
+margem dos outros itens de recorrência (desce 32%).
+
+Duas ressalvas honestas sobre a calibragem:
+
+- **Básico saiu de apenas 2 observações** (molho de tomate e açúcar), e as duas
+  apontam para lados opostos. Trate os 104% como provisório e revise conforme
+  entrarem mais cupons de itens dessa faixa.
+- **A mediana esconde dispersão.** Suas margens variam de 24% a 127% dentro da
+  mesma categoria — o que significa que hoje não existe política de preço, e
+  sim preço herdado. Alinhar isso é o ponto do sistema, mas o alvo continua
+  sendo escolha sua, não da mediana.
 
 Os percentuais são editáveis na aba **Faixas de margem**, e os 104 produtos do
-catálogo já vêm classificados — revise, o chute inicial é meu, a decisão é sua.
+catálogo já vêm classificados — revise, a classificação inicial é um chute
+fundamentado, a decisão é sua.
 
 ### O dia a dia
 
-1. **Cupons** — lance onde comprou, a data e os itens com o custo unitário pago.
+1. **Cupons** — importe pelo QR code do cupom (abaixo) ou lance à mão: onde
+   comprou, a data e os itens com o custo unitário pago.
    Cada item vinculado a um produto do catálogo atualiza o `custo_atual` dele.
    O código de barras é opcional, mas vale digitar: é por ele que o sistema
    reconhece o item sozinho nos próximos cupons.
@@ -238,6 +265,72 @@ catálogo já vêm classificados — revise, o chute inicial é meu, a decisão 
 
 Variação acima de 20% entra na fila destacada em vermelho — quase sempre é
 promoção pontual ou custo digitado errado, vale conferir antes de aplicar.
+
+### Importar pelo QR code do cupom (NFC-e)
+
+Todo cupom fiscal traz um QR code. Ele abre uma página pública da SEFAZ com o
+cupom inteiro: descrição, código, quantidade e valor unitário de cada item. Ler
+dali tira a digitação do caminho — e não depende de acesso a sistema de terceiro.
+
+Como usar:
+
+1. Escaneie o QR code do cupom com a câmera do celular.
+2. Copie o link que abrir (algo como
+   `https://www.fazenda.pr.gov.br/nfce/qrcode?p=4126...`).
+3. Cole no campo **Importar cupom fiscal** e clique em **Ler cupom**.
+4. Confira a lista que aparece e clique em **Lançar cupom**.
+
+Se o link não funcionar (SEFAZ fora do ar, página pedindo captcha), use a opção
+**"Colar o conteúdo da página"**: abra o link no navegador, selecione tudo
+(Ctrl+A), copie (Ctrl+C) e cole. O sistema entende tanto o HTML da página quanto
+o texto puro que o navegador copia.
+
+**A tela de revisão é obrigatória de propósito.** O sistema lê bem, mas não
+decide sozinho a que produto do seu catálogo cada item corresponde. Cada linha
+mostra um selo:
+
+- **aprendido** (verde) — vínculo que você já confirmou antes para esse mercado.
+- **palpite** (azul) — o sistema deduziu pelo nome. Confira. Ao confirmar, ele
+  aprende e na próxima vez esse item vem verde.
+- **sem selo** — não teve certeza e deixou em branco. Escolha o produto, ou deixe
+  em branco mesmo: o item é lançado no histórico e fica em "Aguardando vínculo".
+
+Linhas em vermelho pedem atenção redobrada: o sistema achou que **não é uma
+unidade de venda**, porque a descrição diz fardo/pack ou porque o custo unitário
+ficou acima do seu preço de venda. Corrija a quantidade e o custo unitário na
+própria linha, ou tire a linha do lançamento com o ×.
+
+Você pode ajustar quantidade, custo unitário e vínculo de qualquer linha antes de
+lançar, e remover linhas que não quer.
+
+**Como o casamento de nome funciona.** A descrição do cupom é abreviada e cada
+mercado abrevia diferente. O sistema compara palavra por palavra aceitando
+prefixo, que é como abreviação funciona: CHOC casa com CHOCOLATE, PIRAQ com
+PIRAQUÊ, JUNG com JUNGLE. Se as duas descrições declaram tamanho e os tamanhos
+não batem, não casa — é o que impede Oreo 270g de virar o Oreo 90g do catálogo.
+E se dois produtos empatam, não palpita nenhum: ambiguidade fica para você.
+
+Medido nos dois cupons reais (Muffato e Assaí, 53 itens): 33 das 44 descrições
+distintas saem pré-vinculadas corretas, e as 11 restantes são ambiguidade
+legítima. Relendo o mesmo cupom depois de confirmar, 100% vem como aprendido.
+
+### Armadilhas que aparecem em cupom de verdade
+
+Medidas em cupons reais de Muffato e Assaí — vale conferir ao lançar:
+
+- **Pack não é unidade.** `PACK GUARANA ANT UN — 1 un × R$ 52,99` é um fardo. Se
+  entrar como custo unitário, o sistema sugere refrigerante a R$ 76. Lance o
+  custo por unidade (divida pelo que vem no fardo).
+- **O mesmo produto vem em vários códigos.** Bala Fini apareceu em 4 códigos
+  (um por sabor) e o Cookie Piraquê em 2. Se você lançar cada linha separada,
+  a última sobrescreve o custo das outras — some as quantidades e lance uma vez.
+- **O mesmo produto vem com preços diferentes no mesmo cupom.** Elma Chips 35g
+  saiu a 3,49 e a 3,69; Coca lata 310ml a 3,59 e 3,29 no Muffato e 2,99 no
+  Assaí. O sistema guarda o **último** custo lançado, então lance o que
+  representa melhor a sua compra.
+- **Tamanho que não bate é produto diferente.** O cupom trouxe Oreo 270g e o
+  catálogo tem Oreo 90g. Não vincule por semelhança de nome: ou é produto novo,
+  ou é a embalagem que mudou — e só você sabe qual.
 
 ### Casos particulares
 
@@ -261,12 +354,30 @@ digitação, sem refazer nada:
 - `DeParaProdutos` resolve o problema que toda integração esbarra: o nome que a
   Pináculo usa não é o nome do seu catálogo. Cada vínculo feito à mão fica
   guardado, então a importação acerta mais a cada rodada.
+- A chave desse vínculo tem escopo, e isso importa: **o código impresso no cupom
+  quase nunca é código de barras** — é o código interno da loja. Nos cupons
+  reais, o Assaí chama o Detergente Limpol de `675`. Outro mercado usa `675`
+  para outra coisa qualquer. Por isso a chave de código interno fica presa ao
+  mercado, e só um GTIN válido (8/12/13/14 dígitos, com dígito verificador
+  conferido) gera chave global — esse sim, aprendido num mercado, vale em todos.
 - Itens que a importação não souber ligar caem no mesmo balde "Aguardando
   vínculo" que já existe.
 
-Quando o acesso sair, o que falta é uma função que leia os dados de lá e chame
-`criarCompra_` com `origem: 'pinaculo'`. O resto do caminho — custo, margem,
-sugestão, aprovação — já está pronto e testado.
+A importação de NFC-e (seção acima) já usa exatamente esse caminho, com
+`origem: 'nfce'` e o CNPJ do emitente como escopo do de-para. Ou seja: o encaixe
+não é teoria, já tem um consumidor real rodando.
+
+Quando o acesso à Pináculo sair, o que falta é uma função que leia os dados de lá
+e chame `criarCompra_` com `origem: 'pinaculo'`. O resto do caminho — custo,
+margem, sugestão, aprovação — já está pronto e testado.
+
+Vale notar o que a Pináculo agrega e o que não agrega. O **custo de compra** você
+já resolve pelo cupom, sem depender de ninguém. O que só ela tem é o **estoque** e
+o **giro** — quanto de cada item saiu, em quanto tempo. Isso abre uma régua de
+margem bem melhor que a atual: item que gira rápido aguenta margem menor com
+lucro total maior, item que encalha precisa de margem maior para valer a
+prateleira. Hoje a faixa é definida por tipo de produto; com giro, ela poderia
+ser definida por comportamento medido.
 
 ### Condomínios (aba `Condominios`)
 - Colunas: `nome_oficial`, `nome_curto`, `endereco`, `bairro`, `cidade`,

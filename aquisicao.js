@@ -247,6 +247,194 @@ async function excluirCupom(id) {
   }
 }
 
+// ===================== IMPORTAÇÃO DE NFC-e =====================
+// O cupom lido fica aqui até a pessoa confirmar. Nada é gravado antes disso:
+// a leitura é boa, mas quem decide o vínculo de cada item é ela.
+let cupomLido = null;
+
+function alternarColarNfce() {
+  document.getElementById('blocoColarNfce').classList.toggle('oculto');
+}
+
+async function lerNfce() {
+  const url = document.getElementById('urlNfce').value.trim();
+  const conteudo = document.getElementById('conteudoNfce').value.trim();
+  if (!url && !conteudo) {
+    mostrarBannerNfce_('erro', 'Cole o link do QR code do cupom (ou o conteúdo da página).');
+    return;
+  }
+
+  const botao = document.getElementById('botaoLerNfce');
+  botao.disabled = true;
+  botao.classList.add('carregando');
+  mostrarBannerNfce_('', '');
+  try {
+    // POST porque o conteúdo colado da página é grande demais pra querystring.
+    const resposta = await chamarApi({ action: 'lerNfce', url: url, conteudo: conteudo }, 'POST');
+    if (!resposta.ok) throw new Error(resposta.erro || 'Não foi possível ler o cupom.');
+    cupomLido = resposta.dados;
+    renderizarRevisaoNfce();
+    document.getElementById('blocoRevisaoNfce').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  } catch (err) {
+    mostrarBannerNfce_('erro', String(err.message || err));
+  } finally {
+    botao.disabled = false;
+    botao.classList.remove('carregando');
+  }
+}
+
+function mostrarBannerNfce_(tipo, mensagem) {
+  const banner = document.getElementById('bannerNfce');
+  banner.className = 'banner ' + tipo;
+  banner.textContent = mensagem;
+}
+
+function renderizarRevisaoNfce() {
+  const bloco = document.getElementById('blocoRevisaoNfce');
+  if (!cupomLido) { bloco.classList.add('oculto'); return; }
+  bloco.classList.remove('oculto');
+
+  const juntadas = cupomLido.linhas_originais - cupomLido.itens.length;
+  document.getElementById('subtituloRevisaoNfce').textContent =
+    cupomLido.emitente + ' · ' + (cupomLido.data ? formatarDataBR(cupomLido.data) : 'sem data') +
+    ' · ' + cupomLido.itens.length + ' itens' +
+    (juntadas > 0 ? ' (' + juntadas + ' linha(s) repetida(s) já somada(s))' : '');
+
+  const semVinculo = cupomLido.itens.filter(function (i) { return !i.produto; }).length;
+  const palpites = cupomLido.itens.filter(function (i) { return i.origem_vinculo === 'palpite'; }).length;
+  const fardos = cupomLido.itens.filter(function (i) { return i.alerta_fardo || i.alerta_custo_acima; }).length;
+
+  const avisos = [];
+  if (fardos) avisos.push('<div class="aviso-revisao grave"><strong>' + fardos + ' item(ns) parecem fardo/pack.</strong> ' +
+    'O custo aí é do fardo inteiro, não da unidade. Corrija a quantidade e o custo unitário, ou deixe sem vínculo.</div>');
+  if (palpites) avisos.push('<div class="aviso-revisao"><strong>' + palpites + ' vínculo(s) são palpite do sistema</strong> (marcados em azul). ' +
+    'Confira — na próxima vez que esse item aparecer, ele vem já aprendido.</div>');
+  if (semVinculo) avisos.push('<div class="aviso-revisao"><strong>' + semVinculo + ' item(ns) sem vínculo.</strong> ' +
+    'Escolha o produto do catálogo, ou deixe em branco: eles são lançados no histórico e ficam esperando em "Aguardando vínculo".</div>');
+  document.getElementById('avisosRevisaoNfce').innerHTML = avisos.join('');
+
+  const opcoes = '<option value="">Sem vínculo</option>' +
+    dadosAquisicao.produtos.map(function (p) {
+      return '<option value="' + escaparHtml_(p.nome) + '">' + escaparHtml_(p.nome) + '</option>';
+    }).join('');
+
+  const lista = document.getElementById('listaRevisaoNfce');
+  lista.innerHTML = cupomLido.itens.map(function (i, indice) {
+    const suspeito = i.alerta_fardo || i.alerta_custo_acima;
+    const selo = i.origem_vinculo === 'palpite'
+      ? '<span class="selo-vinculo palpite">palpite</span>'
+      : (i.origem_vinculo === 'aprendido' ? '<span class="selo-vinculo aprendido">aprendido</span>' : '');
+    const motivoSuspeita = i.alerta_fardo
+      ? 'a descrição indica fardo/pack'
+      : 'o custo unitário está acima do preço de venda (' + formatarMoeda(i.preco_venda_atual) + ')';
+
+    return '<div class="linha-revisao' + (suspeito ? ' suspeita' : '') + '">' +
+      '<div class="cabecalho-revisao">' +
+        '<div class="desc">' + escaparHtml_(i.descricao_cupom) + selo +
+          '<span class="meta">' + (i.codigo ? 'cód ' + escaparHtml_(i.codigo) + ' · ' : '') + i.unidade + '</span>' +
+        '</div>' +
+        '<div class="valor">' + formatarMoeda(i.custo_total) + '</div>' +
+      '</div>' +
+      (suspeito ? '<div class="alerta-linha">Confira: ' + motivoSuspeita + '.</div>' : '') +
+      '<div class="controles-revisao">' +
+        '<select onchange="mudarVinculoNfce(' + indice + ', this.value)">' + opcoes + '</select>' +
+        '<label class="campo-inline">Qtd<input type="number" min="0" step="1" value="' + i.qtd +
+          '" onchange="mudarQtdNfce(' + indice + ', this.value)"></label>' +
+        '<label class="campo-inline">Custo un.<input type="number" min="0" step="0.01" value="' + i.custo_unit +
+          '" onchange="mudarCustoNfce(' + indice + ', this.value)"></label>' +
+        '<button type="button" class="btn-remover-revisao" onclick="removerItemNfce(' + indice + ')" title="Tirar do lançamento">×</button>' +
+      '</div>' +
+    '</div>';
+  }).join('');
+
+  lista.querySelectorAll('.linha-revisao').forEach(function (el, indice) {
+    el.querySelector('select').value = cupomLido.itens[indice].produto || '';
+  });
+
+  document.getElementById('totalRevisaoNfce').textContent = formatarMoeda(
+    cupomLido.itens.reduce(function (s, i) { return s + i.custo_total; }, 0));
+}
+
+function mudarVinculoNfce(indice, produto) {
+  cupomLido.itens[indice].produto = produto;
+  // Escolha da pessoa deixa de ser palpite — e some o selo azul.
+  cupomLido.itens[indice].origem_vinculo = produto ? 'confirmado' : '';
+  renderizarRevisaoNfce();
+}
+
+function mudarQtdNfce(indice, valor) {
+  const item = cupomLido.itens[indice];
+  item.qtd = Math.max(0, Number(valor) || 0);
+  item.custo_total = Math.round(item.qtd * item.custo_unit * 100) / 100;
+  renderizarRevisaoNfce();
+}
+
+function mudarCustoNfce(indice, valor) {
+  const item = cupomLido.itens[indice];
+  item.custo_unit = Math.max(0, Number(String(valor).replace(',', '.')) || 0);
+  item.custo_total = Math.round(item.qtd * item.custo_unit * 100) / 100;
+  renderizarRevisaoNfce();
+}
+
+function removerItemNfce(indice) {
+  cupomLido.itens.splice(indice, 1);
+  if (cupomLido.itens.length === 0) { cancelarRevisaoNfce(); return; }
+  renderizarRevisaoNfce();
+}
+
+function cancelarRevisaoNfce() {
+  cupomLido = null;
+  document.getElementById('blocoRevisaoNfce').classList.add('oculto');
+  document.getElementById('urlNfce').value = '';
+  document.getElementById('conteudoNfce').value = '';
+}
+
+async function lancarNfce() {
+  if (!cupomLido || cupomLido.itens.length === 0) return;
+
+  const validos = cupomLido.itens.filter(function (i) { return i.qtd > 0 && i.custo_unit > 0; });
+  if (validos.length === 0) {
+    mostrarBannerRevisaoNfce_('erro', 'Nenhum item com quantidade e custo válidos.');
+    return;
+  }
+
+  const botao = document.getElementById('botaoLancarNfce');
+  botao.disabled = true;
+  botao.classList.add('carregando');
+  try {
+    const resposta = await chamarApi({
+      action: 'criarCompra',
+      data: cupomLido.data,
+      mercado: cupomLido.emitente,
+      // O CNPJ é o escopo do de-para: bem mais confiável que o nome do mercado,
+      // que muda de grafia a cada digitação.
+      loja: cupomLido.cnpj,
+      documento: cupomLido.chave,
+      origem: 'nfce',
+      itens: validos.map(function (i) {
+        return { produto: i.produto, descricao_cupom: i.descricao_cupom, codigo: i.codigo, qtd: i.qtd, custo_unit: i.custo_unit };
+      })
+    }, 'POST');
+    if (!resposta.ok) throw new Error(resposta.erro || 'Erro ao lançar.');
+
+    const comCusto = resposta.dados.produtos_com_custo || 0;
+    cancelarRevisaoNfce();
+    mostrarBannerNfce_('sucesso', 'Cupom lançado. ' + comCusto + ' produto(s) com custo atualizado — confira a aba Ajuste de preço.');
+    await carregarAquisicao();
+  } catch (err) {
+    mostrarBannerRevisaoNfce_('erro', 'Falha ao lançar. Verifique a conexão e tente novamente.');
+  } finally {
+    botao.disabled = false;
+    botao.classList.remove('carregando');
+  }
+}
+
+function mostrarBannerRevisaoNfce_(tipo, mensagem) {
+  const banner = document.getElementById('bannerRevisaoNfce');
+  banner.className = 'banner ' + tipo;
+  banner.textContent = mensagem;
+}
+
 // ===================== CUPONS LANÇADOS =====================
 function renderizarCupons() {
   const lista = document.getElementById('listaCupons');
