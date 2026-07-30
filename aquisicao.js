@@ -440,14 +440,26 @@ function blocoConciliacao_() {
       : '';
   }
 
+  // Três estados, e só um deles é problema:
+  //  - nada distribuído  -> custo cheio. É o certo quando o desconto foi promoção
+  //    pontual que não repete, que é o caso mais comum. Estado neutro, não alarme.
+  //  - tudo distribuído   -> fecha com o que foi pago. Verde.
+  //  - parte distribuída  -> aí sim é vermelho: começou e parou no meio.
+  // Pintar de vermelho o primeiro caso deixaria a tela alarmada o tempo todo por
+  // um estado correto, e alarme que sempre aparece para de ser lido.
   const falta = Math.round((c.desconto - descontoLancado) * 100) / 100;
-  const diferenca = Math.round((lancado - (c.valor_pago || c.valor_bruto)) * 100) / 100;
-  const fecha = Math.abs(diferenca) < 0.05;
+  const semDistribuir = descontoLancado < 0.005;
+  const tudoDistribuido = c.desconto > 0 && Math.abs(falta) < 0.005;
+  const parcial = c.desconto > 0 && !semDistribuir && !tudoDistribuido;
+
+  const alvo = tudoDistribuido ? c.valor_pago : c.valor_bruto;
+  const diferenca = Math.round((lancado - alvo) * 100) / 100;
+  const bateComAlvo = Math.abs(diferenca) < 0.05;
 
   const placar = c.desconto > 0
-    ? '<div class="linha-conciliacao' + (Math.abs(falta) < 0.005 ? ' ok' : ' nao-fecha') + '">' +
+    ? '<div class="linha-conciliacao' + (tudoDistribuido ? ' ok' : (parcial ? ' nao-fecha' : '')) + '">' +
         '<span>Distribuído nas linhas</span><strong>' + formatarMoeda(descontoLancado) +
-        (Math.abs(falta) < 0.005 ? '' : ' · faltam ' + formatarMoeda(falta)) +
+        (parcial ? ' · faltam ' + formatarMoeda(falta) : '') +
       '</strong></div>'
     : '';
 
@@ -460,6 +472,12 @@ function blocoConciliacao_() {
       '</div>'
     : '';
 
+  const explicacao = semDistribuir && c.desconto > 0
+    ? '<div class="nota-conciliacao">Entrando o <strong>custo cheio</strong>, sem abater o desconto — o certo quando ' +
+      'ele foi promoção pontual que não vai repetir, já que o preço se decide pelo que você vai pagar na próxima compra. ' +
+      'Se este desconto for recorrente, distribua nas linhas.</div>'
+    : '';
+
   return '<div class="conciliacao">' +
     '<div class="linha-conciliacao"><span>Soma dos itens no cupom</span><strong>' + formatarMoeda(c.valor_bruto) + '</strong></div>' +
     (c.desconto > 0
@@ -467,9 +485,10 @@ function blocoConciliacao_() {
       : '') +
     placar +
     '<div class="linha-conciliacao destaque"><span>Você pagou</span><strong>' + formatarMoeda(c.valor_pago || c.valor_bruto) + '</strong></div>' +
-    '<div class="linha-conciliacao' + (fecha ? ' ok' : ' nao-fecha') + '"><span>Sendo lançado agora</span><strong>' +
-      formatarMoeda(lancado) + (fecha ? '' : ' (' + (diferenca > 0 ? '+' : '') + formatarMoeda(diferenca) + ')') +
+    '<div class="linha-conciliacao' + (bateComAlvo ? ' ok' : ' nao-fecha') + '"><span>Sendo lançado agora</span><strong>' +
+      formatarMoeda(lancado) + (bateComAlvo ? '' : ' (' + (diferenca > 0 ? '+' : '') + formatarMoeda(diferenca) + ')') +
     '</strong></div>' +
+    explicacao +
     acoes +
   '</div>';
 }
