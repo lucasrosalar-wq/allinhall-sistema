@@ -32,7 +32,7 @@ const CABECALHOS = {
   Condominios: ['nome_oficial', 'nome_curto', 'endereco', 'bairro', 'cidade', 'sindico_ou_contato', 'telefone_contato', 'ativo'],
   Reposicoes: ['id', 'condominio', 'data', 'produto', 'quantidade', 'preco_unit', 'valor_total', 'status', 'pessoa', 'contato_whatsapp', 'data_infracao', 'hora_infracao', 'registrado_em', 'ocorrencia_id'],
   Compras: ['id', 'data', 'mercado', 'documento', 'valor_total', 'observacao', 'origem', 'registrado_em'],
-  ComprasItens: ['id', 'compra_id', 'descricao_cupom', 'codigo', 'produto', 'quantidade', 'custo_unit', 'custo_total'],
+  ComprasItens: ['id', 'compra_id', 'descricao_cupom', 'codigo', 'produto', 'quantidade', 'custo_unit', 'custo_total', 'desconto'],
   RegrasMargem: ['categoria', 'rotulo', 'margem_pct', 'descricao', 'ordem'],
   DeParaProdutos: ['chave', 'descricao_cupom', 'produto', 'origem', 'atualizado_em']
 };
@@ -868,7 +868,8 @@ function obterAquisicao_() {
       produto: String(i.produto || ''),
       quantidade: Number(i.quantidade) || 0,
       custo_unit: Number(i.custo_unit) || 0,
-      custo_total: Number(i.custo_total) || 0
+      custo_total: Number(i.custo_total) || 0,
+      desconto: Number(i.desconto) || 0
     });
   });
 
@@ -969,6 +970,10 @@ function gravarItensCompra_(idCompra, itens, params) {
     const idItem = 'CI' + carimbo + '-' + indice + Math.floor(Math.random() * 90 + 10);
     const qtd = Number(item.qtd) || 0;
     const custoUnit = Number(item.custo_unit) || 0;
+    // custo_unit e custo_total são sempre líquidos (já com o desconto da linha
+    // abatido) — é o custo líquido que precifica. A coluna desconto fica ao lado
+    // só pra o histórico contar a verdade inteira: quanto o cupom pedia e quanto
+    // foi abatido naquela linha.
     const linha = [
       idItem,
       idCompra,
@@ -977,7 +982,8 @@ function gravarItensCompra_(idCompra, itens, params) {
       item.produto || '',
       qtd,
       custoUnit,
-      arredondar2_(qtd * custoUnit)
+      arredondar2_(qtd * custoUnit),
+      arredondar2_(Number(item.desconto) || 0)
     ];
     abaItens.getRange(abaItens.getLastRow() + 1, 1, 1, linha.length).setValues([linha]);
 
@@ -1292,6 +1298,9 @@ function lerNfce_(params) {
       qtd: item.qtd,
       custo_unit: item.custo_unit,
       custo_total: arredondar2_(item.qtd * item.custo_unit),
+      // O DANFE não diz em qual item foi o abatimento, então cada linha nasce sem
+      // desconto: quem distribui é a pessoa, que tem o cupom na mão.
+      desconto: 0,
       produto: sugerido,
       origem_vinculo: origemVinculo,
       preco_venda_atual: precoVenda,

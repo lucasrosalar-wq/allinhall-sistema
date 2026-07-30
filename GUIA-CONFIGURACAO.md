@@ -310,26 +310,46 @@ o DANFE só informa o total. Nos dois cupons que serviram de base:
 | Assaí | R$ 900,75 | R$ 17,70 | **R$ 883,05** |
 
 Lançar os R$ 929,37 deixaria o custo de tudo inflado, e toda sugestão de preço
-sairia alta. Por isso a tela mostra a conciliação: soma dos itens, desconto, o
-que você pagou, e o que está sendo lançado agora. Se os dois últimos não
-baterem, o número fica vermelho.
+sairia alta.
 
-Por padrão o desconto é **descontado do custo dos itens**, rateado
-proporcionalmente ao valor de cada linha — assim o lançamento fecha com o que
-saiu do seu bolso. Como o DANFE não diz em qual item o mercado deu o abatimento,
-proporcional é a única distribuição defensável sem inventar informação.
+Como o sistema não tem como saber em qual item o mercado deu o abatimento, quem
+distribui é você — que está com o cupom na mão. Cada linha tem uma coluna
+**Desconto** em reais. Preencheu, o custo daquela linha cai só ali.
 
-Você pode desligar isso na caixa de seleção da própria conciliação. Vale desligar
-quando o desconto foi **promoção pontual que não vai repetir** — aí o custo cheio
-representa melhor o que você vai pagar na próxima compra.
+No topo fica o placar:
 
-Na prática o efeito no preço é pequeno, porque o arredondamento comercial
-costuma absorver: com 2,68% de desconto, o chocolate Garoto sugere R$ 12,49 com
-ou sem rateio; a água cai de R$ 2,99 para R$ 2,89. O que muda de verdade é você
-saber sua margem real.
+```
+Soma dos itens no cupom     R$ 929,37
+Descontos do cupom        − R$  24,90
+Distribuído nas linhas      R$  24,90
+Você pagou                  R$ 904,47
+Sendo lançado agora         R$ 904,47
+```
 
-Se você digitar o custo de alguma linha à mão, ela sai do rateio — quando você
-sabe o custo daquele item, quem manda é você.
+Enquanto faltar desconto para distribuir, a linha "Distribuído" mostra quanto
+falta em vermelho. Quando "Sendo lançado agora" bate com "Você pagou", os dois
+ficam verdes — é a conferência que você faria de olho no papel.
+
+Dois atalhos ao lado do placar:
+
+- **Ratear proporcionalmente** preenche a coluna inteira distribuindo o desconto
+  pelo valor de cada linha. Serve de ponto de partida: sair de um rateio e
+  corrigir duas linhas costuma dar menos trabalho que preencher 33 do zero.
+  A sobra de centavos vai na última linha, então a soma fecha exata.
+- **Limpar** zera a coluna.
+
+Você não é obrigado a distribuir. Deixando tudo zerado, entra o custo cheio do
+cupom — o que faz sentido quando o desconto foi promoção pontual que não vai
+repetir, e o custo de tabela representa melhor a próxima compra.
+
+Na prática o efeito no preço costuma ser pequeno, porque o arredondamento
+comercial absorve: com 2,68% de desconto o chocolate Garoto sugere R$ 12,49 com
+ou sem desconto; a água cai de R$ 2,99 para R$ 2,89. O que muda de verdade é
+você conhecer sua margem real.
+
+O desconto de cada linha fica gravado na aba `ComprasItens`, ao lado do custo
+líquido — então ao editar o cupom depois, a coluna volta preenchida e dá para
+ver quanto o cupom pedia e quanto foi abatido em cada item.
 
 ### Fardo: informe só quantas unidades vêm dentro
 

@@ -288,13 +288,8 @@ async function lerNfce() {
       valor_bruto: lido.valor_bruto,
       desconto: lido.desconto,
       valor_pago: lido.valor_pago,
-      // Desconto entra rateado por padrão: é o que foi pago de verdade, e custo
-      // inflado empurra toda sugestão de preço pra cima. Fica visível e é um
-      // clique pra desligar, nunca silencioso.
-      ratear: lido.desconto > 0,
       itens: lido.itens.map(function (i) {
-        // custo_unit_bruto é o do cupom; custo_unit é o efetivo, depois do rateio.
-        return Object.assign({}, i, { custo_unit_bruto: i.custo_unit });
+        return Object.assign({}, i, { custo_unit_bruto: i.custo_unit, desconto: 0 });
       })
     };
     recalcularCustosRevisao_();
@@ -330,11 +325,10 @@ function editarCupom(id) {
         unidade: '',
         qtd: i.quantidade,
         custo_unit: i.custo_unit,
-        custo_unit_bruto: i.custo_unit,
-        // Cupom já lançado guarda o custo efetivo (o desconto, se houve, já está
-        // dentro). Rear de novo desconto sobre desconto — por isso edição entra
-        // sempre sem rateio pendente.
-        custo_manual: true,
+        // O cupom gravado guarda custo líquido e desconto separados, então a edição
+        // reconstrói o bruto da linha e volta a mostrar as duas colunas.
+        custo_unit_bruto: i.quantidade > 0 ? (i.custo_total + (i.desconto || 0)) / i.quantidade : i.custo_unit,
+        desconto: i.desconto || 0,
         custo_total: i.custo_total,
         produto: i.produto,
         origem_vinculo: i.produto ? 'confirmado' : '',
@@ -345,8 +339,7 @@ function editarCupom(id) {
     }),
     valor_bruto: 0,
     desconto: 0,
-    valor_pago: 0,
-    ratear: false
+    valor_pago: 0
   };
   renderizarRevisaoNfce();
   document.getElementById('blocoRevisaoNfce').scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -367,75 +360,108 @@ function mudarCabecalhoRevisao() {
 }
 
 // O DANFE traz o desconto só no total, nunca por item — não tem como saber em qual
-// produto o mercado deu o abatimento. Então o rateio é proporcional ao valor de
-// cada linha: é a única distribuição defensável sem inventar informação, e faz a
-// soma do que é lançado bater com o que foi realmente pago.
+// produto o mercado deu o abatimento. Quem sabe é a pessoa, que está com o cupom
+// na mão: por isso cada linha tem uma coluna de desconto que ela preenche.
 //
-// Item com custo digitado à mão fica fora do rateio: se a pessoa sabe o custo
-// daquela linha, ela manda, não a média.
+// custo_unit_bruto é o que o cupom pede na linha; custo_unit é o que sobra depois
+// do desconto dela, e é esse que vira custo do produto e precifica.
 function recalcularCustosRevisao_() {
   if (!cupomEmRevisao) return;
-  const itens = cupomEmRevisao.itens;
-
-  const brutoTotal = itens.reduce(function (soma, i) { return soma + i.qtd * i.custo_unit_bruto; }, 0);
-  const brutoRateavel = itens.reduce(function (soma, i) {
-    return soma + (i.custo_manual ? 0 : i.qtd * i.custo_unit_bruto);
-  }, 0);
-
-  // O desconto rateado é só a parte que cabe aos itens ainda automáticos. Jogar o
-  // desconto inteiro em cima deles seria estranho: digitar o custo de uma linha
-  // acabaria baixando o custo de todas as outras, o que ninguém espera.
-  const descontoCupom = cupomEmRevisao.ratear ? (Number(cupomEmRevisao.desconto) || 0) : 0;
-  const desconto = brutoTotal > 0 ? descontoCupom * (brutoRateavel / brutoTotal) : 0;
-  const fator = brutoRateavel > 0 ? Math.max(0, (brutoRateavel - desconto) / brutoRateavel) : 1;
-
-  itens.forEach(function (i) {
-    if (!i.custo_manual) i.custo_unit = i.custo_unit_bruto * fator;
-    i.custo_total = Math.round(i.qtd * i.custo_unit * 100) / 100;
+  cupomEmRevisao.itens.forEach(function (i) {
+    const bruto = i.qtd * i.custo_unit_bruto;
+    const desconto = Math.min(Math.max(0, Number(i.desconto) || 0), bruto);
+    i.desconto = desconto;
+    i.custo_unit = i.qtd > 0 ? (bruto - desconto) / i.qtd : 0;
+    i.custo_total = Math.round((bruto - desconto) * 100) / 100;
     i.alerta_custo_acima = !!(i.preco_venda_atual > 0 && i.custo_unit >= i.preco_venda_atual);
   });
-  cupomEmRevisao.fator_rateio = fator;
 }
 
-function alternarRateio(marcado) {
-  cupomEmRevisao.ratear = marcado;
+function mudarDescontoItem(indice, valor) {
+  cupomEmRevisao.itens[indice].desconto = Math.max(0, Number(String(valor).replace(',', '.')) || 0);
+  recalcularCustosRevisao_();
+  renderizarRevisaoNfce();
+}
+
+// Atalho pra quem não quer distribuir na mão: espalha o desconto do cupom
+// proporcionalmente ao valor de cada linha e preenche a coluna. A pessoa ajusta
+// depois o que estiver errado — sair de um rateio e corrigir 2 linhas costuma ser
+// menos trabalho que preencher 33 do zero.
+function ratearDescontoNasLinhas() {
+  const total = Number(cupomEmRevisao.desconto) || 0;
+  const bruto = cupomEmRevisao.itens.reduce(function (soma, i) { return soma + i.qtd * i.custo_unit_bruto; }, 0);
+  if (!(total > 0) || !(bruto > 0)) return;
+
+  let distribuido = 0;
+  cupomEmRevisao.itens.forEach(function (i, indice) {
+    if (indice === cupomEmRevisao.itens.length - 1) {
+      // A última linha leva a sobra de centavos, pra soma fechar exatamente com o
+      // desconto do cupom em vez de errar por arredondamento.
+      i.desconto = Math.round((total - distribuido) * 100) / 100;
+      return;
+    }
+    const parte = Math.round((total * (i.qtd * i.custo_unit_bruto) / bruto) * 100) / 100;
+    i.desconto = parte;
+    distribuido += parte;
+  });
+  recalcularCustosRevisao_();
+  renderizarRevisaoNfce();
+}
+
+function limparDescontosItens() {
+  cupomEmRevisao.itens.forEach(function (i) { i.desconto = 0; });
   recalcularCustosRevisao_();
   renderizarRevisaoNfce();
 }
 
 // Conciliação: o que está sendo lançado tem que fechar com o que o cupom diz que
-// foi pago. É a conferência que a pessoa faria de olho no papel, feita pelo sistema.
+// foi pago. É a conferência que a pessoa faria de olho no papel, feita pelo
+// sistema — e serve de placar enquanto ela distribui o desconto pelas linhas.
 function blocoConciliacao_() {
   const c = cupomEmRevisao;
-  if (!(c.valor_bruto > 0)) return '';
+  const lancado = c.itens.reduce(function (s, i) { return s + i.custo_total; }, 0);
+  const descontoLancado = c.itens.reduce(function (s, i) { return s + (Number(i.desconto) || 0); }, 0);
 
-  const totalLancado = c.itens.reduce(function (s, i) { return s + i.custo_total; }, 0);
-  const alvo = c.ratear ? c.valor_pago : c.valor_bruto;
-  const diferenca = Math.round((totalLancado - alvo) * 100) / 100;
+  // Cupom editado não traz os totais do papel — aí não há o que conciliar, só o
+  // que está sendo gravado.
+  if (!(c.valor_bruto > 0)) {
+    return descontoLancado > 0
+      ? '<div class="conciliacao"><div class="linha-conciliacao destaque"><span>Descontos nas linhas</span><strong>− ' +
+        formatarMoeda(descontoLancado) + '</strong></div></div>'
+      : '';
+  }
+
+  const falta = Math.round((c.desconto - descontoLancado) * 100) / 100;
+  const diferenca = Math.round((lancado - (c.valor_pago || c.valor_bruto)) * 100) / 100;
   const fecha = Math.abs(diferenca) < 0.05;
 
-  const linhas =
+  const placar = c.desconto > 0
+    ? '<div class="linha-conciliacao' + (Math.abs(falta) < 0.005 ? ' ok' : ' nao-fecha') + '">' +
+        '<span>Distribuído nas linhas</span><strong>' + formatarMoeda(descontoLancado) +
+        (Math.abs(falta) < 0.005 ? '' : ' · faltam ' + formatarMoeda(falta)) +
+      '</strong></div>'
+    : '';
+
+  const acoes = c.desconto > 0
+    ? '<div class="acoes-desconto">' +
+        '<button type="button" onclick="ratearDescontoNasLinhas()">Ratear proporcionalmente</button>' +
+        '<button type="button" class="secundario" onclick="limparDescontosItens()">Limpar</button>' +
+        '<span>Ou preencha a coluna <strong>Desconto</strong> de cada linha, se você sabe onde foi o abatimento.</span>' +
+      '</div>'
+    : '';
+
+  return '<div class="conciliacao">' +
     '<div class="linha-conciliacao"><span>Soma dos itens no cupom</span><strong>' + formatarMoeda(c.valor_bruto) + '</strong></div>' +
     (c.desconto > 0
       ? '<div class="linha-conciliacao desconto"><span>Descontos do cupom</span><strong>− ' + formatarMoeda(c.desconto) + '</strong></div>'
       : '') +
+    placar +
     '<div class="linha-conciliacao destaque"><span>Você pagou</span><strong>' + formatarMoeda(c.valor_pago || c.valor_bruto) + '</strong></div>' +
-    '<div class="linha-conciliacao' + (fecha ? '' : ' nao-fecha') + '"><span>Sendo lançado agora</span><strong>' +
-      formatarMoeda(totalLancado) + (fecha ? '' : ' (' + (diferenca > 0 ? '+' : '') + formatarMoeda(diferenca) + ')') +
-    '</strong></div>';
-
-  const controle = c.desconto > 0
-    ? '<label class="escolha-rateio">' +
-        '<input type="checkbox"' + (c.ratear ? ' checked' : '') + ' onchange="alternarRateio(this.checked)">' +
-        '<span><strong>Descontar o abatimento do custo dos itens</strong>' +
-          '<em>Ligado, o custo de cada item cai ' + ((1 - (c.fator_rateio || 1)) * 100).toFixed(2).replace('.', ',') +
-          '% e o lançamento fecha com o que você pagou. Desligado, entra o custo cheio — ' +
-          'use quando o desconto foi promoção pontual que não vai repetir.</em>' +
-        '</span>' +
-      '</label>'
-    : '';
-
-  return '<div class="conciliacao">' + linhas + controle + '</div>';
+    '<div class="linha-conciliacao' + (fecha ? ' ok' : ' nao-fecha') + '"><span>Sendo lançado agora</span><strong>' +
+      formatarMoeda(lancado) + (fecha ? '' : ' (' + (diferenca > 0 ? '+' : '') + formatarMoeda(diferenca) + ')') +
+    '</strong></div>' +
+    acoes +
+  '</div>';
 }
 
 function renderizarRevisaoNfce() {
@@ -517,7 +543,11 @@ function renderizarRevisaoNfce() {
         '<div class="desc">' + escaparHtml_(i.descricao_cupom) + selo +
           '<span class="meta">' + (i.codigo ? 'cód ' + escaparHtml_(i.codigo) + ' · ' : '') + escaparHtml_(i.unidade || '') + '</span>' +
         '</div>' +
-        '<div class="valor">' + formatarMoeda(i.custo_total) + '</div>' +
+        '<div class="valor">' +
+          (i.desconto > 0 ? '<span class="valor-bruto">' + formatarMoeda(i.qtd * i.custo_unit_bruto) + '</span>' : '') +
+          formatarMoeda(i.custo_total) +
+          (i.desconto > 0 ? '<span class="unit-liquido">' + formatarMoeda(i.custo_unit) + '/un</span>' : '') +
+        '</div>' +
       '</div>' +
       blocoFardo +
       notaDesmembrado +
@@ -525,8 +555,11 @@ function renderizarRevisaoNfce() {
         '<select onchange="mudarVinculoNfce(' + indice + ', this.value)">' + opcoes + '</select>' +
         '<label class="campo-inline">Qtd<input type="number" min="0" step="1" value="' + i.qtd +
           '" onchange="mudarQtdNfce(' + indice + ', this.value)"></label>' +
-        '<label class="campo-inline">Custo un.<input type="number" min="0" step="0.01" value="' + i.custo_unit.toFixed(2) +
+        '<label class="campo-inline">Custo un.<input type="number" min="0" step="0.01" value="' + i.custo_unit_bruto.toFixed(2) +
           '" onchange="mudarCustoNfce(' + indice + ', this.value)"></label>' +
+        '<label class="campo-inline' + (i.desconto > 0 ? ' com-desconto' : '') + '">Desconto' +
+          '<input type="number" min="0" step="0.01" value="' + (Number(i.desconto) || 0).toFixed(2) +
+          '" onchange="mudarDescontoItem(' + indice + ', this.value)"></label>' +
         '<button type="button" class="btn-remover-revisao" onclick="removerItemNfce(' + indice + ')" title="Tirar do cupom">×</button>' +
       '</div>' +
     '</div>';
@@ -602,10 +635,8 @@ function mudarQtdNfce(indice, valor) {
 
 function mudarCustoNfce(indice, valor) {
   const item = cupomEmRevisao.itens[indice];
-  item.custo_unit = Math.max(0, Number(String(valor).replace(',', '.')) || 0);
-  item.custo_unit_bruto = item.custo_unit;
-  // Custo digitado à mão é decisão da pessoa e não é mais mexido pelo rateio.
-  item.custo_manual = true;
+  // O campo edita o custo de tabela da linha; o desconto dela continua do lado.
+  item.custo_unit_bruto = Math.max(0, Number(String(valor).replace(',', '.')) || 0);
   recalcularCustosRevisao_();
   renderizarRevisaoNfce();
 }
@@ -613,8 +644,6 @@ function mudarCustoNfce(indice, valor) {
 function removerItemNfce(indice) {
   cupomEmRevisao.itens.splice(indice, 1);
   if (cupomEmRevisao.itens.length === 0) { cancelarRevisaoNfce(); return; }
-  // Tirar linha muda a base do rateio: o desconto do cupom passa a se dividir
-  // entre menos itens.
   recalcularCustosRevisao_();
   renderizarRevisaoNfce();
 }
@@ -659,7 +688,12 @@ async function lancarNfce() {
       observacao: cupomEmRevisao.observacao,
       origem: editando ? undefined : 'nfce',
       itens: validos.map(function (i) {
-        return { produto: i.produto, descricao_cupom: i.descricao_cupom, codigo: i.codigo, qtd: i.qtd, custo_unit: i.custo_unit };
+        // custo_unit já é líquido; desconto vai junto pra planilha guardar o que
+        // foi abatido em cada linha, e a edição conseguir reconstruir o bruto.
+        return {
+          produto: i.produto, descricao_cupom: i.descricao_cupom, codigo: i.codigo,
+          qtd: i.qtd, custo_unit: i.custo_unit, desconto: i.desconto || 0
+        };
       })
     }, 'POST');
     if (!resposta.ok) throw new Error(resposta.erro || 'Erro ao salvar.');
