@@ -254,6 +254,12 @@ Os percentuais são editáveis na aba **Faixas de margem**, e os 104 produtos do
 catálogo já vêm classificados — revise, a classificação inicial é um chute
 fundamentado, a decisão é sua.
 
+**Trate estes números como ponto de partida de estudo, não como decisão final.**
+Eles servem para a operação entender a lógica do sistema com dado real e ir
+refinando. Mudar uma faixa recalcula a fila de ajuste na hora, e o painel de
+Gestão mostra em reais o que a mudança vale — é assim que o refino acontece sem
+precisar adivinhar.
+
 ### O dia a dia
 
 A Aquisição tem quatro telas, listadas na barra lateral abaixo do nome dela:
@@ -327,6 +333,9 @@ Como usar:
    `https://www.fazenda.pr.gov.br/nfce/qrcode?p=4126...`).
 3. Cole no campo **Importar cupom fiscal** e clique em **Ler cupom**.
 4. Confira a lista que aparece e clique em **Lançar cupom**.
+
+Confirmado em uso real: colar o link que o QR code abre funciona — a página é
+buscada pelo próprio servidor do Apps Script.
 
 Se o link não funcionar (SEFAZ fora do ar, página pedindo captcha), use a opção
 **"Colar o conteúdo da página"**: abra o link no navegador, selecione tudo
@@ -404,9 +413,19 @@ Dois atalhos ao lado do placar:
   A sobra de centavos vai na última linha, então a soma fecha exata.
 - **Limpar** zera a coluna.
 
-Você não é obrigado a distribuir. Deixando tudo zerado, entra o custo cheio do
-cupom — o que faz sentido quando o desconto foi promoção pontual que não vai
-repetir, e o custo de tabela representa melhor a próxima compra.
+**Você não é obrigado a distribuir, e na maior parte das vezes não deve.** Se o
+desconto foi promoção pontual — às vezes tem, às vezes não —, deixe a coluna
+zerada: entra o custo cheio, que é o que você vai pagar na próxima compra, e é
+por ele que o preço deve ser decidido. Distribuir só faz sentido em desconto
+recorrente (clube, cartão da loja), que vai se repetir toda vez.
+
+Por isso o placar não trata "nada distribuído" como erro. São três estados:
+
+| Situação | Como aparece |
+|---|---|
+| Nada distribuído | Neutro, com a nota de que está entrando o custo cheio |
+| Parte distribuída | **Vermelho** — começou e parou no meio, com quanto falta |
+| Tudo distribuído | **Verde** — fecha com o que você pagou |
 
 Na prática o efeito no preço costuma ser pequeno, porque o arredondamento
 comercial absorve: com 2,68% de desconto o chocolate Garoto sugere R$ 12,49 com
