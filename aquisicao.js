@@ -285,8 +285,19 @@ async function lerNfce() {
       documento: lido.chave,
       observacao: '',
       linhas_originais: lido.linhas_originais,
-      itens: lido.itens
+      valor_bruto: lido.valor_bruto,
+      desconto: lido.desconto,
+      valor_pago: lido.valor_pago,
+      // Desconto entra rateado por padrão: é o que foi pago de verdade, e custo
+      // inflado empurra toda sugestão de preço pra cima. Fica visível e é um
+      // clique pra desligar, nunca silencioso.
+      ratear: lido.desconto > 0,
+      itens: lido.itens.map(function (i) {
+        // custo_unit_bruto é o do cupom; custo_unit é o efetivo, depois do rateio.
+        return Object.assign({}, i, { custo_unit_bruto: i.custo_unit });
+      })
     };
+    recalcularCustosRevisao_();
     mostrarBannerNfce_('', '');
     renderizarRevisaoNfce();
     document.getElementById('blocoRevisaoNfce').scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -319,6 +330,11 @@ function editarCupom(id) {
         unidade: '',
         qtd: i.quantidade,
         custo_unit: i.custo_unit,
+        custo_unit_bruto: i.custo_unit,
+        // Cupom já lançado guarda o custo efetivo (o desconto, se houve, já está
+        // dentro). Rear de novo desconto sobre desconto — por isso edição entra
+        // sempre sem rateio pendente.
+        custo_manual: true,
         custo_total: i.custo_total,
         produto: i.produto,
         origem_vinculo: i.produto ? 'confirmado' : '',
@@ -326,7 +342,11 @@ function editarCupom(id) {
         alerta_fardo: false,
         alerta_custo_acima: !!(produto && produto.preco > 0 && i.custo_unit >= produto.preco)
       };
-    })
+    }),
+    valor_bruto: 0,
+    desconto: 0,
+    valor_pago: 0,
+    ratear: false
   };
   renderizarRevisaoNfce();
   document.getElementById('blocoRevisaoNfce').scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -344,6 +364,78 @@ function mudarCabecalhoRevisao() {
   cupomEmRevisao.data = document.getElementById('dataRevisao').value;
   cupomEmRevisao.documento = document.getElementById('documentoRevisao').value;
   cupomEmRevisao.observacao = document.getElementById('observacaoRevisao').value;
+}
+
+// O DANFE traz o desconto só no total, nunca por item — não tem como saber em qual
+// produto o mercado deu o abatimento. Então o rateio é proporcional ao valor de
+// cada linha: é a única distribuição defensável sem inventar informação, e faz a
+// soma do que é lançado bater com o que foi realmente pago.
+//
+// Item com custo digitado à mão fica fora do rateio: se a pessoa sabe o custo
+// daquela linha, ela manda, não a média.
+function recalcularCustosRevisao_() {
+  if (!cupomEmRevisao) return;
+  const itens = cupomEmRevisao.itens;
+
+  const brutoTotal = itens.reduce(function (soma, i) { return soma + i.qtd * i.custo_unit_bruto; }, 0);
+  const brutoRateavel = itens.reduce(function (soma, i) {
+    return soma + (i.custo_manual ? 0 : i.qtd * i.custo_unit_bruto);
+  }, 0);
+
+  // O desconto rateado é só a parte que cabe aos itens ainda automáticos. Jogar o
+  // desconto inteiro em cima deles seria estranho: digitar o custo de uma linha
+  // acabaria baixando o custo de todas as outras, o que ninguém espera.
+  const descontoCupom = cupomEmRevisao.ratear ? (Number(cupomEmRevisao.desconto) || 0) : 0;
+  const desconto = brutoTotal > 0 ? descontoCupom * (brutoRateavel / brutoTotal) : 0;
+  const fator = brutoRateavel > 0 ? Math.max(0, (brutoRateavel - desconto) / brutoRateavel) : 1;
+
+  itens.forEach(function (i) {
+    if (!i.custo_manual) i.custo_unit = i.custo_unit_bruto * fator;
+    i.custo_total = Math.round(i.qtd * i.custo_unit * 100) / 100;
+    i.alerta_custo_acima = !!(i.preco_venda_atual > 0 && i.custo_unit >= i.preco_venda_atual);
+  });
+  cupomEmRevisao.fator_rateio = fator;
+}
+
+function alternarRateio(marcado) {
+  cupomEmRevisao.ratear = marcado;
+  recalcularCustosRevisao_();
+  renderizarRevisaoNfce();
+}
+
+// Conciliação: o que está sendo lançado tem que fechar com o que o cupom diz que
+// foi pago. É a conferência que a pessoa faria de olho no papel, feita pelo sistema.
+function blocoConciliacao_() {
+  const c = cupomEmRevisao;
+  if (!(c.valor_bruto > 0)) return '';
+
+  const totalLancado = c.itens.reduce(function (s, i) { return s + i.custo_total; }, 0);
+  const alvo = c.ratear ? c.valor_pago : c.valor_bruto;
+  const diferenca = Math.round((totalLancado - alvo) * 100) / 100;
+  const fecha = Math.abs(diferenca) < 0.05;
+
+  const linhas =
+    '<div class="linha-conciliacao"><span>Soma dos itens no cupom</span><strong>' + formatarMoeda(c.valor_bruto) + '</strong></div>' +
+    (c.desconto > 0
+      ? '<div class="linha-conciliacao desconto"><span>Descontos do cupom</span><strong>− ' + formatarMoeda(c.desconto) + '</strong></div>'
+      : '') +
+    '<div class="linha-conciliacao destaque"><span>Você pagou</span><strong>' + formatarMoeda(c.valor_pago || c.valor_bruto) + '</strong></div>' +
+    '<div class="linha-conciliacao' + (fecha ? '' : ' nao-fecha') + '"><span>Sendo lançado agora</span><strong>' +
+      formatarMoeda(totalLancado) + (fecha ? '' : ' (' + (diferenca > 0 ? '+' : '') + formatarMoeda(diferenca) + ')') +
+    '</strong></div>';
+
+  const controle = c.desconto > 0
+    ? '<label class="escolha-rateio">' +
+        '<input type="checkbox"' + (c.ratear ? ' checked' : '') + ' onchange="alternarRateio(this.checked)">' +
+        '<span><strong>Descontar o abatimento do custo dos itens</strong>' +
+          '<em>Ligado, o custo de cada item cai ' + ((1 - (c.fator_rateio || 1)) * 100).toFixed(2).replace('.', ',') +
+          '% e o lançamento fecha com o que você pagou. Desligado, entra o custo cheio — ' +
+          'use quando o desconto foi promoção pontual que não vai repetir.</em>' +
+        '</span>' +
+      '</label>'
+    : '';
+
+  return '<div class="conciliacao">' + linhas + controle + '</div>';
 }
 
 function renderizarRevisaoNfce() {
@@ -378,7 +470,7 @@ function renderizarRevisaoNfce() {
     'Confira — ao confirmar, ele aprende e na próxima vez esse item vem verde.</div>');
   if (semVinculo) avisos.push('<div class="aviso-revisao"><strong>' + semVinculo + ' item(ns) sem vínculo.</strong> ' +
     'Escolha o produto, ou deixe em branco: o item entra no histórico e fica em "Aguardando vínculo".</div>');
-  document.getElementById('avisosRevisaoNfce').innerHTML = avisos.join('');
+  document.getElementById('avisosRevisaoNfce').innerHTML = blocoConciliacao_() + avisos.join('');
 
   const opcoes = '<option value="">Sem vínculo</option>' +
     dadosAquisicao.produtos.map(function (p) {
@@ -415,7 +507,9 @@ function renderizarRevisaoNfce() {
 
     const notaDesmembrado = i.desmembrado
       ? '<div class="nota-desmembrado">Fardo de ' + i.desmembrado + ' un desmembrado: ' +
-          formatarMoeda(i.custo_total) + ' ÷ ' + i.qtd + ' = ' + formatarMoeda(i.custo_unit) + '/un</div>'
+          // Sempre o valor do cupom, nunca o já descontado — é esse número que a
+          // pessoa confere contra o papel na mão.
+          formatarMoeda(i.qtd * i.custo_unit_bruto) + ' ÷ ' + i.qtd + ' = ' + formatarMoeda(i.custo_unit_bruto) + '/un</div>'
       : '';
 
     return '<div class="linha-revisao' + (suspeito ? ' suspeita' : '') + '">' +
@@ -466,16 +560,15 @@ function desmembrarFardo(indice) {
   // O valor pago na linha é o que o cupom diz e não muda — o que muda é em quantas
   // unidades ele se divide. Guardo o custo unitário com precisão cheia pra soma do
   // cupom continuar batendo com o papel; a tela mostra 2 casas.
-  const valorDaLinha = item.qtd * item.custo_unit;
+  const valorDaLinha = item.qtd * item.custo_unit_bruto;
   item.qtd = item.qtd * unidades;
-  item.custo_unit = valorDaLinha / item.qtd;
-  item.custo_total = Math.round(valorDaLinha * 100) / 100;
+  item.custo_unit_bruto = valorDaLinha / item.qtd;
   item.desmembrado = unidades;
+  recalcularCustosRevisao_();
 
   // Com o custo por unidade correto, o alerta de "custo acima do preço" precisa ser
   // reavaliado: se ainda estiver acima, continua valendo o aviso.
   item.alerta_fardo = false;
-  item.alerta_custo_acima = !!(item.preco_venda_atual > 0 && item.custo_unit >= item.preco_venda_atual);
   if (item.alerta_custo_acima) item.desmembrado = 0;
 
   mostrarBannerRevisaoNfce_('', '');
@@ -503,21 +596,26 @@ function mudarVinculoNfce(indice, produto) {
 function mudarQtdNfce(indice, valor) {
   const item = cupomEmRevisao.itens[indice];
   item.qtd = Math.max(0, Math.floor(Number(valor) || 0));
-  item.custo_total = Math.round(item.qtd * item.custo_unit * 100) / 100;
+  recalcularCustosRevisao_();
   renderizarRevisaoNfce();
 }
 
 function mudarCustoNfce(indice, valor) {
   const item = cupomEmRevisao.itens[indice];
   item.custo_unit = Math.max(0, Number(String(valor).replace(',', '.')) || 0);
-  item.custo_total = Math.round(item.qtd * item.custo_unit * 100) / 100;
-  item.alerta_custo_acima = !!(item.preco_venda_atual > 0 && item.custo_unit >= item.preco_venda_atual);
+  item.custo_unit_bruto = item.custo_unit;
+  // Custo digitado à mão é decisão da pessoa e não é mais mexido pelo rateio.
+  item.custo_manual = true;
+  recalcularCustosRevisao_();
   renderizarRevisaoNfce();
 }
 
 function removerItemNfce(indice) {
   cupomEmRevisao.itens.splice(indice, 1);
   if (cupomEmRevisao.itens.length === 0) { cancelarRevisaoNfce(); return; }
+  // Tirar linha muda a base do rateio: o desconto do cupom passa a se dividir
+  // entre menos itens.
+  recalcularCustosRevisao_();
   renderizarRevisaoNfce();
 }
 

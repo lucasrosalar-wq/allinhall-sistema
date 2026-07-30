@@ -1248,3 +1248,29 @@ button.carregando::after {
 /* Cabeçalho editável do bloco de revisão (serve pra importar e pra editar). */
 #blocoRevisaoNfce .linha-dupla { margin-top: 4px; }
 #blocoRevisaoNfce > label:first-of-type { margin-top: 12px; }
+
+/* --- conciliação do cupom (soma dos itens, desconto, o que foi pago) --- */
+/* O DANFE só informa o desconto no total. Mostrar isso lado a lado com o que está
+   sendo lançado é a conferência que a pessoa faria de olho no papel. */
+.conciliacao {
+  background: var(--creme); border: 1px solid var(--borda); border-radius: var(--raio-sm);
+  padding: 12px 14px; margin: 12px 0;
+}
+.linha-conciliacao {
+  display: flex; justify-content: space-between; align-items: baseline; gap: 12px;
+  font-size: 12.5px; padding: 3px 0; color: var(--texto-2);
+}
+.linha-conciliacao strong { font-size: 13px; color: var(--preto); font-variant-numeric: tabular-nums; }
+.linha-conciliacao.desconto strong { color: var(--verde); }
+.linha-conciliacao.destaque { border-top: 1px solid var(--borda); margin-top: 4px; padding-top: 7px; }
+.linha-conciliacao.destaque span { font-weight: 600; color: var(--preto); }
+.linha-conciliacao.destaque strong { font-size: 15px; }
+.linha-conciliacao.nao-fecha strong { color: var(--vermelho); }
+
+.escolha-rateio {
+  display: flex; align-items: flex-start; gap: 10px; margin: 12px 0 0; padding-top: 11px;
+  border-top: 1px solid var(--borda); cursor: pointer; text-transform: none; letter-spacing: 0;
+}
+.escolha-rateio input { width: 17px; height: 17px; margin-top: 1px; accent-color: var(--laranja); flex-shrink: 0; cursor: pointer; }
+.escolha-rateio span { font-size: 12.5px; color: var(--preto); line-height: 1.45; }
+.escolha-rateio em { display: block; font-style: normal; font-size: 11.5px; color: var(--texto-2); margin-top: 3px; font-weight: 400; }

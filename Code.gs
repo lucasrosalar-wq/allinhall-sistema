@@ -1307,7 +1307,15 @@ function lerNfce_(params) {
     data: cupom.data,
     itens: itens,
     total_itens: arredondar2_(itens.reduce(function (s, i) { return s + i.custo_total; }, 0)),
-    linhas_originais: cupom.itens.length
+    linhas_originais: cupom.itens.length,
+    // Bloco de totais do cupom. O desconto importa muito e não aparece em lugar
+    // nenhum nas linhas de item: um cupom de R$ 929,37 em itens pode ter sido pago
+    // por R$ 904,47. Sem trazer isso, o custo de tudo entra inflado e toda sugestão
+    // de preço sai alta. O DANFE não detalha o desconto por item, só o total —
+    // então quem decide como distribuir é a pessoa, na tela.
+    valor_bruto: cupom.valor_bruto,
+    desconto: cupom.desconto,
+    valor_pago: cupom.valor_pago
   };
 }
 
@@ -1366,11 +1374,22 @@ function extrairNfce_(conteudo) {
   // não tem tag nenhuma. Os dois precisam funcionar, senão a alternativa de colar
   // não serve pra nada justamente na hora em que o link falhou.
   const itens = extrairItensHtml_(conteudo);
+
+  // Os rótulos do bloco de totais são os mesmos no HTML e no texto puro, então um
+  // regex tolerante a tags no meio serve pros dois caminhos.
+  const acharValor = function (rotulo) {
+    const m = conteudo.match(new RegExp(rotulo + '[\\s\\S]{0,120}?([\\d.]+,\\d{2})'));
+    return m ? numeroBr_(m[1]) : 0;
+  };
+
   return {
     emitente: emitente,
     cnpj: cnpj,
     chave: chave,
     data: data,
+    valor_bruto: acharValor('Valor\\s*total\\s*R\\$'),
+    desconto: acharValor('Descontos?\\s*R\\$'),
+    valor_pago: acharValor('Valor\\s*a\\s*pagar\\s*R\\$'),
     itens: itens.length ? itens : extrairItensTexto_(conteudo)
   };
 }

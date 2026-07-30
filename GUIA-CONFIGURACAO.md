@@ -299,6 +299,38 @@ Você pode ajustar quantidade, custo unitário e vínculo de qualquer linha ante
 lançar, remover linhas que não quer com o ×, e corrigir o mercado, a data e o
 documento no topo — útil quando a leitura da página vem com algo torto.
 
+### Desconto do cupom
+
+O cupom quase sempre tem desconto, e ele não aparece em nenhuma linha de item —
+o DANFE só informa o total. Nos dois cupons que serviram de base:
+
+| | Soma dos itens | Descontos | Pago de verdade |
+|---|---|---|---|
+| Muffato | R$ 929,37 | R$ 24,90 | **R$ 904,47** |
+| Assaí | R$ 900,75 | R$ 17,70 | **R$ 883,05** |
+
+Lançar os R$ 929,37 deixaria o custo de tudo inflado, e toda sugestão de preço
+sairia alta. Por isso a tela mostra a conciliação: soma dos itens, desconto, o
+que você pagou, e o que está sendo lançado agora. Se os dois últimos não
+baterem, o número fica vermelho.
+
+Por padrão o desconto é **descontado do custo dos itens**, rateado
+proporcionalmente ao valor de cada linha — assim o lançamento fecha com o que
+saiu do seu bolso. Como o DANFE não diz em qual item o mercado deu o abatimento,
+proporcional é a única distribuição defensável sem inventar informação.
+
+Você pode desligar isso na caixa de seleção da própria conciliação. Vale desligar
+quando o desconto foi **promoção pontual que não vai repetir** — aí o custo cheio
+representa melhor o que você vai pagar na próxima compra.
+
+Na prática o efeito no preço é pequeno, porque o arredondamento comercial
+costuma absorver: com 2,68% de desconto, o chocolate Garoto sugere R$ 12,49 com
+ou sem rateio; a água cai de R$ 2,99 para R$ 2,89. O que muda de verdade é você
+saber sua margem real.
+
+Se você digitar o custo de alguma linha à mão, ela sai do rateio — quando você
+sabe o custo daquele item, quem manda é você.
+
 ### Fardo: informe só quantas unidades vêm dentro
 
 Linhas em vermelho são as que o sistema achou que **não são uma unidade de
