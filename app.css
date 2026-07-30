@@ -8,6 +8,11 @@
    ============================================================ */
 
 /* ===================== base: Gestão + shell ===================== */
+  /* O ":root {" abaixo tinha se perdido quando o CSS foi extraído dos HTMLs — sem
+     ele o bloco inteiro de variáveis virava lixo pro navegador, e --cinza-status
+     (que só existe aqui) ficava indefinida: era por isso que o selo "Pendente" e a
+     barra lateral da coluna Pendente apareciam sem cor. */
+  :root {
     --preto: #111827;
     --texto-2: #6B7280;
     --cinza: #F1F5F9;
@@ -20,6 +25,9 @@
     --azul: #3B82F6;
     --vermelho: #EF4444;
     --cinza-status: #9CA3AF;
+    /* Vinho do prejuízo: precisa ser lido como "pior que cobrado" sem virar outro
+       tom do mesmo vermelho da cobrança em aberto. */
+    --vinho: #9F1239;
     --raio: 16px;
     --raio-sm: 12px;
     --sombra: 0 10px 30px rgba(17,24,39,.06);
@@ -150,8 +158,13 @@
     border-top: 1px solid var(--borda);
   }
 
-  .view-gestao .container { max-width: 900px; margin: 0 auto; padding: 16px; flex: 1 0 auto; width: 100%; }
+  /* A Gestão é a tela mais "larga" do sistema: são quatro colunas de kanban lado a
+     lado. Numa tela de desktop (16:9) travar em 900px deixava metade do monitor
+     vazia, então o limite acompanha a largura disponível e só para em 1560px —
+     daí pra frente o texto do card começaria a ficar comprido demais pra ler. */
+  .view-gestao .container { max-width: 1560px; margin: 0 auto; padding: 16px; flex: 1 0 auto; width: 100%; }
   @media (min-width: 900px) { .view-gestao .container { padding: 28px 24px; } }
+  @media (min-width: 1360px) { .view-gestao .container { padding: 28px 32px; } }
 
   /* Em telas largas (notebook/desktop), o mini calendário fica numa coluna
      lateral ao lado dos filtros, numa grade de 12 colunas — as duas colunas
@@ -162,6 +175,12 @@
     .layout-gestao .coluna-calendario { grid-column: span 4; display: flex; flex-direction: column; gap: 20px; }
     .layout-gestao .coluna-detalhes { grid-column: span 8; display: flex; flex-direction: column; min-width: 0; max-width: none; }
     .layout-gestao .mini-calendario { max-width: none; margin-bottom: 0; }
+  }
+  /* Com a página mais larga, 4/12 dariam um mini calendário de quase 500px — as
+     bolinhas dos dias ficariam perdidas. Ele encolhe e os filtros ganham o espaço. */
+  @media (min-width: 1280px) {
+    .layout-gestao .coluna-calendario { grid-column: span 3; }
+    .layout-gestao .coluna-detalhes { grid-column: span 9; }
   }
 
   select, input, textarea, button { font-family: inherit; font-size: 14.5px; }
@@ -278,6 +297,7 @@
   .contagem-item.pendente .contagem-numero { color: var(--preto); }
   .contagem-item.cobrado .contagem-numero { color: var(--vermelho); }
   .contagem-item.pago .contagem-numero { color: var(--verde); }
+  .contagem-item.prejuizo .contagem-numero { color: var(--vinho); }
 
   /* Cards de ocorrência */
   .card {
@@ -299,6 +319,7 @@
   .badge.cobrado { background: var(--vermelho); }
   .badge.pago { background: var(--verde); }
   .badge.cancelado { background: #D1D5DB; color: #4B5563; }
+  .badge.prejuizo { background: var(--vinho); }
   .card .whatsapp-card { font-size: 11.5px; color: var(--texto-2); margin-top: 1px; }
   .card .itens-resumo { font-size: 12px; color: var(--texto-2); margin: 6px 0 0; text-align: left; }
   .card .observacao { font-size: 11.5px; color: #9CA3AF; font-style: italic; margin-top: 3px; text-align: left; }
@@ -790,6 +811,7 @@
   .badge-status.identificado { background: var(--amarelo); color: var(--preto); }
   .badge-status.cobrado { background: var(--vermelho); }
   .badge-status.pago { background: var(--verde); }
+  .badge-status.prejuizo { background: var(--vinho); }
   .vazio-relacao {
     font-size: 13px; color: var(--texto-2); padding: 28px 12px; text-align: center; display: flex; flex-direction: column; align-items: center; gap: 8px;
   }
@@ -896,14 +918,21 @@
 .view-reposicao .mini-calendario { max-width: 320px; }
 
 /* ===================== específico: Gestão — quadro kanban ===================== */
+/* Quatro colunas: Pendente / Cobrado / Recebido / Prejuízo. A quarta só entra na
+   mesma fileira quando sobra largura de verdade (a sidebar já come 240px no
+   desktop) — abaixo disso ela quebra pra linha de baixo em vez de espremer as
+   quatro num tamanho em que o card não cabe. */
 .kanban-gestao {
   display: grid; grid-template-columns: 1fr; gap: 14px; margin-top: 16px; align-items: stretch;
 }
 @media (min-width: 760px) {
   .kanban-gestao { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
-@media (min-width: 1000px) {
+@media (min-width: 1100px) {
   .kanban-gestao { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+@media (min-width: 1360px) {
+  .kanban-gestao { grid-template-columns: repeat(4, minmax(0, 1fr)); }
 }
 .kanban-coluna {
   background: var(--cinza); border-radius: var(--raio); padding: 12px;
@@ -915,9 +944,11 @@
 }
 .kanban-cabecalho.cobrado { border-left-color: var(--vermelho); }
 .kanban-cabecalho.recebido { border-left-color: var(--verde); }
+.kanban-cabecalho.prejuizo { border-left-color: var(--vinho); }
 .kanban-titulo { font-size: 14.5px; font-weight: 700; color: var(--preto); }
 .kanban-cabecalho.cobrado .kanban-titulo { color: var(--vermelho); }
 .kanban-cabecalho.recebido .kanban-titulo { color: var(--verde); }
+.kanban-cabecalho.prejuizo .kanban-titulo { color: var(--vinho); }
 .kanban-subtitulo { font-size: 12px; color: var(--texto-2); margin-top: 2px; }
 .kanban-corpo { display: flex; flex-direction: column; gap: 10px; }
 .kanban-corpo .card { margin-bottom: 0; }
