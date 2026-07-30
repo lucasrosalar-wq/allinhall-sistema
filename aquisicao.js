@@ -82,6 +82,7 @@ async function carregarAquisicao() {
     renderizarFilaPrecos();
     renderizarRegrasMargem();
     renderizarCupons();
+    renderizarLucroMes();
     renderizarPendentes();
   } catch (err) {
     banner.className = 'banner erro';
@@ -175,6 +176,7 @@ function renderizarItensCupom() {
       ? '<span class="vinculo-ok">' + escaparHtml_(item.produto) + '</span>'
       : '<span class="vinculo-pendente">sem vínculo no catálogo</span>';
     return '<div class="item-adicionado">' +
+      '<span class="numero-item">' + (indice + 1) + '</span>' +
       '<div class="info">' + escaparHtml_(item.descricao_cupom) +
         '<div class="qtd-preco">' + item.qtd + ' x ' + formatarMoeda(item.custo_unit) + ' · ' + vinculo + '</div>' +
       '</div>' +
@@ -289,7 +291,7 @@ async function lerNfce() {
       desconto: lido.desconto,
       valor_pago: lido.valor_pago,
       itens: lido.itens.map(function (i) {
-        return Object.assign({}, i, { custo_unit_bruto: i.custo_unit, desconto: 0 });
+        return Object.assign({}, i, { custo_unit_bruto: i.custo_unit, desconto: 0, numeros: i.numeros || [] });
       })
     };
     recalcularCustosRevisao_();
@@ -465,6 +467,18 @@ function blocoConciliacao_() {
   '</div>';
 }
 
+// Número da linha na tela. Vindo de importação, é o número que o próprio cupom
+// deu ao item — é ele que permite conferir contra o papel. Em cupom digitado à
+// mão ou reaberto pra edição não existe esse número, e aí vale a posição na lista.
+// Quando linhas iguais foram somadas, mostra todos os números que viraram uma só.
+function numeroDaLinha_(item, indice) {
+  const numeros = item.numeros || [];
+  if (numeros.length === 0) return String(indice + 1);
+  if (numeros.length === 1) return String(numeros[0]);
+  if (numeros.length === 2) return numeros[0] + '+' + numeros[1];
+  return numeros[0] + '…' + numeros[numeros.length - 1];
+}
+
 function renderizarRevisaoNfce() {
   const bloco = document.getElementById('blocoRevisaoNfce');
   if (!cupomEmRevisao) { bloco.classList.add('oculto'); return; }
@@ -541,6 +555,9 @@ function renderizarRevisaoNfce() {
 
     return '<div class="linha-revisao' + (suspeito ? ' suspeita' : '') + '">' +
       '<div class="cabecalho-revisao">' +
+        '<span class="numero-item"' + ((i.numeros || []).length > 1
+          ? ' title="Linhas ' + i.numeros.join(', ') + ' do cupom, somadas por serem o mesmo item"'
+          : '') + '>' + numeroDaLinha_(i, indice) + '</span>' +
         '<div class="desc">' + escaparHtml_(i.descricao_cupom) + selo +
           '<span class="meta">' + (i.codigo ? 'cód ' + escaparHtml_(i.codigo) + ' · ' : '') + escaparHtml_(i.unidade || '') + '</span>' +
         '</div>' +
@@ -724,6 +741,54 @@ function mostrarBannerRevisaoNfce_(tipo, mensagem) {
   banner.textContent = mensagem;
 }
 
+// ===================== LUCRO PREVISTO =====================
+// "Previsto" no nome em todo lugar, de propósito. O sistema conhece o que entrou
+// (cupom) e a que preço está na prateleira, então sabe quanto AQUELE estoque
+// renderia se vendido hoje. Venda mesmo ele não vê — acontece na Pináculo. Chamar
+// isso de lucro do mês seria convidar a decidir em cima de dinheiro que ainda não
+// existe.
+const NOMES_MESES_AQUISICAO_ = ['janeiro', 'fevereiro', 'março', 'abril', 'maio', 'junho',
+  'julho', 'agosto', 'setembro', 'outubro', 'novembro', 'dezembro'];
+
+function rotuloMes_(mes) {
+  const partes = String(mes).split('-');
+  if (partes.length !== 2) return mes;
+  // Só a primeira letra em maiúscula: "Julho de 2026", não "Julho De 2026" —
+  // que é o que o text-transform: capitalize do CSS fazia.
+  const nome = NOMES_MESES_AQUISICAO_[Number(partes[1]) - 1] || '';
+  return nome.charAt(0).toUpperCase() + nome.slice(1) + ' de ' + partes[0];
+}
+
+function renderizarLucroMes() {
+  const lista = document.getElementById('listaLucroMes');
+  const meses = dadosAquisicao.lucroPorMes || [];
+
+  if (meses.length === 0) {
+    lista.innerHTML = '<div class="vazio-relacao">Nenhum cupom lançado ainda — o lucro previsto aparece aqui depois do primeiro.</div>';
+    return;
+  }
+
+  lista.innerHTML = meses.map(function (m, indice) {
+    const fora = m.itens_fora > 0
+      ? '<div class="nota-fora">' + m.itens_fora + ' item(ns) fora da conta (' + formatarMoeda(m.custo_fora) +
+        ' em compras sem produto vinculado ou sem preço de venda).</div>'
+      : '';
+    return '<div class="card-mes' + (indice === 0 ? ' atual' : '') + '">' +
+      '<div class="topo-mes">' +
+        '<div class="nome-mes">' + rotuloMes_(m.mes) + '<span>' + m.compras + ' cupom(ns)</span></div>' +
+        '<div class="lucro-mes">' + formatarMoeda(m.lucro_previsto) +
+          '<span>' + (m.margem_pct === null ? '—' : formatarPct_(m.margem_pct).replace('+', '') + ' sobre o custo') + '</span>' +
+        '</div>' +
+      '</div>' +
+      '<div class="numeros-mes">' +
+        '<div><span>Custo das compras</span><strong>' + formatarMoeda(m.custo) + '</strong></div>' +
+        '<div><span>Venda prevista</span><strong>' + formatarMoeda(m.venda_prevista) + '</strong></div>' +
+      '</div>' +
+      fora +
+    '</div>';
+  }).join('');
+}
+
 // ===================== CUPONS LANÇADOS =====================
 function renderizarCupons() {
   const lista = document.getElementById('listaCupons');
@@ -745,6 +810,18 @@ function renderizarCupons() {
         '<div class="valor">' + formatarMoeda(c.valor_total) + '</div>' +
       '</div>' +
       '<div class="itens">' + escaparHtml_(resumo) + '</div>' +
+      (c.lucro && c.lucro.custo > 0
+        ? '<div class="lucro-cupom">' +
+            '<span>Custo <strong>' + formatarMoeda(c.lucro.custo) + '</strong></span>' +
+            '<span>Venda prevista <strong>' + formatarMoeda(c.lucro.venda_prevista) + '</strong></span>' +
+            '<span class="destaque">Lucro previsto <strong>' + formatarMoeda(c.lucro.lucro_previsto) + '</strong>' +
+              (c.lucro.margem_pct === null ? '' : ' <em>' + formatarPct_(c.lucro.margem_pct).replace('+', '') + '</em>') +
+            '</span>' +
+            (c.lucro.itens_fora > 0
+              ? '<span class="fora">' + c.lucro.itens_fora + ' item(ns) fora da conta</span>'
+              : '') +
+          '</div>'
+        : '') +
       aviso +
       '<div class="acoes-relacao">' +
         '<button type="button" onclick="editarCupom(\'' + c.id + '\')">Editar</button>' +

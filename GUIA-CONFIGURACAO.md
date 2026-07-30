@@ -295,6 +295,11 @@ mostra um selo:
 - **sem selo** — não teve certeza e deixou em branco. Escolha o produto, ou deixe
   em branco mesmo: o item é lançado no histórico e fica em "Aguardando vínculo".
 
+Cada linha aparece com **o número que o cupom deu ao item**, não uma contagem do
+sistema — assim dá para conferir contra o papel sem contar com o dedo. Quando
+linhas iguais foram somadas, o número mostra todas de uma vez: `1+2` para duas,
+`10…12` para três ou mais (passe o mouse para ver a lista completa).
+
 Você pode ajustar quantidade, custo unitário e vínculo de qualquer linha antes de
 lançar, remover linhas que não quer com o ×, e corrigir o mercado, a data e o
 documento no topo — útil quando a leitura da página vem com algo torto.
@@ -389,6 +394,32 @@ Você só informa o número que o sistema não tem como saber. A conta é dele.
 
 Se o alerta estiver errado — é unidade mesmo, só é um item caro — clique em
 **É unidade mesmo** e o aviso sai.
+
+### Lucro previsto por cupom e por mês
+
+Cada cupom lançado mostra três números, e a aba Cupons tem um bloco somando por mês:
+
+```
+Custo das compras   R$   675,89
+Venda prevista      R$ 1.104,34
+Lucro previsto      R$   428,45   (63,4% sobre o custo)
+```
+
+**"Previsto" é literal, e a distinção importa.** É o que aquele estoque rende
+**se for todo vendido ao preço de hoje** — não é dinheiro que já entrou. Este
+sistema não registra venda nenhuma: ele conhece o que entrou (cupom), o que
+sumiu da prateleira sem pagar (furo) e o que foi cobrado disso. A venda paga
+acontece no sistema da Pináculo.
+
+Só entram na conta os itens vinculados a um produto do catálogo **e** com preço
+de venda definido — sem preço não há o que projetar. Os que ficam de fora
+aparecem contados, com o custo deles, para a diferença entre o total do cupom e
+a base do cálculo nunca ficar sem explicação.
+
+Como o cálculo usa o preço de hoje, aplicar preços na aba Ajuste de preço muda
+estes números na hora — e é assim que dá para ver o ajuste valendo em reais. No
+cupom real do Muffato, aplicar os 16 preços sugeridos levou o lucro previsto de
+R$ 428,45 para R$ 484,02.
 
 ### Editar um cupom lançado
 

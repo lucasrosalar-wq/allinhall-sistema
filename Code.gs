@@ -873,7 +873,11 @@ function obterAquisicao_() {
     });
   });
 
+  const precoPorProduto = {};
+  produtos.forEach(function (p) { precoPorProduto[p.nome] = p.preco; });
+
   const comprasComItens = compras.map(function (c) {
+    const itensDaCompra = itensPorCompra[String(c.id)] || [];
     return {
       id: c.id,
       data: String(c.data || ''),
@@ -882,7 +886,8 @@ function obterAquisicao_() {
       valor_total: Number(c.valor_total) || 0,
       observacao: String(c.observacao || ''),
       origem: String(c.origem || 'manual'),
-      itens: itensPorCompra[String(c.id)] || []
+      itens: itensDaCompra,
+      lucro: calcularLucroCompra_(itensDaCompra, precoPorProduto)
     };
   }).sort(function (a, b) { return String(b.data).localeCompare(String(a.data)); });
 
@@ -905,9 +910,72 @@ function obterAquisicao_() {
     regras: regras,
     compras: comprasComItens,
     pendentes: pendentes,
+    lucroPorMes: agruparLucroPorMes_(comprasComItens),
     estruturaPendente: estruturaPendente,
     limiteAlertaPct: LIMIAR_ALERTA_VARIACAO_PCT
   };
+}
+
+// Lucro PREVISTO de uma compra: o que ela rende se todo o estoque for vendido ao
+// preço de hoje. Não é lucro realizado, e a diferença é grande — este sistema não
+// registra venda nenhuma. Ele conhece o que entrou (cupom), o que sumiu da
+// prateleira sem pagar (furo) e o que foi cobrado disso; a venda paga acontece no
+// sistema da Pináculo. Chamar isso de "lucro do mês" sem o "previsto" seria
+// convidar a decidir em cima de um número que não existe ainda.
+//
+// Só entram itens vinculados a produto do catálogo e com preço de venda definido —
+// sem preço não há o que projetar. Os de fora são contados e mostrados, pra
+// diferença entre o total do cupom e a base do cálculo nunca ficar sem explicação.
+function calcularLucroCompra_(itens, precoPorProduto) {
+  let custo = 0, venda = 0, itensFora = 0, custoFora = 0;
+
+  itens.forEach(function (i) {
+    const preco = i.produto ? Number(precoPorProduto[i.produto]) || 0 : 0;
+    if (!preco) {
+      itensFora++;
+      custoFora += Number(i.custo_total) || 0;
+      return;
+    }
+    custo += Number(i.custo_total) || 0;
+    venda += (Number(i.quantidade) || 0) * preco;
+  });
+
+  const lucro = venda - custo;
+  return {
+    custo: arredondar2_(custo),
+    venda_prevista: arredondar2_(venda),
+    lucro_previsto: arredondar2_(lucro),
+    margem_pct: custo > 0 ? arredondar2_((lucro / custo) * 100) : null,
+    itens_fora: itensFora,
+    custo_fora: arredondar2_(custoFora)
+  };
+}
+
+function agruparLucroPorMes_(compras) {
+  const mapa = {};
+  compras.forEach(function (c) {
+    const mes = String(c.data || '').slice(0, 7); // yyyy-MM
+    if (mes.length !== 7) return;
+    if (!mapa[mes]) mapa[mes] = { mes: mes, compras: 0, custo: 0, venda_prevista: 0, lucro_previsto: 0, itens_fora: 0, custo_fora: 0 };
+    const m = mapa[mes];
+    m.compras++;
+    m.custo += c.lucro.custo;
+    m.venda_prevista += c.lucro.venda_prevista;
+    m.lucro_previsto += c.lucro.lucro_previsto;
+    m.itens_fora += c.lucro.itens_fora;
+    m.custo_fora += c.lucro.custo_fora;
+  });
+
+  return Object.keys(mapa).sort().reverse().map(function (mes) {
+    const m = mapa[mes];
+    return Object.assign(m, {
+      custo: arredondar2_(m.custo),
+      venda_prevista: arredondar2_(m.venda_prevista),
+      lucro_previsto: arredondar2_(m.lucro_previsto),
+      custo_fora: arredondar2_(m.custo_fora),
+      margem_pct: m.custo > 0 ? arredondar2_((m.lucro_previsto / m.custo) * 100) : null
+    });
+  });
 }
 
 // Grava o cupom e os itens, e — item por item vinculado a um produto do catálogo —
@@ -1292,6 +1360,7 @@ function lerNfce_(params) {
     const custoAcimaDoPreco = precoVenda > 0 && item.custo_unit >= precoVenda;
 
     return {
+      numeros: item.numeros || [],
       descricao_cupom: item.descricao,
       codigo: item.codigo,
       unidade: item.unidade,
@@ -1421,10 +1490,15 @@ function primeiraLinhaComNome_(conteudo) {
 function extrairItensHtml_(html) {
   const itens = [];
   const blocos = html.match(/<tr[^>]*id="Item[^"]*"[^>]*>[\s\S]*?<\/tr>/g) || [];
-  blocos.forEach(function (bloco) {
+  blocos.forEach(function (bloco, indice) {
     const descricao = textoDeHtml_((bloco.match(/class="txtTit2?"[^>]*>([\s\S]*?)<\/span>/) || [])[1]);
     if (!descricao) return;
+    // O DANFE numera os itens no id da linha ("Item + 7"). É esse número que a
+    // pessoa vê no cupom impresso, então é ele que a tela mostra — assim dá pra
+    // conferir linha a linha contra o papel sem contar com o dedo.
+    const numero = Number((bloco.match(/id="Item\s*\+?\s*(\d+)"/) || [])[1]) || (indice + 1);
     itens.push({
+      numero: numero,
       descricao: descricao,
       codigo: ((bloco.match(/C[óo]digo:\s*([^)<]+)/) || [])[1] || '').trim(),
       qtd: numeroBr_((bloco.match(/Qtde\.?:\s*<\/strong>\s*([\d.,]+)/) || [])[1]),
@@ -1462,6 +1536,8 @@ function extrairItensTexto_(texto) {
     if (!descricao) continue;
 
     itens.push({
+      // Texto puro não traz o id da linha; a ordem de leitura é a mesma do cupom.
+      numero: itens.length + 1,
       descricao: descricao,
       codigo: codigo.trim(),
       qtd: numeroBr_((atual.match(/Qtde\.?:\s*([\d.,]+)/) || [])[1]),
@@ -1483,15 +1559,20 @@ function agruparItensIdenticos_(itens) {
   itens.forEach(function (i) {
     const chave = normalizarTexto_(i.codigo) + '|' + normalizarTexto_(i.descricao);
     if (!mapa[chave]) {
-      mapa[chave] = { descricao: i.descricao, codigo: i.codigo, unidade: i.unidade, qtd: 0, valor: 0 };
+      mapa[chave] = { descricao: i.descricao, codigo: i.codigo, unidade: i.unidade, qtd: 0, valor: 0, numeros: [] };
       ordem.push(chave);
     }
     mapa[chave].qtd += i.qtd;
     mapa[chave].valor += i.qtd * i.custo_unit;
+    // Guarda todos os números que viraram esta linha: quando 3 linhas iguais são
+    // somadas, a tela mostra os 3 números do cupom, e a conferência continua
+    // fechando com o papel.
+    if (i.numero) mapa[chave].numeros.push(i.numero);
   });
   return ordem.map(function (chave) {
     const a = mapa[chave];
     return {
+      numeros: a.numeros.sort(function (x, y) { return x - y; }),
       descricao: a.descricao,
       codigo: a.codigo,
       unidade: a.unidade,

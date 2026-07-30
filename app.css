@@ -1291,3 +1291,49 @@ button.carregando::after {
   display: block; font-size: 11px; font-weight: 500; color: var(--cinza-status); text-decoration: line-through;
 }
 .linha-revisao .valor .unit-liquido { display: block; font-size: 11px; font-weight: 500; color: var(--texto-2); }
+
+/* --- lucro previsto --- */
+/* "Previsto" carregado no rótulo: o sistema sabe o que entrou e a que preço está
+   na prateleira, mas não vê venda — ela acontece na Pináculo. */
+.card-mes {
+  background: #fff; border: 1px solid var(--borda); border-radius: var(--raio-sm);
+  padding: 14px 16px; margin-bottom: 10px; box-shadow: var(--sombra-sm);
+}
+.card-mes.atual { border-color: #FED7AA; background: #FFFBF7; }
+.card-mes .topo-mes { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
+.card-mes .nome-mes { font-size: 15px; font-weight: 700; }
+.card-mes .nome-mes span { display: block; font-size: 11.5px; font-weight: 500; color: var(--texto-2); text-transform: none; margin-top: 2px; }
+.card-mes .lucro-mes { text-align: right; font-size: 20px; font-weight: 700; color: var(--verde); white-space: nowrap; }
+.card-mes .lucro-mes span { display: block; font-size: 11px; font-weight: 600; color: var(--texto-2); margin-top: 2px; }
+.card-mes .numeros-mes {
+  display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px;
+  margin-top: 12px; padding-top: 11px; border-top: 1px solid var(--borda);
+}
+.card-mes .numeros-mes span {
+  display: block; font-size: 10px; font-weight: 600; color: var(--cinza-status);
+  text-transform: uppercase; letter-spacing: .03em;
+}
+.card-mes .numeros-mes strong { display: block; font-size: 14px; font-weight: 700; margin-top: 1px; font-variant-numeric: tabular-nums; }
+.card-mes .nota-fora { font-size: 11.5px; color: var(--texto-2); margin-top: 10px; line-height: 1.45; }
+
+.lucro-cupom {
+  display: flex; flex-wrap: wrap; gap: 6px 16px; margin-top: 10px; padding-top: 10px;
+  border-top: 1px dashed var(--borda); font-size: 11.5px; color: var(--texto-2);
+}
+.lucro-cupom strong { font-size: 12.5px; color: var(--preto); font-variant-numeric: tabular-nums; }
+.lucro-cupom .destaque strong { color: var(--verde); }
+.lucro-cupom .destaque em { font-style: normal; font-weight: 700; color: var(--verde); }
+.lucro-cupom .fora { flex-basis: 100%; color: var(--amarelo); font-weight: 600; }
+
+/* Número do item. Na importação é o número que o próprio cupom deu à linha, pra
+   conferência contra o papel bater sem contar com o dedo. */
+.numero-item {
+  flex-shrink: 0; min-width: 26px; height: 22px; padding: 0 6px; border-radius: 6px;
+  background: var(--cinza); color: var(--texto-2);
+  font-size: 11.5px; font-weight: 700; font-variant-numeric: tabular-nums;
+  display: inline-flex; align-items: center; justify-content: center;
+}
+.linha-revisao .cabecalho-revisao { align-items: flex-start; }
+.linha-revisao .numero-item { margin-right: 10px; margin-top: 1px; }
+.linha-revisao.suspeita .numero-item { background: #FEE2E2; color: #B91C1C; }
+.item-adicionado .numero-item { margin-right: 10px; align-self: flex-start; margin-top: 1px; }
