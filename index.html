@@ -384,12 +384,28 @@
       </div>
 
       <div id="blocoRevisaoNfce" class="painel-acoes-dia oculto">
-        <h3>Confira antes de lançar</h3>
+        <h3 id="tituloRevisaoNfce">Confira antes de lançar</h3>
         <div class="subtitulo" id="subtituloRevisaoNfce">—</div>
+
+        <div class="linha-dupla">
+          <div>
+            <label>Onde comprou</label>
+            <input type="text" id="mercadoRevisao" oninput="mudarCabecalhoRevisao()">
+          </div>
+          <div>
+            <label>Data da compra</label>
+            <input type="date" id="dataRevisao" onchange="mudarCabecalhoRevisao()">
+          </div>
+        </div>
+        <label>Documento do cupom <span class="rotulo-opcional">(opcional)</span></label>
+        <input type="text" id="documentoRevisao" oninput="mudarCabecalhoRevisao()">
+        <label>Observação <span class="rotulo-opcional">(opcional)</span></label>
+        <textarea id="observacaoRevisao" rows="2" oninput="mudarCabecalhoRevisao()"></textarea>
+
         <div id="avisosRevisaoNfce"></div>
         <div id="listaRevisaoNfce"></div>
         <div class="total-box">
-          <span>Total a lançar</span>
+          <span id="rotuloTotalRevisao">Total a lançar</span>
           <strong id="totalRevisaoNfce">R$ 0,00</strong>
         </div>
         <div id="bannerRevisaoNfce" class="banner"></div>
