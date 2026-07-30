@@ -134,6 +134,20 @@ Passo a passo:
    salva nos favoritos/tela inicial do tablet, e é esse mesmo link que dá pra
    mandar por WhatsApp como **texto** (nunca o arquivo).
 
+**Ao publicar mudança em `.css` ou `.js`, troque o número da versão.** No topo do
+`index.html` os arquivos locais são carregados assim:
+
+```html
+<link rel="stylesheet" href="app.css?v=20260730a">
+<script src="aquisicao.js?v=20260730a"></script>
+```
+
+Esse `?v=` existe por um motivo prático: o GitHub Pages entrega o `index.html`
+novo rapidinho, mas o navegador reaproveita o `.css` e o `.js` que já tem
+guardados — e a tela fica misturando versão nova com antiga, o que dá a impressão
+de que a mudança não subiu. Trocando o número (ex: `20260730a` → `20260730b`), a
+URL muda e o navegador é obrigado a buscar tudo de novo.
+
 Sempre que editar os arquivos depois (ex: trocar a URL do Web App de novo),
 edite direto pela interface do GitHub (ícone de lápis) e faça commit — o site
 atualiza sozinho em cerca de 1 minuto.
@@ -242,6 +256,8 @@ fundamentado, a decisão é sua.
 
 ### O dia a dia
 
+A Aquisição tem quatro telas, listadas na barra lateral abaixo do nome dela:
+
 1. **Cupons** — importe pelo QR code do cupom (abaixo) ou lance à mão: onde
    comprou, a data e os itens com o custo unitário pago.
    Cada item vinculado a um produto do catálogo atualiza o `custo_atual` dele.
@@ -251,6 +267,38 @@ fundamentado, a decisão é sua.
    custo, preço de hoje, a margem que esse preço realmente entrega, a margem
    alvo e o preço sugerido. Marque o que concorda e clique em aplicar.
 3. **Faixas de margem** — os percentuais de cada faixa.
+4. **Gestão** — o painel, descrito logo abaixo.
+
+### Painel de gestão
+
+Reúne o que as compras lançadas dizem sobre o negócio. Tem um seletor de ano no
+topo; o resto acompanha.
+
+- **Quatro números do ano**: investido em compras, faturamento previsto, lucro
+  previsto e desconto obtido (com o percentual que ele representou do que os
+  cupons pediam).
+- **Parado na fila de ajuste** — o número mais acionável do painel. É quanto o
+  volume que você já comprou renderia a mais se estivesse no preço sugerido, com
+  a lista dos produtos que mais pesam. Aplicando os preços, esse valor vira lucro
+  previsto e o bloco zera.
+- **Custo e lucro previsto por mês** — barra empilhada: custo embaixo, lucro em
+  cima, e a altura total é o faturamento previsto. Passe o mouse no nome do mês
+  para ver os valores.
+- **Margem prevista por mês** — quanto por cento sobre o custo cada mês
+  devolveria.
+- **Onde você compra** — mesmo gasto em mercados diferentes rende margens
+  diferentes; aqui isso fica visível, com tabela ao lado.
+- **Faixa a faixa: praticado × alvo** — a barra é a margem que a faixa entrega
+  hoje, o traço preto é o alvo dela. A distância entre os dois é o que falta
+  ajustar.
+- **Produtos que mais rendem** — ordenado por lucro previsto em reais, não por
+  percentual: margem alta em item de pouco volume vale menos que margem média em
+  item de giro.
+- **Cobertura do catálogo** — quanto do catálogo o painel já enxerga. Produto sem
+  custo ou sem faixa fica fora de todas as contas acima.
+
+**Todo valor do painel é previsto, não realizado** — mesma ressalva do lucro por
+cupom. Serve para decidir preço e compra, não para fechar caixa.
 
 ### O que o sistema nunca faz sozinho
 

@@ -1041,20 +1041,6 @@ button.carregando::after {
 .cartao-resumo.destaque { border-color: #FED7AA; background: #FFF7ED; }
 .cartao-resumo.destaque strong { color: var(--laranja-escuro); }
 
-/* --- abas internas --- */
-.abas-internas {
-  display: flex; gap: 4px; background: #fff; border: 1px solid var(--borda);
-  border-radius: var(--raio-sm); padding: 4px; margin-bottom: 18px; box-shadow: var(--sombra-sm);
-}
-.aba-interna {
-  flex: 1; height: 38px; padding: 0 10px; border-radius: 10px; background: none;
-  font-size: 13px; font-weight: 600; color: var(--texto-2); white-space: nowrap;
-  overflow: hidden; text-overflow: ellipsis;
-}
-.aba-interna:hover { background: var(--cinza); }
-.aba-interna.ativa { background: var(--laranja); color: #fff; }
-.aba-interna.ativa:hover { background: var(--laranja-escuro); }
-
 /* --- formulário do cupom --- */
 .linha-add-cupom input[type="number"] { width: 110px; text-align: left; padding: 0 10px; }
 .linha-add-cupom input[type="number"]#inputQtdCupom { width: 62px; text-align: center; padding: 0 4px; }
@@ -1337,3 +1323,150 @@ button.carregando::after {
 .linha-revisao .numero-item { margin-right: 10px; margin-top: 1px; }
 .linha-revisao.suspeita .numero-item { background: #FEE2E2; color: #B91C1C; }
 .item-adicionado .numero-item { margin-right: 10px; align-self: flex-start; margin-top: 1px; }
+
+/* ===================== PAINEL DE GESTÃO ===================== */
+/* Cores das séries: validadas contra daltonismo e contraste no fundo claro
+   (ΔE 24,7 em protanopia, ambas ≥ 3:1). O laranja da marca (--laranja, #F97316)
+   reprova contraste como preenchimento grande, então ele segue no chrome — botão,
+   aba ativa, selo — e as séries usam o passo mais escuro. */
+:root {
+  --serie-custo: #2a78d6;
+  --serie-lucro: #eb6834;
+  --grade-grafico: #E9EDF2;
+}
+
+.painel-topo { display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; flex-wrap: wrap; margin-bottom: 18px; }
+.painel-topo h3 { font-size: 18px; margin: 0; }
+.painel-topo p { margin: 4px 0 0; font-size: 13px; color: var(--texto-2); max-width: 58ch; line-height: 1.5; }
+.filtro-ano {
+  display: flex; flex-direction: column; gap: 4px; margin: 0; flex-shrink: 0;
+  font-size: 10px; font-weight: 600; color: var(--texto-2); text-transform: uppercase; letter-spacing: .04em;
+}
+.filtro-ano select { height: 38px; min-width: 110px; font-size: 13.5px; }
+
+.bloco-painel {
+  background: #fff; border: 1px solid var(--borda); border-radius: var(--raio);
+  padding: 18px; margin: 0 0 14px; box-shadow: var(--sombra-sm);
+}
+.bloco-painel figcaption { margin-bottom: 14px; }
+.bloco-painel h4 { font-size: 14.5px; font-weight: 700; margin: 0; }
+.bloco-painel figcaption p { margin: 3px 0 0; font-size: 12.5px; color: var(--texto-2); line-height: 1.5; max-width: 62ch; }
+
+.grade-graficos { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+@media (max-width: 900px) { .grade-graficos { grid-template-columns: 1fr; } }
+/* Item de grid não encolhe abaixo do próprio conteúdo sem isto — era o que fazia
+   o painel empurrar a página pra rolar de lado no celular. */
+.grade-graficos > * { min-width: 0; }
+.bloco-painel { min-width: 0; }
+
+/* --- tiles do topo --- */
+.tiles-painel { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; margin-bottom: 14px; }
+@media (max-width: 900px) { .tiles-painel { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 520px) { .tiles-painel { grid-template-columns: 1fr; } }
+.tile-painel {
+  background: #fff; border: 1px solid var(--borda); border-radius: var(--raio-sm);
+  padding: 15px 16px; box-shadow: var(--sombra-sm); min-width: 0;
+}
+.tile-painel .rotulo { display: block; font-size: 10.5px; font-weight: 600; color: var(--texto-2); text-transform: uppercase; letter-spacing: .04em; }
+.tile-painel strong { display: block; font-size: 23px; font-weight: 700; margin-top: 5px; font-variant-numeric: tabular-nums; letter-spacing: -.01em; }
+.tile-painel .nota { display: block; font-size: 11.5px; color: var(--texto-2); margin-top: 4px; line-height: 1.4; }
+.tile-painel.destaque { border-color: #FED7AA; background: #FFFBF7; }
+.tile-painel.destaque strong { color: var(--laranja-escuro); }
+
+/* --- oportunidade: o número mais acionável do painel --- */
+.destaque-oportunidade { border-color: #FED7AA; background: linear-gradient(180deg, #FFFBF7, #fff 120px); }
+.destaque-oportunidade .op-topo { margin-bottom: 14px; }
+.destaque-oportunidade .rotulo { display: block; font-size: 10.5px; font-weight: 600; color: var(--laranja-escuro); text-transform: uppercase; letter-spacing: .04em; }
+.destaque-oportunidade strong { display: block; font-size: 30px; font-weight: 800; color: var(--laranja-escuro); margin-top: 4px; font-variant-numeric: tabular-nums; letter-spacing: -.02em; }
+.destaque-oportunidade .nota { display: block; font-size: 12.5px; color: var(--texto-2); margin-top: 6px; line-height: 1.5; max-width: 64ch; }
+.destaque-oportunidade .op-vazia { font-size: 13px; color: var(--texto-2); line-height: 1.5; }
+.destaque-oportunidade .op-vazia strong { display: inline; font-size: 13px; color: var(--verde); }
+
+/* --- tabelas do painel --- */
+.tabela-rolagem { overflow-x: auto; }
+.tabela-painel { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+.tabela-painel th {
+  text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--borda);
+  font-size: 10px; font-weight: 700; color: var(--texto-2); text-transform: uppercase; letter-spacing: .04em; white-space: nowrap;
+}
+.tabela-painel td { padding: 9px 10px; border-bottom: 1px solid var(--cinza); vertical-align: middle; }
+.tabela-painel tbody tr:last-child td { border-bottom: none; }
+.tabela-painel tbody tr:hover { background: var(--creme); }
+.tabela-painel .num { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.tabela-painel .forte { font-weight: 700; }
+.tabela-painel .ganho { color: var(--verde); font-weight: 700; }
+.tabela-painel .perda { color: var(--laranja-escuro); font-weight: 700; }
+.tabela-painel .vazio-celula { color: var(--texto-2); text-align: center; padding: 20px; }
+
+/* --- gráficos --- */
+.area-grafico { margin-top: 4px; }
+.grafico-barras svg { width: 100%; height: 190px; display: block; overflow: visible; }
+.grafico-barras .grade { stroke: var(--grade-grafico); stroke-width: 1; }
+.grafico-barras .barra-custo { fill: var(--serie-custo); }
+.grafico-barras .barra-lucro { fill: var(--serie-lucro); }
+.grafico-barras .linha-margem { fill: none; stroke: var(--serie-lucro); stroke-width: 2; stroke-linejoin: round; stroke-linecap: round; vector-effect: non-scaling-stroke; }
+.grafico-barras .ponto-margem { fill: var(--serie-lucro); stroke: #fff; stroke-width: 2; }
+.grafico-barras .rotulo-escala { fill: var(--cinza-status); font-size: 10px; font-weight: 600; }
+.eixo-meses { display: grid; grid-template-columns: repeat(12, 1fr); margin-top: 6px; }
+.rotulo-mes {
+  text-align: center; font-size: 10.5px; color: var(--cinza-status); padding: 4px 0 2px;
+  border-radius: 6px; text-transform: capitalize;
+}
+.rotulo-mes.tem-dado { color: var(--preto); font-weight: 600; cursor: default; }
+.rotulo-mes.tem-dado:hover { background: var(--cinza); }
+.rotulo-mes b { display: block; font-size: 10px; font-weight: 700; color: var(--serie-lucro); font-variant-numeric: tabular-nums; }
+.grafico-vazio { font-size: 12.5px; color: var(--texto-2); text-align: center; padding: 40px 8px; }
+
+.legenda-grafico { display: flex; gap: 16px; flex-wrap: wrap; margin: 0 0 10px; font-size: 11.5px; color: var(--texto-2); font-weight: 600; }
+.legenda-grafico .marca { display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-right: 5px; vertical-align: -1px; }
+.legenda-grafico .marca.traco { width: 3px; height: 12px; border-radius: 1px; background: var(--preto); vertical-align: -2px; }
+
+/* --- barras horizontais (mercados, faixas) --- */
+.barras-h { display: flex; flex-direction: column; gap: 10px; }
+.barra-h { display: grid; grid-template-columns: minmax(90px, 1.1fr) minmax(0, 2.4fr) auto; align-items: center; gap: 12px; cursor: default; }
+.barra-h .rotulo-h { font-size: 12.5px; font-weight: 600; min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+.barra-h .rotulo-h span { display: block; font-size: 10.5px; font-weight: 500; color: var(--texto-2); }
+.barra-h .trilho { position: relative; height: 20px; background: var(--cinza); border-radius: 5px; overflow: visible; }
+.barra-h .preenchimento { height: 100%; background: var(--serie-lucro); border-radius: 5px; transition: width .3s var(--ease); }
+.barra-h .marca-alvo { position: absolute; top: -3px; bottom: -3px; width: 3px; border-radius: 1px; background: var(--preto); }
+.barra-h .valor-h { font-size: 12.5px; font-weight: 700; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.barra-h:hover .trilho { outline: 2px solid var(--borda); outline-offset: 2px; }
+
+/* No celular não cabe rótulo + barra + valor na mesma linha sem forçar largura
+   mínima. Empilha: nome em cima, barra e valor embaixo. */
+@media (max-width: 620px) {
+  .barra-h { grid-template-columns: 1fr auto; gap: 6px 10px; }
+  .barra-h .rotulo-h { grid-column: 1 / -1; }
+  .barra-h .trilho { grid-column: 1; }
+  .barra-h .valor-h { grid-column: 2; }
+}
+
+/* --- cobertura --- */
+.tiles-cobertura { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 10px; }
+@media (max-width: 760px) { .tiles-cobertura { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.tile-cobertura { background: var(--creme); border: 1px solid var(--borda); border-radius: var(--raio-sm); padding: 12px; text-align: center; }
+.tile-cobertura strong { display: block; font-size: 20px; font-weight: 700; font-variant-numeric: tabular-nums; }
+.tile-cobertura span { display: block; font-size: 10.5px; color: var(--texto-2); margin-top: 3px; line-height: 1.35; }
+.tile-cobertura.atencao { background: #FFF7ED; border-color: #FED7AA; }
+.tile-cobertura.atencao strong { color: var(--laranja-escuro); }
+
+.rodape-painel {
+  font-size: 12px; color: var(--texto-2); line-height: 1.6; margin: 4px 0 0;
+  padding: 12px 14px; background: var(--creme); border-radius: var(--raio-sm); border: 1px solid var(--borda);
+}
+
+/* --- tooltip compartilhado --- */
+.dica-grafico {
+  position: fixed; z-index: 200; pointer-events: none; opacity: 0;
+  background: var(--preto); color: #fff; border-radius: 10px; padding: 9px 11px;
+  font-size: 11.5px; line-height: 1.5; box-shadow: 0 8px 24px rgba(17,24,39,.28);
+  transition: opacity .12s var(--ease); max-width: 260px;
+}
+.dica-grafico.visivel { opacity: 1; }
+.dica-grafico strong { display: block; font-size: 12.5px; margin-bottom: 5px; }
+.dica-grafico span { display: flex; justify-content: space-between; gap: 14px; white-space: nowrap; }
+.dica-grafico span.total { color: #D1D5DB; }
+.dica-grafico b { font-weight: 700; font-variant-numeric: tabular-nums; }
+.dica-grafico .marca { display: inline-block; width: 8px; height: 8px; border-radius: 2px; margin-right: 6px; vertical-align: 0; }
+
+.view-aquisicao .container { max-width: 1120px; }
