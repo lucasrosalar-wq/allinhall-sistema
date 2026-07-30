@@ -59,14 +59,24 @@ const CONDOMINIOS_SEED = ['Walk Soho', 'Walk Brigadeiro', 'Parque das Pedreiras'
 // ===================== PRECIFICAÇÃO =====================
 // Faixas de margem por comportamento de compra. A lógica é de mercado, não de
 // contabilidade: quanto mais o item é comprado por impulso, menos o morador
-// compara o preço com o mercado da rua — e mais margem ele suporta. Quanto mais
-// recorrente/básico o item, mais ele vira referência de preço e menos margem
-// aguenta. Servem de padrão inicial; a pessoa edita tudo pela tela de Aquisição.
+// compara o preço com o mercado da rua — e mais margem ele suporta.
+//
+// Os percentuais NÃO são teoria: são a mediana da margem que a operação já
+// praticava, medida a partir dos custos reais de dois cupons (Muffato e Assaí,
+// 29/07/2026, 53 itens, 26 produtos do catálogo). A primeira versão usava uma
+// régua de supermercado (65/45/30/20) e o resultado era ruim — sugeria cortar
+// 42% no molho de tomate e 37% no apresuntado. Faz sentido num mercado com
+// concorrente a 50 metros; não faz num minimercado dentro do condomínio, onde
+// o morador desce de pijama às 23h e não tem com o que comparar.
+//
+// Calibrado assim, o sistema não muda o nível de preço da operação — ele alinha
+// quem está fora da linha dos próprios pares. Revise pela tela de Aquisição
+// conforme mais cupons entrarem; Básico em especial saiu de só 2 observações.
 const REGRAS_MARGEM_SEED = [
-  ['impulso', 'Impulso', 65, 'Chocolate, energético, cerveja, salgadinho. Levado na vontade do momento, quase ninguém compara preço.', 1],
-  ['conveniencia', 'Conveniência', 45, 'Refrigerante, água, snack, higiene de emergência. Levado pela praticidade de ter ali.', 2],
-  ['recorrencia', 'Recorrência', 30, 'Leite, café, pão, papel higiênico. Levado sempre — o morador sabe quanto custa fora.', 3],
-  ['basico', 'Básico', 20, 'Arroz, açúcar, óleo, macarrão. Referência de preço forte, margem curta de propósito.', 4]
+  ['impulso', 'Impulso', 68, 'Chocolate, energético, cerveja, salgadinho. Levado na vontade do momento, quase ninguém compara preço.', 1],
+  ['conveniencia', 'Conveniência', 62, 'Refrigerante, água, snack, higiene de emergência. Levado pela praticidade de ter ali.', 2],
+  ['recorrencia', 'Recorrência', 39, 'Leite, café, pão, papel higiênico. Levado sempre — o morador sabe quanto custa fora.', 3],
+  ['basico', 'Básico', 104, 'Arroz, açúcar, óleo, macarrão. Base medida em poucos itens ainda — confira conforme entrarem mais cupons.', 4]
 ];
 
 // Terminações de preço "de prateleira". O preço calculado sempre sobe até a
@@ -668,20 +678,57 @@ function identificarFuroReposicao_(params) {
 
 // ===================== AQUISIÇÃO: CUSTO, MARGEM E PREÇO =====================
 
-// Chave de reconhecimento de um item de cupom. O código (EAN) do mercado é o que
-// existe de mais estável, então ele manda quando vem preenchido; sem código,
-// sobra a descrição impressa, normalizada (sem acento, sem pontuação, sem espaço
-// duplo) pra "COCA COLA 2L" e "Coca-Cola  2l" caírem na mesma chave.
-function chaveDePara_(codigo, descricao) {
-  const cod = String(codigo || '').trim();
-  if (cod) return 'cod:' + cod;
-  const texto = String(descricao || '')
+function normalizarTexto_(valor) {
+  return String(valor || '')
     .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
     .toUpperCase()
     .replace(/[^A-Z0-9 ]/g, ' ')
     .replace(/\s+/g, ' ')
     .trim();
-  return 'desc:' + texto;
+}
+
+// Um código de barras de verdade (GTIN-8/12/13/14) vale em qualquer mercado do
+// mundo. O código impresso no cupom quase nunca é isso: é o código interno da
+// loja. Nos cupons reais que serviram de base, o Assaí chama o Detergente Limpol
+// de "675" e a Coca lata de "1053361" — números curtos, sequenciais, que outro
+// mercado usa pra outra coisa qualquer. Confundir os dois faz o sistema vincular
+// produto errado sozinho e sem avisar, que é o pior tipo de erro que existe aqui.
+// O dígito verificador é o que separa um caso do outro com segurança.
+function ehGtinValido_(codigo) {
+  const digitos = String(codigo || '').trim();
+  if (!/^\d+$/.test(digitos)) return false;
+  if ([8, 12, 13, 14].indexOf(digitos.length) === -1) return false;
+
+  let soma = 0;
+  // Da direita pra esquerda, fora o dígito verificador, os pesos alternam 3 e 1.
+  for (let i = digitos.length - 2; i >= 0; i--) {
+    const peso = (digitos.length - i) % 2 === 0 ? 3 : 1;
+    soma += Number(digitos.charAt(i)) * peso;
+  }
+  const verificador = (10 - (soma % 10)) % 10;
+  return verificador === Number(digitos.charAt(digitos.length - 1));
+}
+
+// Escopo de loja pra chave do de-para. Diferente de normalizarTexto_, aqui a
+// pontuação é removida em vez de virar espaço: um CNPJ colapsa nos dígitos
+// ("06.057.223/0403-94" -> "06057223040394") e o nome digitado colapsa numa
+// palavra só, então "Atacadão", "atacadao " e "ATACADÃO" caem no mesmo escopo.
+function normalizarEscopo_(valor) {
+  return normalizarTexto_(valor).replace(/ /g, '');
+}
+
+// Chave de reconhecimento de um item de cupom, em três níveis:
+//  - código de barras válido -> chave global; aprendida num mercado, vale em todos
+//  - qualquer outro código   -> chave presa ao mercado (é código interno dele)
+//  - sem código              -> descrição normalizada, também presa ao mercado,
+//    porque a abreviação impressa é escolha da loja ("CHOC GAROTO 80G CAJU")
+// `loja` aceita CNPJ ou nome do mercado — os dois passam pelo mesmo normalizador.
+function chaveDePara_(codigo, descricao, loja) {
+  const cod = String(codigo || '').trim();
+  if (cod && ehGtinValido_(cod)) return 'ean:' + cod;
+  const escopo = normalizarEscopo_(loja) || 'SEMLOJA';
+  if (cod) return 'cod:' + escopo + ':' + normalizarTexto_(cod);
+  return 'desc:' + escopo + ':' + normalizarTexto_(descricao);
 }
 
 function arredondarPrecoComercial_(valor) {
@@ -907,7 +954,9 @@ function criarCompra_(params) {
 
       if (item.produto) {
         registrarCustoProduto_(item.produto, custoUnit, params.data);
-        aprenderDePara_(item.codigo, item.descricao_cupom || item.produto, item.produto, params.origem || 'manual');
+        // params.loja existe pra importação passar o CNPJ do emitente, que é um
+        // escopo bem mais confiável que o nome digitado à mão.
+        aprenderDePara_(item.codigo, item.descricao_cupom || item.produto, item.produto, params.origem || 'manual', params.loja || params.mercado);
       }
     });
 
@@ -944,9 +993,11 @@ function registrarCustoProduto_(nomeProduto, custoUnit, dataCompra) {
 // A memória que faz a digitação diminuir a cada cupom: uma vez que a pessoa
 // disse que "CHOC LACTA 80G" é o "Chocolate Lacta 80g - Sabores" do catálogo,
 // o sistema não pergunta de novo.
-function aprenderDePara_(codigo, descricao, produto, origem) {
+// `loja` é o escopo da chave (ver chaveDePara_): hoje o nome do mercado digitado,
+// e o CNPJ quando a importação de NFC-e passar a preencher.
+function aprenderDePara_(codigo, descricao, produto, origem, loja) {
   const aba = obterAba_(NOMES_ABAS.DE_PARA);
-  const chave = chaveDePara_(codigo, descricao);
+  const chave = chaveDePara_(codigo, descricao, loja);
   const valores = aba.getDataRange().getValues();
   const cabecalho = valores[0];
   const colChave = cabecalho.indexOf('chave');
@@ -961,6 +1012,21 @@ function aprenderDePara_(codigo, descricao, produto, origem) {
   }
   escreverLinhaComoTexto_(aba, aba.getLastRow() + 1, [chave, descricao || '', produto, origem || 'manual', agora_()], [5]);
   return { criado: true };
+}
+
+// Mercado que originou uma compra — o escopo da chave do de-para. Devolve string
+// vazia se a compra não for achada; aí a chave cai no escopo 'SEM LOJA', que é
+// impreciso mas nunca vincula errado o item de outro mercado.
+function lojaDaCompra_(compraId) {
+  const aba = obterAba_(NOMES_ABAS.COMPRAS);
+  const valores = aba.getDataRange().getValues();
+  const cabecalho = valores[0];
+  const colId = cabecalho.indexOf('id');
+  const colMercado = cabecalho.indexOf('mercado');
+  for (let i = 1; i < valores.length; i++) {
+    if (String(valores[i][colId]) === String(compraId)) return String(valores[i][colMercado] || '');
+  }
+  return '';
 }
 
 // Liga um item de cupom que ficou sem produto a um produto do catálogo (ou troca
@@ -980,7 +1046,9 @@ function vincularItemCompra_(params) {
         const codigo = valores[i][cabecalho.indexOf('codigo')];
         const descricao = valores[i][cabecalho.indexOf('descricao_cupom')];
         registrarCustoProduto_(params.produto, custoUnit, params.data || '');
-        aprenderDePara_(codigo, descricao, params.produto, 'manual');
+        // A chave do de-para é presa ao mercado, então o vínculo tem que ser
+        // aprendido no escopo da compra que originou o item — não solto.
+        aprenderDePara_(codigo, descricao, params.produto, 'manual', lojaDaCompra_(valores[i][cabecalho.indexOf('compra_id')]));
         return { vinculado: true };
       }
     }

@@ -206,13 +206,39 @@ ele suporta.
 
 | Faixa | Padrão | Tipo de item |
 |---|---|---|
-| Impulso | 65% | chocolate, energético, cerveja, salgadinho |
-| Conveniência | 45% | refrigerante, água, snack, higiene de emergência |
-| Recorrência | 30% | leite, café, pão, papel higiênico |
-| Básico | 20% | arroz, açúcar, óleo, macarrão |
+| Impulso | 68% | chocolate, energético, cerveja, salgadinho |
+| Conveniência | 62% | refrigerante, água, snack, higiene de emergência |
+| Recorrência | 39% | leite, café, pão, papel higiênico |
+| Básico | 104% | arroz, açúcar, óleo, macarrão |
+
+**De onde vêm esses números.** Não são teoria: são a mediana da margem que a
+operação já praticava, medida com os custos reais de dois cupons (Muffato e
+Assaí, 53 itens, 26 produtos do catálogo). A primeira versão usava uma régua de
+supermercado (65/45/30/20) e o resultado era ruim — sugeria cortar 42% no molho
+de tomate e 37% no apresuntado. Faz sentido num mercado com concorrente a 50
+metros; não faz num minimercado dentro do condomínio, onde o morador desce de
+pijama às 23h e não tem com o que comparar.
+
+Calibrado na prática real, o sistema não mexe no nível de preço da operação —
+ele alinha quem está fora da linha dos próprios pares. Nos 26 produtos medidos,
+16 sobem e 8 descem, e os maiores movimentos são justamente os itens
+descolados: Red Bull e chocolate Garoto estão com metade da margem dos outros
+itens de impulso (sobem ~27%), e o apresuntado está com quase o triplo da
+margem dos outros itens de recorrência (desce 32%).
+
+Duas ressalvas honestas sobre a calibragem:
+
+- **Básico saiu de apenas 2 observações** (molho de tomate e açúcar), e as duas
+  apontam para lados opostos. Trate os 104% como provisório e revise conforme
+  entrarem mais cupons de itens dessa faixa.
+- **A mediana esconde dispersão.** Suas margens variam de 24% a 127% dentro da
+  mesma categoria — o que significa que hoje não existe política de preço, e
+  sim preço herdado. Alinhar isso é o ponto do sistema, mas o alvo continua
+  sendo escolha sua, não da mediana.
 
 Os percentuais são editáveis na aba **Faixas de margem**, e os 104 produtos do
-catálogo já vêm classificados — revise, o chute inicial é meu, a decisão é sua.
+catálogo já vêm classificados — revise, a classificação inicial é um chute
+fundamentado, a decisão é sua.
 
 ### O dia a dia
 
@@ -239,6 +265,24 @@ catálogo já vêm classificados — revise, o chute inicial é meu, a decisão 
 Variação acima de 20% entra na fila destacada em vermelho — quase sempre é
 promoção pontual ou custo digitado errado, vale conferir antes de aplicar.
 
+### Armadilhas que aparecem em cupom de verdade
+
+Medidas em cupons reais de Muffato e Assaí — vale conferir ao lançar:
+
+- **Pack não é unidade.** `PACK GUARANA ANT UN — 1 un × R$ 52,99` é um fardo. Se
+  entrar como custo unitário, o sistema sugere refrigerante a R$ 76. Lance o
+  custo por unidade (divida pelo que vem no fardo).
+- **O mesmo produto vem em vários códigos.** Bala Fini apareceu em 4 códigos
+  (um por sabor) e o Cookie Piraquê em 2. Se você lançar cada linha separada,
+  a última sobrescreve o custo das outras — some as quantidades e lance uma vez.
+- **O mesmo produto vem com preços diferentes no mesmo cupom.** Elma Chips 35g
+  saiu a 3,49 e a 3,69; Coca lata 310ml a 3,59 e 3,29 no Muffato e 2,99 no
+  Assaí. O sistema guarda o **último** custo lançado, então lance o que
+  representa melhor a sua compra.
+- **Tamanho que não bate é produto diferente.** O cupom trouxe Oreo 270g e o
+  catálogo tem Oreo 90g. Não vincule por semelhança de nome: ou é produto novo,
+  ou é a embalagem que mudou — e só você sabe qual.
+
 ### Casos particulares
 
 - **Item com preço combinado que não pode variar**: use o botão **Travar** na
@@ -261,6 +305,12 @@ digitação, sem refazer nada:
 - `DeParaProdutos` resolve o problema que toda integração esbarra: o nome que a
   Pináculo usa não é o nome do seu catálogo. Cada vínculo feito à mão fica
   guardado, então a importação acerta mais a cada rodada.
+- A chave desse vínculo tem escopo, e isso importa: **o código impresso no cupom
+  quase nunca é código de barras** — é o código interno da loja. Nos cupons
+  reais, o Assaí chama o Detergente Limpol de `675`. Outro mercado usa `675`
+  para outra coisa qualquer. Por isso a chave de código interno fica presa ao
+  mercado, e só um GTIN válido (8/12/13/14 dígitos, com dígito verificador
+  conferido) gera chave global — esse sim, aprendido num mercado, vale em todos.
 - Itens que a importação não souber ligar caem no mesmo balde "Aguardando
   vínculo" que já existe.
 
