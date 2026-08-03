@@ -1249,15 +1249,45 @@ function renderizarOportunidade_(op) {
     '</tr>';
   }).join('');
 
+  // Dois blocos, não um: "quanto falta capturar" (sempre positivo — dinheiro que
+  // ainda não entrou) é uma decisão diferente de "quanto a correção pra baixo
+  // tira" (item que hoje está acima do alvo da própria faixa — não é prejuízo,
+  // é a margem voltando pro que a faixa define). Um só número somando as duas
+  // escondia quando o líquido virava negativo, contradizendo a própria frase de
+  // "renderia a mais".
+  const temSobe = op.produtos_sobe > 0;
+  const temDesce = op.produtos_desce > 0;
+
+  const blocoSobe = temSobe
+    ? '<div>' +
+        '<span class="rotulo">Receita deixada na mesa</span>' +
+        '<strong class="valor-positivo">' + formatarMoeda(op.ganho_positivo) + '</strong>' +
+        '<span class="nota">em ' + op.produtos_sobe + ' produto(s) que precisam subir — quanto o volume já comprado ' +
+          'renderia a mais se estivesse no preço sugerido.</span>' +
+      '</div>'
+    : '';
+
+  const blocoDesce = temDesce
+    ? '<div class="op-secundario">' +
+        '<span class="rotulo">Correção pra baixo</span>' +
+        '<strong class="valor-negativo">' + formatarMoeda(op.ganho_negativo) + '</strong>' +
+        '<span class="nota">em ' + op.produtos_desce + ' produto(s) que hoje estão acima do alvo da própria faixa — ' +
+          'não é prejuízo, é a margem voltando pro que você definiu.</span>' +
+      '</div>'
+    : '';
+
+  // Só faz sentido mostrar o líquido quando as duas histórias existem juntas —
+  // com só uma direção na fila, o líquido é idêntico ao bloco já mostrado acima.
+  const liquido = (temSobe && temDesce)
+    ? '<div class="op-liquido">Efeito líquido se aplicar a fila inteira: ' +
+        '<strong class="' + (op.ganho_total >= 0 ? 'valor-positivo' : 'valor-negativo') + '">' +
+          formatarMoeda(op.ganho_total) +
+        '</strong></div>'
+    : '';
+
   bloco.innerHTML =
-    '<div class="op-topo">' +
-      '<div>' +
-        '<span class="rotulo">Parado na fila de ajuste</span>' +
-        '<strong>' + formatarMoeda(op.ganho_total) + '</strong>' +
-        '<span class="nota">em ' + op.produtos + ' produto(s) — é o quanto o volume que você já comprou renderia a mais ' +
-          'se estivesse no preço sugerido. Aplique na aba Ajuste de preço.</span>' +
-      '</div>' +
-    '</div>' +
+    '<div class="op-topo">' + blocoSobe + blocoDesce + '</div>' +
+    liquido +
     '<div class="tabela-rolagem"><table class="tabela-painel">' +
       '<thead><tr><th>Produto</th><th class="num">Comprado</th><th class="num">Preço hoje</th>' +
       '<th class="num">Sugerido</th><th class="num">Diferença</th></tr></thead>' +

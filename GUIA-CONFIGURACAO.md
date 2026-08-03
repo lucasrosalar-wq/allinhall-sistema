@@ -290,10 +290,22 @@ topo; o resto acompanha.
 - **Quatro números do ano**: investido em compras, faturamento previsto, lucro
   previsto e desconto obtido (com o percentual que ele representou do que os
   cupons pediam).
-- **Parado na fila de ajuste** — o número mais acionável do painel. É quanto o
-  volume que você já comprou renderia a mais se estivesse no preço sugerido, com
-  a lista dos produtos que mais pesam. Aplicando os preços, esse valor vira lucro
-  previsto e o bloco zera.
+- **Receita deixada na mesa / Correção pra baixo** — o bloco mais acionável do
+  painel, em dois números separados, de propósito:
+  - **Receita deixada na mesa** (verde) — quanto o volume que você já comprou
+    renderia a mais se os itens que precisam **subir** estivessem no preço
+    sugerido. Sempre positivo: é dinheiro que ainda não entrou.
+  - **Correção pra baixo** (laranja) — o efeito de trazer de volta ao alvo os
+    itens que hoje estão **acima** da própria faixa. Não é prejuízo — é a
+    margem voltando pro que você definiu — mas reduz a receita prevista, então
+    fica separado do número de cima em vez de somado a ele.
+
+  Quando as duas colunas do quadro de Ajuste de preço têm itens, aparece também
+  o **efeito líquido de aplicar a fila inteira**, com a cor seguindo o próprio
+  sinal — pode dar negativo se os itens que precisam cair pesarem mais que os
+  que precisam subir, e isso é esperado, não um erro: a lista abaixo mostra
+  linha a linha de onde vem cada centavo. Aplicando os preços da fila, os
+  valores viram lucro previsto e o bloco zera.
 - **Custo e lucro previsto por mês** — barra empilhada: custo embaixo, lucro em
   cima, e a altura total é o faturamento previsto. Passe o mouse no nome do mês
   para ver os valores.
