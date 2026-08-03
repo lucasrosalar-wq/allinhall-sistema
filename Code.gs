@@ -25,7 +25,7 @@ const NOMES_ABAS = {
 };
 
 const CABECALHOS = {
-  Ocorrencias: ['id', 'condominio', 'data_ocorrencia', 'hora', 'pessoa', 'descricao_pessoa', 'itens', 'valor_total', 'observacao', 'status', 'contato_whatsapp', 'data_registro', 'data_cobranca', 'data_pagamento'],
+  Ocorrencias: ['id', 'condominio', 'data_ocorrencia', 'hora', 'pessoa', 'descricao_pessoa', 'itens', 'valor_total', 'observacao', 'status', 'contato_whatsapp', 'data_registro', 'data_cobranca', 'data_pagamento', 'data_prejuizo'],
   DiasFechados: ['condominio', 'data', 'status_dia', 'registrado_em'],
   Produtos: ['nome', 'preco', 'ativo', 'categoria', 'margem_pct', 'custo_atual', 'data_custo', 'preco_travado'],
   Pessoas: ['nome', 'condominio', 'contato_whatsapp', 'observacao'],
@@ -460,8 +460,24 @@ function limparDia_(params) {
 // Sem trava própria — quem chama (criarOcorrencia_, ou identificarFuroReposicao_
 // promovendo um furo) já está dentro do próprio comTravamento_. Duas travas do
 // mesmo LockService aninhadas na mesma execução não são garantidas seguras.
+// A aba Ocorrencias ganhou a coluna data_prejuizo depois que a planilha já estava
+// em uso. Em vez de exigir que alguém rode configurarPlanilha() de novo (e correr
+// o risco de gravar numa coluna sem cabeçalho enquanto isso não acontece), toda
+// escrita passa por aqui antes: se faltar alguma coluna do cabeçalho oficial, ela
+// é criada na hora, no fim da faixa que já existe. Devolve o cabeçalho atualizado.
+function garantirColunasOcorrencias_(aba, cabecalho) {
+  CABECALHOS.Ocorrencias.forEach(function (nome) {
+    if (cabecalho.indexOf(nome) === -1) {
+      cabecalho.push(nome);
+      aba.getRange(1, cabecalho.length).setValue(nome);
+    }
+  });
+  return cabecalho;
+}
+
 function criarOcorrenciaLinha_(params) {
   const aba = obterAba_(NOMES_ABAS.OCORRENCIAS);
+  garantirColunasOcorrencias_(aba, aba.getRange(1, 1, 1, Math.max(aba.getLastColumn(), 1)).getValues()[0]);
   const id = 'OC' + Utilities.formatDate(new Date(), FUSO_HORARIO, 'yyyyMMddHHmmss') + Math.floor(Math.random() * 90 + 10);
   const linha = [
     id,
@@ -477,10 +493,11 @@ function criarOcorrenciaLinha_(params) {
     params.contato_whatsapp || '',
     agora_(),
     '',
+    '',
     ''
   ];
   const proximaLinha = aba.getLastRow() + 1;
-  escreverLinhaComoTexto_(aba, proximaLinha, linha, [3, 4, 12, 13, 14]);
+  escreverLinhaComoTexto_(aba, proximaLinha, linha, [3, 4, 12, 13, 14, 15]);
   return { id: id };
 }
 
@@ -488,20 +505,20 @@ function criarOcorrencia_(params) {
   return comTravamento_(function () { return criarOcorrenciaLinha_(params); });
 }
 
-const COLUNAS_TEXTO_OCORRENCIAS_ = { data_ocorrencia: true, hora: true, data_cobranca: true, data_pagamento: true };
+const COLUNAS_TEXTO_OCORRENCIAS_ = { data_ocorrencia: true, hora: true, data_cobranca: true, data_pagamento: true, data_prejuizo: true };
 
 // Sem trava própria, mesmo motivo de criarOcorrenciaLinha_ acima.
 function atualizarOcorrenciaCampos_(id, params) {
   const aba = obterAba_(NOMES_ABAS.OCORRENCIAS);
   const valores = aba.getDataRange().getValues();
-  const cabecalho = valores[0];
+  const cabecalho = garantirColunasOcorrencias_(aba, valores[0]);
   const colId = cabecalho.indexOf('id');
   const colStatus = cabecalho.indexOf('status');
 
   for (let i = 1; i < valores.length; i++) {
     if (valores[i][colId] === id) {
       const linhaPlanilha = i + 1;
-      const camposPermitidos = ['pessoa', 'descricao_pessoa', 'itens', 'valor_total', 'observacao', 'status', 'contato_whatsapp', 'data_cobranca', 'data_pagamento', 'data_ocorrencia', 'hora'];
+      const camposPermitidos = ['pessoa', 'descricao_pessoa', 'itens', 'valor_total', 'observacao', 'status', 'contato_whatsapp', 'data_cobranca', 'data_pagamento', 'data_prejuizo', 'data_ocorrencia', 'hora'];
       camposPermitidos.forEach(function (campo) {
         if (Object.prototype.hasOwnProperty.call(params, campo)) {
           const col = cabecalho.indexOf(campo);
@@ -514,7 +531,7 @@ function atualizarOcorrenciaCampos_(id, params) {
 
       // Se a pessoa foi alterada e ninguém pediu uma troca explícita de status,
       // recalcula Pendente/Identificado automaticamente (só quando o status ainda
-      // não avançou para Cobrado/Pago/Cancelado, para não desfazer histórico).
+      // não avançou para Cobrado/Pago/Prejuizo/Cancelado, para não desfazer histórico).
       if (Object.prototype.hasOwnProperty.call(params, 'pessoa') && !Object.prototype.hasOwnProperty.call(params, 'status')) {
         const statusAtual = valores[i][colStatus];
         if (statusAtual === 'Pendente' || statusAtual === 'Identificado') {

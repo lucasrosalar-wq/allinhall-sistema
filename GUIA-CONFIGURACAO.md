@@ -614,6 +614,20 @@ ser definida por comportamento medido.
 Cadastre duas linhas em `Pessoas`, uma para cada condomínio, ou deixe o campo
 `condominio` em branco — ele é só informativo, não filtra a lista de seleção.
 
+**Qual a diferença entre "Cancelar" e "Dar baixa como prejuízo"?**
+**Cancelar** é para falso positivo — aquilo nunca foi um consumo de verdade
+(erro de conferência, pagamento que apareceu depois). A ocorrência some das
+contas, como se não tivesse existido. **Dar baixa** é o contrário: o consumo
+aconteceu, o valor é real, mas você não vai receber — a pessoa não pagou, ou
+nunca foi identificada. Ela vai para a coluna **Não pago (prejuízo)** da Gestão
+e o valor entra no acumulado de perdas, que é justamente o número que você quer
+enxergar. Se a pessoa reaparecer, os botões do card desfazem a baixa (**Voltar
+p/ cobrado**) ou registram o pagamento (**Recebi o pagamento**).
+
+A data da baixa é gravada na coluna `data_prejuizo` da aba `Ocorrencias`. Se sua
+planilha for anterior a essa mudança, a coluna é criada sozinha na primeira
+baixa — não precisa rodar `configurarPlanilha()` de novo por causa disso.
+
 **Errei uma ocorrência e quero apagar de vez (não só cancelar)?**
 Vá na aba `Ocorrencias` e apague a linha manualmente. A ação "Cancelar" nas
 páginas é preferível, pois mantém o histórico e some das pendências sem perder

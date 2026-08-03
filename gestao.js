@@ -15,6 +15,12 @@ let gruposConsolidadosAtuais = {}; // grupoId -> { condominio, pessoa, contato_w
 let ocorrenciasCobrancaConsolidadaAtual = []; // ocorrências marcadas no momento em que "Cobrar selecionadas" foi clicado
 let grupoCobrancaConsolidadaAtual = null; // { condominio, pessoa, contato_whatsapp } do grupo aberto no modal
 
+// Status "cobrei e não recebi". Guardado sem acento porque o mesmo texto vira
+// classe de CSS (badge/coluna) e vai pra planilha — o acento só aparece na tela,
+// via rotuloStatus_.
+const STATUS_PREJUIZO_ = 'Prejuizo';
+function rotuloStatus_(status) { return status === STATUS_PREJUIZO_ ? 'Prejuízo' : status; }
+
 // ===================== INICIALIZAÇÃO =====================
 function inicializarGestao() {
   const selectCondominio = document.getElementById('filtroCondominio');
@@ -92,17 +98,19 @@ async function carregarMiniCalendario() {
 // dos filtros de status/data usados na lista de baixo).
 function renderizarContagemStatus() {
   const condominio = document.getElementById('filtroCondominio').value;
-  let pendente = 0, cobrado = 0, pago = 0;
+  let pendente = 0, cobrado = 0, pago = 0, prejuizo = 0;
   todasOcorrencias.forEach(function (o) {
     if (condominio && o.condominio !== condominio) return;
     if (o.status === 'Pendente' || o.status === 'Identificado') pendente++;
     else if (o.status === 'Cobrado') cobrado++;
     else if (o.status === 'Pago') pago++;
+    else if (o.status === STATUS_PREJUIZO_) prejuizo++;
   });
   document.getElementById('contagemStatus').innerHTML =
     '<div class="contagem-item pendente"><span class="contagem-numero">' + pendente + '</span><span class="contagem-rotulo">Pendente</span></div>' +
     '<div class="contagem-item cobrado"><span class="contagem-numero">' + cobrado + '</span><span class="contagem-rotulo">Cobrado</span></div>' +
-    '<div class="contagem-item pago"><span class="contagem-numero">' + pago + '</span><span class="contagem-rotulo">Pago</span></div>';
+    '<div class="contagem-item pago"><span class="contagem-numero">' + pago + '</span><span class="contagem-rotulo">Pago</span></div>' +
+    '<div class="contagem-item prejuizo"><span class="contagem-numero">' + prejuizo + '</span><span class="contagem-rotulo">Prejuízo</span></div>';
 }
 
 function renderizarMiniCalendario(dados) {
@@ -158,12 +166,14 @@ function renderizarTotais() {
   const hoje = new Date();
   const chaveMesAtual = hoje.getFullYear() + '-' + String(hoje.getMonth() + 1).padStart(2, '0');
 
-  let totalPendente = 0, totalCobrado = 0, totalRecebido = 0;
-  let qtdPendente = 0, qtdCobrado = 0, qtdRecebido = 0;
+  let totalPendente = 0, totalCobrado = 0, totalRecebido = 0, totalPrejuizo = 0;
+  let qtdPendente = 0, qtdCobrado = 0, qtdRecebido = 0, qtdPrejuizo = 0;
   todasOcorrencias.forEach(function (o) {
     if (o.status === 'Pendente' || o.status === 'Identificado') { totalPendente += o.valor_total; qtdPendente++; }
     else if (o.status === 'Cobrado') { totalCobrado += o.valor_total; qtdCobrado++; }
     else if (o.status === 'Pago' && String(o.data_pagamento).indexOf(chaveMesAtual) === 0) { totalRecebido += o.valor_total; qtdRecebido++; }
+    // Prejuízo é acumulado (não só do mês): é o total que a operação já deu por perdido.
+    else if (o.status === STATUS_PREJUIZO_) { totalPrejuizo += o.valor_total; qtdPrejuizo++; }
   });
 
   document.getElementById('kanbanSubtituloPendente').textContent =
@@ -172,9 +182,11 @@ function renderizarTotais() {
     formatarMoeda(totalCobrado) + ' · ' + qtdCobrado + (qtdCobrado === 1 ? ' ocorrência' : ' ocorrências');
   document.getElementById('kanbanSubtituloRecebido').textContent =
     formatarMoeda(totalRecebido) + ' · ' + qtdRecebido + (qtdRecebido === 1 ? ' pagamento' : ' pagamentos');
+  document.getElementById('kanbanSubtituloPrejuizo').textContent =
+    formatarMoeda(totalPrejuizo) + ' · ' + qtdPrejuizo + (qtdPrejuizo === 1 ? ' ocorrência' : ' ocorrências');
 }
 
-// ===================== QUADRO KANBAN (Pendente / Cobrado / Recebido) =====================
+// ===================== QUADRO KANBAN (Pendente / Cobrado / Recebido / Prejuízo) =====================
 // Ocorrências Canceladas não entram em nenhuma coluna — mesmo critério que já valia
 // para os totais acima, agora estendido pra lista inteira.
 function renderizarLista() {
@@ -205,6 +217,7 @@ function renderizarLista() {
   renderizarColunaKanban('kanbanColunaPendente', lista.filter(function (o) { return o.status === 'Pendente' || o.status === 'Identificado'; }));
   renderizarColunaKanban('kanbanColunaCobrado', lista.filter(function (o) { return o.status === 'Cobrado'; }));
   renderizarColunaKanban('kanbanColunaRecebido', lista.filter(function (o) { return o.status === 'Pago'; }));
+  renderizarColunaKanban('kanbanColunaPrejuizo', lista.filter(function (o) { return o.status === STATUS_PREJUIZO_; }));
 }
 
 function renderizarColunaKanban(idContainer, itens) {
@@ -229,11 +242,22 @@ function renderizarCard(o) {
   }
   if (o.status === 'Pendente' || o.status === 'Identificado') {
     acoes += '<button class="destaque" onclick="abrirCobranca(\'' + o.id + '\')">Cobrar</button>';
+    // Ocorrência que nunca vai ser cobrada (ninguém identificado, por exemplo)
+    // também é prejuízo — não precisa passar por "Cobrado" antes.
+    acoes += '<button class="perigo" onclick="marcarComoPrejuizo(\'' + o.id + '\')">Dar baixa</button>';
   }
   if (o.status === 'Cobrado') {
     acoes += '<button class="destaque" onclick="abrirCobranca(\'' + o.id + '\')">Reabrir notificação</button>';
     acoes += '<button class="whatsapp" onclick="recobrarWhatsapp(\'' + o.id + '\')">Recobrar</button>';
     acoes += '<button onclick="marcarComoPago(\'' + o.id + '\')">Marcar como pago</button>';
+    acoes += '<button class="perigo" onclick="marcarComoPrejuizo(\'' + o.id + '\')">Não pagou</button>';
+  }
+  // Prejuízo não é o fim da linha: se a pessoa reaparece, dá pra recobrar,
+  // receber ou simplesmente devolver a ocorrência para a coluna de cobrança.
+  if (o.status === STATUS_PREJUIZO_) {
+    acoes += '<button class="whatsapp" onclick="recobrarWhatsapp(\'' + o.id + '\')">Recobrar</button>';
+    acoes += '<button onclick="marcarComoPago(\'' + o.id + '\')">Recebi o pagamento</button>';
+    acoes += '<button onclick="reabrirOcorrencia(\'' + o.id + '\')">' + (o.data_cobranca ? 'Voltar p/ cobrado' : 'Voltar p/ pendente') + '</button>';
   }
   if (o.status !== 'Cancelado' && o.status !== 'Pago') {
     acoes += '<button class="perigo" onclick="cancelarOcorrencia(\'' + o.id + '\')">Cancelar</button>';
@@ -246,10 +270,11 @@ function renderizarCard(o) {
       '<div class="whatsapp-card">' + (o.contato_whatsapp ? 'WhatsApp: ' + o.contato_whatsapp : 'Sem WhatsApp cadastrado') + '</div>' +
       '<div class="valor-linha">' +
         '<span class="valor">' + formatarMoeda(o.valor_total) + '</span>' +
-        '<span class="badge ' + statusClasse + '">' + o.status + '</span>' +
+        '<span class="badge ' + statusClasse + '">' + rotuloStatus_(o.status) + '</span>' +
       '</div>' +
     '</div>' +
     '<div class="itens-resumo">' + resumoItens + '</div>' +
+    (o.status === STATUS_PREJUIZO_ && o.data_prejuizo ? '<div class="observacao">Baixado como prejuízo em ' + formatarDataBR(o.data_prejuizo) + '</div>' : '') +
     (o.observacao ? '<div class="observacao">' + o.observacao + '</div>' : '') +
     '<div class="acoes">' + acoes + '</div>' +
   '</div>';
@@ -645,14 +670,54 @@ async function confirmarCobrancaConsolidada() {
   }
 }
 
-// ===================== PAGO / CANCELAR =====================
+// ===================== PAGO / PREJUÍZO / CANCELAR =====================
 async function marcarComoPago(id) {
   if (!confirm('Confirmar recebimento do pagamento?')) return;
   try {
-    const resposta = await chamarApi({ action: 'atualizarOcorrencia', id: id, status: 'Pago', data_pagamento: hojeISO() }, 'POST');
+    // data_prejuizo sai junto: se a ocorrência estava dada como perdida e o
+    // dinheiro entrou, ela deixa de ser prejuízo — e a data antiga só confundiria.
+    const resposta = await chamarApi({ action: 'atualizarOcorrencia', id: id, status: 'Pago', data_pagamento: hojeISO(), data_prejuizo: '' }, 'POST');
     if (!resposta.ok) throw new Error(resposta.erro);
     const o = buscarOcorrencia(id);
-    o.status = 'Pago'; o.data_pagamento = hojeISO();
+    o.status = 'Pago'; o.data_pagamento = hojeISO(); o.data_prejuizo = '';
+    renderizarTotais();
+    renderizarLista();
+  } catch (err) {
+    alert('Falha ao atualizar. Verifique a conexão e tente novamente.');
+  }
+}
+
+// "Cobrei e não recebi": tira a ocorrência da fila de cobrança e joga no
+// acumulado de prejuízo, sem apagar nada — o valor continua registrado.
+async function marcarComoPrejuizo(id) {
+  const o = buscarOcorrencia(id);
+  const pergunta = o.status === 'Cobrado'
+    ? 'Dar baixa como prejuízo? ' + formatarMoeda(o.valor_total) + ' passam a contar como valor cobrado e não recebido.'
+    : 'Dar baixa como prejuízo sem cobrar? ' + formatarMoeda(o.valor_total) + ' passam a contar como perda.';
+  if (!confirm(pergunta)) return;
+  try {
+    const resposta = await chamarApi({ action: 'atualizarOcorrencia', id: id, status: STATUS_PREJUIZO_, data_prejuizo: hojeISO() }, 'POST');
+    if (!resposta.ok) throw new Error(resposta.erro);
+    o.status = STATUS_PREJUIZO_; o.data_prejuizo = hojeISO();
+    renderizarTotais();
+    renderizarLista();
+  } catch (err) {
+    alert('Falha ao atualizar. Verifique a conexão e tente novamente.');
+  }
+}
+
+// Desfaz a baixa. Volta pra "Cobrado" só o que já tinha sido cobrado um dia — o
+// que recebeu baixa direto de "Pendente" volta pra pendente mesmo, em vez de
+// aparecer como cobrado numa data de cobrança que nunca existiu.
+async function reabrirOcorrencia(id) {
+  const o = buscarOcorrencia(id);
+  const novoStatus = o.data_cobranca ? 'Cobrado' : (o.pessoa ? 'Identificado' : 'Pendente');
+  const destino = novoStatus === 'Cobrado' ? '"Cobrado, aguardando"' : 'a fila de pendentes';
+  if (!confirm('Desfazer a baixa e voltar esta ocorrência para ' + destino + '?')) return;
+  try {
+    const resposta = await chamarApi({ action: 'atualizarOcorrencia', id: id, status: novoStatus, data_prejuizo: '' }, 'POST');
+    if (!resposta.ok) throw new Error(resposta.erro);
+    o.status = novoStatus; o.data_prejuizo = '';
     renderizarTotais();
     renderizarLista();
   } catch (err) {

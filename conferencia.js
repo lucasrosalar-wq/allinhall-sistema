@@ -209,9 +209,10 @@ function renderizarRelacaoDia(dataISO) {
 // Lista, por condomínio, os furos de estoque lançados na Reposição — pendentes e já
 // identificados. A Barby identifica quem foi aqui; produto/quantidade/valor/data do
 // furo são só-leitura (pertencem à Reposição). Uma vez identificado, o furo vira uma
-// Ocorrência (ocorrencia_id) — quando essa Ocorrência é cobrada (ou paga/cancelada),
-// o furo sai daqui também, porque o acompanhamento passa a ser feito pela Gestão.
-const STATUS_OCORRENCIA_RESOLVIDA_ = ['Cobrado', 'Pago', 'Cancelado'];
+// Ocorrência (ocorrencia_id) — quando essa Ocorrência é cobrada (ou paga/cancelada/
+// dada como prejuízo), o furo sai daqui também, porque o acompanhamento passa a ser
+// feito pela Gestão.
+const STATUS_OCORRENCIA_RESOLVIDA_ = ['Cobrado', 'Pago', 'Cancelado', 'Prejuizo'];
 async function carregarFurosReposicao() {
   const container = document.getElementById('furosPendentes');
   if (!condominioAtual) {
