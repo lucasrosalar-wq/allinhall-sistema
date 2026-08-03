@@ -250,6 +250,9 @@ function renderizarCard(o) {
     acoes += '<button class="destaque" onclick="abrirCobranca(\'' + o.id + '\')">Reabrir notificação</button>';
     acoes += '<button class="whatsapp" onclick="recobrarWhatsapp(\'' + o.id + '\')">Recobrar</button>';
     acoes += '<button onclick="marcarComoPago(\'' + o.id + '\')">Marcar como pago</button>';
+    // A pessoa foi cobrada e pegou mais coisa antes de pagar: melhor juntar tudo
+    // numa cobrança só do que notificar duas vezes o mesmo morador.
+    acoes += '<button onclick="voltarParaPendente(\'' + o.id + '\')">Voltar p/ pendente</button>';
     acoes += '<button class="perigo" onclick="marcarComoPrejuizo(\'' + o.id + '\')">Não pagou</button>';
   }
   // Prejuízo não é o fim da linha: se a pessoa reaparece, dá pra recobrar,
@@ -718,6 +721,26 @@ async function reabrirOcorrencia(id) {
     const resposta = await chamarApi({ action: 'atualizarOcorrencia', id: id, status: novoStatus, data_prejuizo: '' }, 'POST');
     if (!resposta.ok) throw new Error(resposta.erro);
     o.status = novoStatus; o.data_prejuizo = '';
+    renderizarTotais();
+    renderizarLista();
+  } catch (err) {
+    alert('Falha ao atualizar. Verifique a conexão e tente novamente.');
+  }
+}
+
+// Desfaz a cobrança e devolve a ocorrência pra fila de pendentes — para quando a
+// pessoa foi cobrada e levou mais itens antes de pagar, e vale a pena juntar
+// tudo numa notificação só em vez de cobrar duas vezes. A notificação/data de
+// cobrança antiga deixa de valer; ao editar os itens e cobrar de novo, sai uma
+// notificação nova com o total atualizado.
+async function voltarParaPendente(id) {
+  const o = buscarOcorrencia(id);
+  if (!confirm('Voltar esta ocorrência para a fila de pendentes? A notificação já enviada deixa de valer — edite os itens se for o caso e cobre de novo.')) return;
+  try {
+    const novoStatus = o.pessoa ? 'Identificado' : 'Pendente';
+    const resposta = await chamarApi({ action: 'atualizarOcorrencia', id: id, status: novoStatus, data_cobranca: '' }, 'POST');
+    if (!resposta.ok) throw new Error(resposta.erro);
+    o.status = novoStatus; o.data_cobranca = '';
     renderizarTotais();
     renderizarLista();
   } catch (err) {
