@@ -1541,6 +1541,15 @@ function renderizarCobertura_(c) {
 }
 
 // ===================== FAIXAS DE MARGEM =====================
+// Definição fixa do que cada categoria representa como comportamento de compra —
+// não fala de margem (a margem praticada muda com os cupons; a lógica de compra, não).
+const DEFINICAO_FAIXA_ = {
+  impulso: 'O morador leva sem ter planejado — decide na hora, ao ver o produto ali, sem comparar preço com o mercado.',
+  conveniencia: 'O morador sabe que existe mais barato em outro lugar, mas prefere levar ali mesmo pela praticidade de já estar disponível.',
+  recorrencia: 'Item que o morador compra com frequência e sabe de cor quanto custa fora — vira referência de preço do condomínio.',
+  basico: 'Item de necessidade do dia a dia, do tipo que normalmente se compara preço — histórico de cupons ainda curto pra esta faixa.'
+};
+
 function renderizarRegrasMargem() {
   const lista = document.getElementById('listaRegrasMargem');
   const contagem = {};
@@ -1550,6 +1559,7 @@ function renderizarRegrasMargem() {
   });
 
   lista.innerHTML = dadosAquisicao.regras.map(function (r, indice) {
+    const definicao = DEFINICAO_FAIXA_[r.categoria];
     return '<div class="card-regra">' +
       '<div class="topo-regra">' +
         '<input type="text" class="rotulo-regra" value="' + escaparHtml_(r.rotulo) + '" data-campo="rotulo" data-indice="' + indice + '">' +
@@ -1558,8 +1568,9 @@ function renderizarRegrasMargem() {
           '<span>%</span>' +
         '</div>' +
       '</div>' +
+      (definicao ? '<div class="definicao-regra">' + escaparHtml_(definicao) + '</div>' : '') +
       '<textarea rows="2" class="descricao-regra" data-campo="descricao" data-indice="' + indice + '" ' +
-        'placeholder="Que tipo de item entra nessa faixa">' + escaparHtml_(r.descricao) + '</textarea>' +
+        'placeholder="Suas anotações: que itens específicos você encaixa aqui">' + escaparHtml_(r.descricao) + '</textarea>' +
       '<div class="rodape-regra">' + (contagem[r.categoria] || 0) + ' produto(s) nesta faixa</div>' +
     '</div>';
   }).join('');

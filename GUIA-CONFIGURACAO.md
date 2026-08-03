@@ -254,6 +254,19 @@ Os percentuais são editáveis na aba **Faixas de margem**, e os 104 produtos do
 catálogo já vêm classificados — revise, a classificação inicial é um chute
 fundamentado, a decisão é sua.
 
+Cada cartão da aba traz duas caixas de texto, com finalidades diferentes:
+
+- **Definição da faixa** (texto fixo, não editável) — explica o que caracteriza
+  o comportamento de compra daquela categoria, por exemplo "o morador leva sem
+  ter planejado — decide na hora, ao ver o produto ali". Serve para lembrar a
+  lógica por trás da faixa; não muda com os cupons.
+- **Suas anotações** (o campo de texto editável, o mesmo de sempre) — é onde
+  você registra quais itens específicos do seu catálogo entram ali, por
+  exemplo "chocolate, energético, cerveja, salgadinho".
+
+Os quatro cartões aparecem lado a lado em duas colunas (uma só em telas
+estreitas, como celular) para facilitar comparar as faixas de uma vez.
+
 **Trate estes números como ponto de partida de estudo, não como decisão final.**
 Eles servem para a operação entender a lógica do sistema com dado real e ir
 refinando. Mudar uma faixa recalcula a fila de ajuste na hora, e o painel de
