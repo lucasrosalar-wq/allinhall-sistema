@@ -290,21 +290,26 @@ topo; o resto acompanha.
 - **Quatro números do ano**: investido em compras, faturamento previsto, lucro
   previsto e desconto obtido (com o percentual que ele representou do que os
   cupons pediam).
-- **Receita deixada na mesa / Correção pra baixo** — o bloco mais acionável do
-  painel, em dois números separados, de propósito:
+- **Receita deixada na mesa / Já acima do alvo da faixa** — o bloco mais
+  acionável do painel, em dois números separados, de propósito, e cada um com a
+  cor que de fato representa:
   - **Receita deixada na mesa** (verde) — quanto o volume que você já comprou
     renderia a mais se os itens que precisam **subir** estivessem no preço
     sugerido. Sempre positivo: é dinheiro que ainda não entrou.
-  - **Correção pra baixo** (laranja) — o efeito de trazer de volta ao alvo os
-    itens que hoje estão **acima** da própria faixa. Não é prejuízo — é a
-    margem voltando pro que você definiu — mas reduz a receita prevista, então
-    fica separado do número de cima em vez de somado a ele.
+  - **Já acima do alvo da faixa** (azul, neutro) — quanto de margem **extra**
+    você já está capturando em itens que hoje custam mais do que a própria
+    faixa pede. **Isto não é prejuízo nem precisa de correção** — não tem sinal
+    de menos nem cor de alerta de propósito, porque não é um problema: é você
+    já estando à frente da meta nesses itens. Baixar até o preço sugerido
+    tiraria essa folga, mas a escolha é sua.
 
   Quando as duas colunas do quadro de Ajuste de preço têm itens, aparece também
-  o **efeito líquido de aplicar a fila inteira**, com a cor seguindo o próprio
-  sinal — pode dar negativo se os itens que precisam cair pesarem mais que os
-  que precisam subir, e isso é esperado, não um erro: a lista abaixo mostra
-  linha a linha de onde vem cada centavo. Aplicando os preços da fila, os
+  uma terceira linha: **o efeito de aplicar a fila inteira** (incluindo as
+  baixas), essa sim colorida pelo sinal — porque é sobre uma ação hipotética
+  ("e se eu aplicar tudo de uma vez"), não sobre o seu estado atual, e pode ser
+  útil saber antes de clicar em "aplicar todos" sem filtrar. A tabela abaixo
+  mostra linha a linha de onde vem cada centavo, com a mesma cor neutra (azul)
+  nas linhas que representam margem já acima do alvo. Aplicando os preços da fila, os
   valores viram lucro previsto e o bloco zera.
 - **Custo e lucro previsto por mês** — barra empilhada: custo embaixo, lucro em
   cima, e a altura total é o faturamento previsto. Passe o mouse no nome do mês
