@@ -1106,9 +1106,17 @@ function resumirFaixas_(produtos, regras) {
 // O número mais acionável do painel: quanto lucro está parado na fila de ajuste.
 // Mede em cima do volume já comprado de cada produto — "se o que você comprou
 // tivesse sido vendido ao preço sugerido em vez do atual, o lucro seria X a mais".
+// Duas histórias diferentes moram na mesma fila de ajuste, e não podem virar um
+// só número: item que precisa SUBIR é dinheiro que ainda não foi capturado —
+// sempre uma boa notícia. Item que precisa CAIR está hoje ACIMA do alvo da
+// própria faixa, e corrigir reduz a receita prevista — não é prejuízo, é a
+// margem voltando pro que a faixa define, mas é uma notícia diferente da
+// primeira. Somar as duas e chamar de "oportunidade" escondia o sinal: com
+// itens de queda pesando mais que os de alta, o total líquido saía negativo
+// contradizendo a própria promessa de "renderia a mais".
 function medirOportunidade_(produtos, compradoPorProduto) {
   const detalhe = [];
-  let total = 0;
+  let total = 0, totalSobe = 0, totalDesce = 0, produtosSobe = 0, produtosDesce = 0;
 
   produtos.forEach(function (p) {
     if (!p.precisa_ajuste || !p.preco_sugerido) return;
@@ -1116,6 +1124,7 @@ function medirOportunidade_(produtos, compradoPorProduto) {
     if (!comprado || !(comprado.qtd > 0)) return;
     const ganho = comprado.qtd * (p.preco_sugerido - p.preco);
     total += ganho;
+    if (ganho >= 0) { totalSobe += ganho; produtosSobe++; } else { totalDesce += ganho; produtosDesce++; }
     detalhe.push({
       nome: p.nome,
       categoria: p.categoria,
@@ -1130,7 +1139,11 @@ function medirOportunidade_(produtos, compradoPorProduto) {
   detalhe.sort(function (a, b) { return Math.abs(b.ganho) - Math.abs(a.ganho); });
   return {
     produtos: detalhe.length,
+    produtos_sobe: produtosSobe,
+    produtos_desce: produtosDesce,
     ganho_total: arredondar2_(total),
+    ganho_positivo: arredondar2_(totalSobe),
+    ganho_negativo: arredondar2_(totalDesce),
     detalhe: detalhe.slice(0, 12)
   };
 }
