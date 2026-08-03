@@ -945,14 +945,40 @@
 .kanban-cabecalho.cobrado { border-left-color: var(--vermelho); }
 .kanban-cabecalho.recebido { border-left-color: var(--verde); }
 .kanban-cabecalho.prejuizo { border-left-color: var(--vinho); }
+.kanban-cabecalho.sobe { border-left-color: var(--verde); }
+.kanban-cabecalho.desce { border-left-color: var(--laranja-escuro); }
 .kanban-titulo { font-size: 14.5px; font-weight: 700; color: var(--preto); }
 .kanban-cabecalho.cobrado .kanban-titulo { color: var(--vermelho); }
 .kanban-cabecalho.recebido .kanban-titulo { color: var(--verde); }
 .kanban-cabecalho.prejuizo .kanban-titulo { color: var(--vinho); }
+.kanban-cabecalho.sobe .kanban-titulo { color: var(--verde); }
+.kanban-cabecalho.desce .kanban-titulo { color: var(--laranja-escuro); }
 .kanban-subtitulo { font-size: 12px; color: var(--texto-2); margin-top: 2px; }
 .kanban-corpo { display: flex; flex-direction: column; gap: 10px; }
 .kanban-corpo .card { margin-bottom: 0; }
 .kanban-corpo .vazio-relacao { padding: 16px 8px; }
+
+/* --- quadro da fila de ajuste de preço: sobe/desce lado a lado --- */
+.kanban-precos { display: grid; grid-template-columns: 1fr; gap: 14px; }
+@media (min-width: 760px) {
+  .kanban-precos { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+.btn-selecionar-coluna {
+  width: 100%; height: 32px; margin-top: 10px; border-radius: 8px; background: var(--cinza);
+  font-size: 12px; font-weight: 600; color: var(--texto-2);
+}
+.btn-selecionar-coluna:hover { background: #E2E8F0; color: var(--preto); }
+.btn-selecionar-coluna:disabled { opacity: .5; cursor: default; }
+.kanban-cabecalho.sobe .btn-selecionar-coluna:not(:disabled):hover { background: #DCFCE7; color: #15803D; }
+.kanban-cabecalho.desce .btn-selecionar-coluna:not(:disabled):hover { background: #FFEDD5; color: var(--laranja-escuro); }
+
+/* A coluna do quadro é bem mais estreita que a tela inteira, mesmo no desktop —
+   então a linha de preço usa aqui, sempre, o mesmo layout empilhado que o resto
+   do app só usa abaixo de 760px (ver bloco de .linha-preco mais abaixo). */
+.kanban-corpo .linha-preco { grid-template-columns: 28px 1fr; row-gap: 10px; }
+.kanban-corpo .linha-preco .celula-numeros { grid-column: 2; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+.kanban-corpo .linha-preco .celula-sugestao { grid-column: 2; text-align: left; border-top: 1px solid var(--borda); padding-top: 10px; }
+.kanban-corpo .linha-preco .preco-sugerido .variacao { display: inline; margin-left: 8px; }
 
 /* ===================== animações & micro-interações (compartilhado) ===================== */
 

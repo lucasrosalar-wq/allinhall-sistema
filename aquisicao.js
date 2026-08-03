@@ -907,36 +907,57 @@ function renderizarFiltroCategoriaPreco() {
   select.value = atual;
 }
 
+// Quadro em duas colunas em vez de um filtro alternável: sobe e cai ficam
+// visíveis ao mesmo tempo, porque são decisões diferentes e a pessoa geralmente
+// quer atacar uma de cada vez sem perder de vista quanto falta da outra.
 function renderizarFilaPrecos() {
   const filtroCategoria = document.getElementById('filtroCategoriaPreco').value;
-  const modo = document.getElementById('filtroModoPreco').value;
   const busca = document.getElementById('buscaProdutoPreco').value.trim().toLowerCase();
-  const lista = document.getElementById('listaFilaPrecos');
 
-  let candidatos = dadosAquisicao.produtos;
+  let candidatos = dadosAquisicao.produtos.filter(function (p) { return p.precisa_ajuste; });
   if (filtroCategoria === '__sem__') candidatos = candidatos.filter(function (p) { return !p.categoria; });
   else if (filtroCategoria) candidatos = candidatos.filter(function (p) { return p.categoria === filtroCategoria; });
   if (busca) candidatos = candidatos.filter(function (p) { return p.nome.toLowerCase().indexOf(busca) !== -1; });
 
-  // variacao_pct > 0 = sugerido acima do preço de hoje (sobe); < 0 = abaixo (desce).
-  if (modo === 'ajuste') candidatos = candidatos.filter(function (p) { return p.precisa_ajuste; });
-  else if (modo === 'sobe') candidatos = candidatos.filter(function (p) { return p.precisa_ajuste && p.variacao_pct > 0; });
-  else if (modo === 'desce') candidatos = candidatos.filter(function (p) { return p.precisa_ajuste && p.variacao_pct < 0; });
-  else if (modo === 'sem_custo') candidatos = candidatos.filter(function (p) { return !(p.custo_atual > 0); });
+  // Maior variação primeiro dentro de cada coluna: é onde está o dinheiro e onde
+  // mora o erro de digitação. variacao_pct > 0 = sugerido acima do preço de hoje.
+  const porVariacao = function (a, b) { return Math.abs(b.variacao_pct) - Math.abs(a.variacao_pct) || a.nome.localeCompare(b.nome); };
+  const subiu = candidatos.filter(function (p) { return p.variacao_pct > 0; }).sort(porVariacao);
+  const desceu = candidatos.filter(function (p) { return p.variacao_pct < 0; }).sort(porVariacao);
 
-  // Maior variação primeiro: é onde está o dinheiro e onde mora o erro de digitação.
-  linhasPreco = candidatos.slice().sort(function (a, b) {
-    const va = a.variacao_pct === null || a.variacao_pct === undefined ? -Infinity : Math.abs(a.variacao_pct);
-    const vb = b.variacao_pct === null || b.variacao_pct === undefined ? -Infinity : Math.abs(b.variacao_pct);
-    if (vb !== va) return vb - va;
-    return a.nome.localeCompare(b.nome);
-  });
+  // linhasPreco guarda os dois grupos em sequência — sobe primeiro, desce depois —
+  // pra funções como alternarSelecaoPreco(indice) continuarem indexando um array
+  // só, sem precisar saber de qual coluna a linha veio.
+  linhasPreco = subiu.concat(desceu);
 
-  if (linhasPreco.length === 0) {
-    lista.innerHTML = '<div class="vazio-relacao">' +
-      (modo === 'ajuste' ? 'Nenhum preço fora do alvo. Catálogo em dia.' : 'Nenhum produto nesse filtro.') +
-      '</div>';
-    atualizarBarraAplicar();
+  document.getElementById('kanbanSubtituloSobe').textContent = subiu.length + ' produto(s)';
+  document.getElementById('kanbanSubtituloDesce').textContent = desceu.length + ' produto(s)';
+  renderizarBotaoColuna_('botaoSelecionarSobe', subiu);
+  renderizarBotaoColuna_('botaoSelecionarDesce', desceu);
+
+  renderizarColunaPrecos_('kanbanColunaSobe', subiu, 0, 'Nenhum produto precisa subir agora.');
+  renderizarColunaPrecos_('kanbanColunaDesce', desceu, subiu.length, 'Nenhum produto precisa cair agora.');
+
+  atualizarBarraAplicar();
+}
+
+function renderizarBotaoColuna_(idBotao, itens) {
+  const botao = document.getElementById(idBotao);
+  botao.disabled = itens.length === 0;
+  const todosMarcados = itens.length > 0 && itens.every(function (p) { return selecionadosPreco[p.nome]; });
+  botao.textContent = todosMarcados ? 'Desmarcar estes' : 'Marcar estes';
+}
+
+const MOTIVOS_SEM_SUGESTAO_ = {
+  sem_custo: 'sem custo lançado',
+  travado: 'preço travado',
+  sem_faixa: 'escolha uma faixa'
+};
+
+function renderizarColunaPrecos_(idContainer, itens, offsetIndice, mensagemVazia) {
+  const container = document.getElementById(idContainer);
+  if (itens.length === 0) {
+    container.innerHTML = '<div class="vazio-relacao">' + mensagemVazia + '</div>';
     return;
   }
 
@@ -944,24 +965,18 @@ function renderizarFilaPrecos() {
     return '<option value="' + escaparHtml_(r.categoria) + '">' + escaparHtml_(r.rotulo) + ' (' + r.margem_pct + '%)</option>';
   }).join('');
 
-  lista.innerHTML = linhasPreco.map(function (p, indice) {
+  container.innerHTML = itens.map(function (p, i) {
+    const indice = offsetIndice + i;
     const temCusto = p.custo_atual > 0;
     const marcado = selecionadosPreco[p.nome] ? ' checked' : '';
-    const caixa = p.precisa_ajuste
-      ? '<input type="checkbox" class="check-preco"' + marcado + ' onchange="alternarSelecaoPreco(' + indice + ', this.checked)">'
-      : '<span class="check-vazio"></span>';
+    const caixa = '<input type="checkbox" class="check-preco"' + marcado + ' onchange="alternarSelecaoPreco(' + indice + ', this.checked)">';
 
     const origemMargem = p.margem_alvo_origem === 'item' ? ' <span class="tag-margem-propria">margem própria</span>' : '';
 
-    const MOTIVOS_SEM_SUGESTAO_ = {
-      sem_custo: 'sem custo lançado',
-      travado: 'preço travado',
-      sem_faixa: 'escolha uma faixa'
-    };
     // A direção do ajuste vai na cor da variação, não na do preço: subir e descer
     // o preço são decisões bem diferentes, e na fila elas precisam se distinguir
     // num olhar só — verde sobe, laranja desce.
-    const direcao = p.variacao_pct === null ? '' : (p.variacao_pct >= 0 ? ' sobe' : ' desce');
+    const direcao = p.variacao_pct >= 0 ? ' sobe' : ' desce';
     const blocoSugestao = p.preco_sugerido === null
       ? '<div class="preco-sugerido sem-dado">' + (MOTIVOS_SEM_SUGESTAO_[p.motivo_sem_sugestao] || '—') + '</div>'
       : '<div class="preco-sugerido' + (p.alerta ? ' alerta' : '') + '">' +
@@ -996,12 +1011,10 @@ function renderizarFilaPrecos() {
 
   // O valor do <select> de categoria só existe depois do innerHTML — setar aqui
   // evita ter que marcar "selected" na string e escapar aspas de novo.
-  lista.querySelectorAll('.linha-preco').forEach(function (el, indice) {
+  container.querySelectorAll('.linha-preco').forEach(function (el, i) {
     const select = el.querySelector('.select-categoria');
-    if (select) select.value = linhasPreco[indice].categoria || '';
+    if (select) select.value = itens[i].categoria || '';
   });
-
-  atualizarBarraAplicar();
 }
 
 function alternarSelecaoPreco(indice, marcado) {
@@ -1009,13 +1022,29 @@ function alternarSelecaoPreco(indice, marcado) {
   if (!produto) return;
   if (marcado) selecionadosPreco[produto.nome] = true;
   else delete selecionadosPreco[produto.nome];
+  // Só o botão da coluna muda de rótulo (marcar <-> desmarcar) — não precisa
+  // redesenhar as linhas por causa de um clique numa caixa.
+  renderizarBotaoColuna_('botaoSelecionarSobe', linhasPreco.filter(function (p) { return p.variacao_pct > 0; }));
+  renderizarBotaoColuna_('botaoSelecionarDesce', linhasPreco.filter(function (p) { return p.variacao_pct < 0; }));
   atualizarBarraAplicar();
 }
 
 function selecionarTodosPrecos() {
-  const algumDesmarcado = linhasPreco.some(function (p) { return p.precisa_ajuste && !selecionadosPreco[p.nome]; });
+  const algumDesmarcado = linhasPreco.some(function (p) { return !selecionadosPreco[p.nome]; });
   linhasPreco.forEach(function (p) {
-    if (!p.precisa_ajuste) return;
+    if (algumDesmarcado) selecionadosPreco[p.nome] = true;
+    else delete selecionadosPreco[p.nome];
+  });
+  renderizarFilaPrecos();
+}
+
+// Marca (ou desmarca, se já estiverem todos marcados) só os produtos da coluna
+// escolhida, sem tocar na seleção da outra — pra dar pra aplicar só quem sobe,
+// só quem cai, ou os dois em momentos diferentes.
+function selecionarColunaPrecos(direcao) {
+  const alvo = linhasPreco.filter(function (p) { return direcao === 'sobe' ? p.variacao_pct > 0 : p.variacao_pct < 0; });
+  const algumDesmarcado = alvo.some(function (p) { return !selecionadosPreco[p.nome]; });
+  alvo.forEach(function (p) {
     if (algumDesmarcado) selecionadosPreco[p.nome] = true;
     else delete selecionadosPreco[p.nome];
   });

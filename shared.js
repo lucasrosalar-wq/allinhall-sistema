@@ -199,7 +199,7 @@ function toggleGrupoAquisicao() {
 const IDS_SELECT_CUSTOM_ = [
   'selectCondominio', 'filtroCondominio', 'filtroMes', 'filtroAno',
   'condominioReposicao', 'filtroCondominioReposicao',
-  'filtroCategoriaPreco', 'filtroModoPreco'
+  'filtroCategoriaPreco'
 ];
 
 function inicializarSelectsCustom_() {

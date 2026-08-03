@@ -269,15 +269,16 @@ A Aquisição tem quatro telas, listadas na barra lateral abaixo do nome dela:
    Cada item vinculado a um produto do catálogo atualiza o `custo_atual` dele.
    O código de barras é opcional, mas vale digitar: é por ele que o sistema
    reconhece o item sozinho nos próximos cupons.
-2. **Ajuste de preço** — a fila do que ficou fora do alvo. Cada linha mostra
-   custo, preço de hoje, a margem que esse preço realmente entrega, a margem
-   alvo e o preço sugerido. Marque o que concorda e clique em aplicar.
-   O filtro **Mostrar** separa "Só os que precisam subir" de "Só os que precisam
-   cair" — útil pra atacar só o reajuste positivo sem escanear a lista inteira
-   procurando os poucos itens que sobem no meio dos que caem (ou o oposto).
-   "Marcar/desmarcar todos" respeita o filtro ativo: marca só o que está
-   visível na hora, e a seleção continua guardada mesmo trocando de filtro
-   depois.
+2. **Ajuste de preço** — quadro com duas colunas: **Precisa subir** e **Precisa
+   cair**, lado a lado. Cada cartão mostra custo, preço de hoje, a margem que
+   esse preço realmente entrega, a margem alvo e o preço sugerido.
+   As duas colunas ficam visíveis ao mesmo tempo — não precisa alternar filtro
+   pra ver só quem sobe e depois só quem cai. Cada uma tem seu próprio
+   **Marcar estes**, que seleciona só aquela coluna sem tocar na outra (e vira
+   **Desmarcar estes** se já estiver tudo marcado). O **Marcar/desmarcar todos**
+   no topo pega as duas colunas juntas. A seleção sobrevive à troca de filtro de
+   faixa ou à busca por nome — marque numa coluna, filtre por outra faixa,
+   volte: continua marcado.
 3. **Faixas de margem** — os percentuais de cada faixa.
 4. **Gestão** — o painel, descrito logo abaixo.
 

@@ -14,7 +14,7 @@
      que já tem guardados — e a tela fica misturando versão nova com antiga. Trocando
      o número aqui, a URL muda e o navegador é obrigado a buscar tudo de novo.
      SEMPRE mude este número ao publicar mudança em .css ou .js. -->
-<link rel="stylesheet" href="app.css?v=20260730d">
+<link rel="stylesheet" href="app.css?v=20260730e">
 </head>
 <body>
 
@@ -504,16 +504,6 @@
           </select>
         </div>
         <div>
-          <label>Mostrar</label>
-          <select id="filtroModoPreco" onchange="renderizarFilaPrecos()">
-            <option value="ajuste">Só os que mudam de preço</option>
-            <option value="sobe">Só os que precisam subir</option>
-            <option value="desce">Só os que precisam cair</option>
-            <option value="todos">Todos os produtos</option>
-            <option value="sem_custo">Sem custo lançado</option>
-          </select>
-        </div>
-        <div>
           <label>Buscar</label>
           <input type="text" id="buscaProdutoPreco" placeholder="Nome do produto..." oninput="renderizarFilaPrecos()">
         </div>
@@ -526,7 +516,28 @@
       </div>
 
       <div id="bannerPrecos" class="banner"></div>
-      <div id="listaFilaPrecos"></div>
+
+      <!-- Quadro em duas colunas: sobe de um lado, cai do outro — visíveis ao mesmo
+           tempo, em vez de alternar por um filtro. Cada coluna tem seu próprio
+           "marcar estes", além do marcar-todos geral acima. -->
+      <div class="kanban-precos" id="kanbanPrecos">
+        <div class="kanban-coluna">
+          <div class="kanban-cabecalho sobe">
+            <div class="kanban-titulo">Precisa subir</div>
+            <div class="kanban-subtitulo" id="kanbanSubtituloSobe">0 produtos</div>
+            <button type="button" class="btn-selecionar-coluna" id="botaoSelecionarSobe" onclick="selecionarColunaPrecos('sobe')">Marcar estes</button>
+          </div>
+          <div class="kanban-corpo" id="kanbanColunaSobe"></div>
+        </div>
+        <div class="kanban-coluna">
+          <div class="kanban-cabecalho desce">
+            <div class="kanban-titulo">Precisa cair</div>
+            <div class="kanban-subtitulo" id="kanbanSubtituloDesce">0 produtos</div>
+            <button type="button" class="btn-selecionar-coluna" id="botaoSelecionarDesce" onclick="selecionarColunaPrecos('desce')">Marcar estes</button>
+          </div>
+          <div class="kanban-corpo" id="kanbanColunaDesce"></div>
+        </div>
+      </div>
     </div>
 
     <!-- ABA: GESTÃO (painel) -->
@@ -886,11 +897,11 @@
   </div>
 </div>
 
-<script src="shared.js?v=20260730d"></script>
-<script src="conferencia.js?v=20260730d"></script>
-<script src="gestao.js?v=20260730d"></script>
-<script src="reposicao.js?v=20260730d"></script>
-<script src="aquisicao.js?v=20260730d"></script>
+<script src="shared.js?v=20260730e"></script>
+<script src="conferencia.js?v=20260730e"></script>
+<script src="gestao.js?v=20260730e"></script>
+<script src="reposicao.js?v=20260730e"></script>
+<script src="aquisicao.js?v=20260730e"></script>
 <script>
   if (window.lucide) lucide.createIcons();
 </script>
