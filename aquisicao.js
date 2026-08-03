@@ -1238,6 +1238,12 @@ function renderizarOportunidade_(op) {
       'Todo produto com custo lançado já está no alvo da própria faixa.</div>';
     return;
   }
+  // Item com preço hoje ACIMA do sugerido não é perda nenhuma — é margem extra
+  // que já está sendo capturada além do que a própria faixa exige. A tabela
+  // continua mostrando o efeito de aplicar o preço sugerido (por isso o sinal de
+  // menos: "sugerido menos hoje" dá negativo quando o preço cairia), mas a cor
+  // é neutra — reservamos vermelho/laranja pra alerta de verdade, não pra "sua
+  // margem hoje é maior que a meta".
   const linhas = op.detalhe.map(function (d) {
     const sobe = d.ganho >= 0;
     return '<tr>' +
@@ -1245,18 +1251,21 @@ function renderizarOportunidade_(op) {
       '<td class="num">' + d.qtd_comprada + '</td>' +
       '<td class="num">' + formatarMoeda(d.preco) + '</td>' +
       '<td class="num">' + formatarMoeda(d.preco_sugerido) + '</td>' +
-      '<td class="num ' + (sobe ? 'ganho' : 'perda') + '">' + (sobe ? '+' : '') + formatarMoeda(d.ganho) + '</td>' +
+      '<td class="num ' + (sobe ? 'ganho' : 'acima-alvo') + '">' + (sobe ? '+' : '') + formatarMoeda(d.ganho) + '</td>' +
     '</tr>';
   }).join('');
 
-  // Dois blocos, não um: "quanto falta capturar" (sempre positivo — dinheiro que
-  // ainda não entrou) é uma decisão diferente de "quanto a correção pra baixo
-  // tira" (item que hoje está acima do alvo da própria faixa — não é prejuízo,
-  // é a margem voltando pro que a faixa define). Um só número somando as duas
-  // escondia quando o líquido virava negativo, contradizendo a própria frase de
-  // "renderia a mais".
+  // Dois blocos, não um, e cada um com o número que de fato representa: "quanto
+  // falta capturar" (itens abaixo do alvo — dinheiro que ainda não entrou, uma
+  // oportunidade real) é uma história bem diferente de "quanto você já capturou
+  // ACIMA do alvo" (itens que hoje custam mais do que a faixa pede — isso não é
+  // um problema a corrigir, é margem extra que você já tem). A versão anterior
+  // mostrava esse segundo grupo com sinal de menos e cor de alerta, como se
+  // fosse uma perda — não é: é o oposto, é você já estando à frente da meta
+  // nesses itens.
   const temSobe = op.produtos_sobe > 0;
   const temDesce = op.produtos_desce > 0;
+  const excedente = Math.abs(op.ganho_negativo); // sempre ≥ 0 — margem já capturada acima do alvo
 
   const blocoSobe = temSobe
     ? '<div>' +
@@ -1269,20 +1278,25 @@ function renderizarOportunidade_(op) {
 
   const blocoDesce = temDesce
     ? '<div class="op-secundario">' +
-        '<span class="rotulo">Correção pra baixo</span>' +
-        '<strong class="valor-negativo">' + formatarMoeda(op.ganho_negativo) + '</strong>' +
-        '<span class="nota">em ' + op.produtos_desce + ' produto(s) que hoje estão acima do alvo da própria faixa — ' +
-          'não é prejuízo, é a margem voltando pro que você definiu.</span>' +
+        '<span class="rotulo">Já acima do alvo da faixa</span>' +
+        '<strong class="valor-neutro">' + formatarMoeda(excedente) + '</strong>' +
+        '<span class="nota">em ' + op.produtos_desce + ' produto(s) que hoje já rendem mais do que a faixa pede. ' +
+          'Não precisa mexer — é margem extra que você já está capturando, não um problema a corrigir. ' +
+          'Baixar até o preço sugerido tiraria essa folga, mas a escolha é sua.</span>' +
       '</div>'
     : '';
 
   // Só faz sentido mostrar o líquido quando as duas histórias existem juntas —
   // com só uma direção na fila, o líquido é idêntico ao bloco já mostrado acima.
+  // Diferente do bloco "já acima do alvo", este SIM é sobre uma ação hipotética
+  // (aplicar a fila inteira, incluindo as baixas), então o alerta de cor
+  // negativa aqui faz sentido: avisa antes de um "aplicar todos" descuidado.
   const liquido = (temSobe && temDesce)
-    ? '<div class="op-liquido">Efeito líquido se aplicar a fila inteira: ' +
+    ? '<div class="op-liquido">Se você aplicasse a fila inteira agora — inclusive baixando quem está acima do alvo — ' +
+        'a receita prevista mudaria em ' +
         '<strong class="' + (op.ganho_total >= 0 ? 'valor-positivo' : 'valor-negativo') + '">' +
           formatarMoeda(op.ganho_total) +
-        '</strong></div>'
+        '</strong>. Você decide o que aplicar na aba Ajuste de preço.</div>'
     : '';
 
   bloco.innerHTML =
@@ -1290,7 +1304,7 @@ function renderizarOportunidade_(op) {
     liquido +
     '<div class="tabela-rolagem"><table class="tabela-painel">' +
       '<thead><tr><th>Produto</th><th class="num">Comprado</th><th class="num">Preço hoje</th>' +
-      '<th class="num">Sugerido</th><th class="num">Diferença</th></tr></thead>' +
+      '<th class="num">Sugerido</th><th class="num">Diferença se aplicar</th></tr></thead>' +
       '<tbody>' + linhas + '</tbody>' +
     '</table></div>';
 }

@@ -1444,6 +1444,9 @@ button.carregando::after {
    ou negativo. */
 .valor-positivo { color: var(--verde) !important; }
 .valor-negativo { color: var(--laranja-escuro) !important; }
+/* Neutro é pra informação que não é boa nem ruim — "sua margem hoje já está
+   acima do alvo" não é um alerta, então não usa a cor de alerta. */
+.valor-neutro { color: var(--azul) !important; }
 
 /* Duas histórias lado a lado: "receita deixada na mesa" (sempre positiva) e
    "correção pra baixo" (redução ao trazer item de volta pro alvo da faixa) —
@@ -1476,7 +1479,9 @@ button.carregando::after {
 .tabela-painel .num { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
 .tabela-painel .forte { font-weight: 700; }
 .tabela-painel .ganho { color: var(--verde); font-weight: 700; }
-.tabela-painel .perda { color: var(--laranja-escuro); font-weight: 700; }
+/* Não é ".perda": preço hoje acima do sugerido é margem extra já capturada, não
+   um prejuízo. Azul neutro — a mesma cor de "informação", não de alerta. */
+.tabela-painel .acima-alvo { color: var(--azul); font-weight: 700; }
 .tabela-painel .vazio-celula { color: var(--texto-2); text-align: center; padding: 20px; }
 
 /* --- gráficos --- */
