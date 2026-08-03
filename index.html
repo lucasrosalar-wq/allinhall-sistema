@@ -14,7 +14,7 @@
      que já tem guardados — e a tela fica misturando versão nova com antiga. Trocando
      o número aqui, a URL muda e o navegador é obrigado a buscar tudo de novo.
      SEMPRE mude este número ao publicar mudança em .css ou .js. -->
-<link rel="stylesheet" href="app.css?v=20260730c">
+<link rel="stylesheet" href="app.css?v=20260730d">
 </head>
 <body>
 
@@ -500,6 +500,8 @@
           <label>Mostrar</label>
           <select id="filtroModoPreco" onchange="renderizarFilaPrecos()">
             <option value="ajuste">Só os que mudam de preço</option>
+            <option value="sobe">Só os que precisam subir</option>
+            <option value="desce">Só os que precisam cair</option>
             <option value="todos">Todos os produtos</option>
             <option value="sem_custo">Sem custo lançado</option>
           </select>
@@ -877,11 +879,11 @@
   </div>
 </div>
 
-<script src="shared.js?v=20260730c"></script>
-<script src="conferencia.js?v=20260730c"></script>
-<script src="gestao.js?v=20260730c"></script>
-<script src="reposicao.js?v=20260730c"></script>
-<script src="aquisicao.js?v=20260730c"></script>
+<script src="shared.js?v=20260730d"></script>
+<script src="conferencia.js?v=20260730d"></script>
+<script src="gestao.js?v=20260730d"></script>
+<script src="reposicao.js?v=20260730d"></script>
+<script src="aquisicao.js?v=20260730d"></script>
 <script>
   if (window.lucide) lucide.createIcons();
 </script>

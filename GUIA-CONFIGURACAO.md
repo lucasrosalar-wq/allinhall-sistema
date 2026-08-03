@@ -272,6 +272,12 @@ A Aquisição tem quatro telas, listadas na barra lateral abaixo do nome dela:
 2. **Ajuste de preço** — a fila do que ficou fora do alvo. Cada linha mostra
    custo, preço de hoje, a margem que esse preço realmente entrega, a margem
    alvo e o preço sugerido. Marque o que concorda e clique em aplicar.
+   O filtro **Mostrar** separa "Só os que precisam subir" de "Só os que precisam
+   cair" — útil pra atacar só o reajuste positivo sem escanear a lista inteira
+   procurando os poucos itens que sobem no meio dos que caem (ou o oposto).
+   "Marcar/desmarcar todos" respeita o filtro ativo: marca só o que está
+   visível na hora, e a seleção continua guardada mesmo trocando de filtro
+   depois.
 3. **Faixas de margem** — os percentuais de cada faixa.
 4. **Gestão** — o painel, descrito logo abaixo.
 

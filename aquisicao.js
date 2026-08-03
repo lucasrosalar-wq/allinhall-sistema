@@ -918,7 +918,10 @@ function renderizarFilaPrecos() {
   else if (filtroCategoria) candidatos = candidatos.filter(function (p) { return p.categoria === filtroCategoria; });
   if (busca) candidatos = candidatos.filter(function (p) { return p.nome.toLowerCase().indexOf(busca) !== -1; });
 
+  // variacao_pct > 0 = sugerido acima do preço de hoje (sobe); < 0 = abaixo (desce).
   if (modo === 'ajuste') candidatos = candidatos.filter(function (p) { return p.precisa_ajuste; });
+  else if (modo === 'sobe') candidatos = candidatos.filter(function (p) { return p.precisa_ajuste && p.variacao_pct > 0; });
+  else if (modo === 'desce') candidatos = candidatos.filter(function (p) { return p.precisa_ajuste && p.variacao_pct < 0; });
   else if (modo === 'sem_custo') candidatos = candidatos.filter(function (p) { return !(p.custo_atual > 0); });
 
   // Maior variação primeiro: é onde está o dinheiro e onde mora o erro de digitação.
