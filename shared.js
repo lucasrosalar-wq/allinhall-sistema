@@ -12,32 +12,75 @@ let pin = '';
 let bootstrap = { produtos: [], condominios: [], pessoas: [] };
 
 // ===================== CHAMADAS À API =====================
+// O Apps Script pode demorar (primeira chamada "esquenta" o projeto, e escritas
+// esperam até 10s pelo travamento em comTravamento_ no backend). Sem um limite
+// de tempo aqui, a tela ficava girando pra sempre num backend lento, e sem
+// distinguir os motivos, qualquer falha (timeout, DNS, CORS) virava a mesma
+// mensagem genérica de "sem internet" — mesmo quando a internet estava ok e o
+// problema era só o servidor demorando.
+const TIMEOUT_API_MS = 20000;
+const TENTATIVAS_LEITURA_API = 2; // só leitura (GET) repete sozinha — reenviar escrita arrisca duplicar.
+
+async function chamarApiUmaVez_(params, metodo) {
+  const comPin = Object.assign({ pin: pin }, params);
+  const controle = new AbortController();
+  const timeout = setTimeout(function () { controle.abort(); }, TIMEOUT_API_MS);
+
+  try {
+    let resp;
+    if (metodo === 'GET') {
+      const query = new URLSearchParams(comPin).toString();
+      resp = await fetch(URL_WEBAPP + '?' + query, { method: 'GET', redirect: 'follow', signal: controle.signal });
+    } else {
+      // POST: usa text/plain para evitar preflight CORS (Apps Script não trata OPTIONS).
+      resp = await fetch(URL_WEBAPP, {
+        method: 'POST',
+        redirect: 'follow',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify(comPin),
+        signal: controle.signal
+      });
+    }
+    return await resp.json();
+  } finally {
+    clearTimeout(timeout);
+  }
+}
+
 async function chamarApi(params, metodo) {
   metodo = metodo || 'GET';
-  const comPin = Object.assign({ pin: pin }, params);
+  const tentativas = metodo === 'GET' ? TENTATIVAS_LEITURA_API : 1;
 
-  if (metodo === 'GET') {
-    const query = new URLSearchParams(comPin).toString();
-    const resp = await fetch(URL_WEBAPP + '?' + query, { method: 'GET', redirect: 'follow' });
-    return resp.json();
+  let ultimoErro;
+  for (let tentativa = 1; tentativa <= tentativas; tentativa++) {
+    try {
+      const resultado = await chamarApiUmaVez_(params, metodo);
+      // Qualquer escrita (criar/editar/excluir ocorrência, fechar/limpar dia, identificar,
+      // cobrar, pagar, cancelar etc.) pode mudar o que os calendários das duas telas
+      // mostram — invalida os dois caches pra não exibir dado velho em nenhuma delas.
+      if (metodo !== 'GET' && resultado.ok) {
+        cacheCalendarioConferencia = {};
+        cacheCalendarioGestao = {};
+      }
+      return resultado;
+    } catch (err) {
+      ultimoErro = err;
+    }
   }
+  throw ultimoErro;
+}
 
-  // POST: usa text/plain para evitar preflight CORS (Apps Script não trata OPTIONS).
-  const resp = await fetch(URL_WEBAPP, {
-    method: 'POST',
-    redirect: 'follow',
-    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-    body: JSON.stringify(comPin)
-  });
-  const resultado = await resp.json();
-  // Qualquer escrita (criar/editar/excluir ocorrência, fechar/limpar dia, identificar,
-  // cobrar, pagar, cancelar etc.) pode mudar o que os calendários das duas telas
-  // mostram — invalida os dois caches pra não exibir dado velho em nenhuma delas.
-  if (resultado.ok) {
-    cacheCalendarioConferencia = {};
-    cacheCalendarioGestao = {};
+// Traduz o erro técnico numa mensagem que aponta a causa certa: internet do
+// aparelho, servidor lento (ou fora do ar) ou resposta inesperada — em vez da
+// mensagem única de antes, que dizia "sem internet" pros três casos.
+function mensagemErroConexao_(err) {
+  if (typeof navigator !== 'undefined' && navigator.onLine === false) {
+    return 'Sem conexão com a internet neste aparelho. Verifique o Wi-Fi ou os dados móveis e tente novamente.';
   }
-  return resultado;
+  if (err && err.name === 'AbortError') {
+    return 'O servidor demorou demais para responder. Tente novamente em alguns segundos.';
+  }
+  return 'Não foi possível falar com o servidor agora. Tente novamente em alguns segundos.';
 }
 
 // ===================== PIN =====================
@@ -59,7 +102,7 @@ async function validarPin() {
     const partes = (location.hash.slice(1) || 'conferencia').split('/');
     irParaView(partes[0], partes[1]);
   } catch (err) {
-    document.getElementById('erroPin').textContent = 'Falha de conexão. Verifique a internet e tente novamente.';
+    document.getElementById('erroPin').textContent = mensagemErroConexao_(err);
   }
 }
 
