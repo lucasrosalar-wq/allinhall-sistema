@@ -25,7 +25,7 @@ const NOMES_ABAS = {
 };
 
 const CABECALHOS = {
-  Ocorrencias: ['id', 'condominio', 'data_ocorrencia', 'hora', 'pessoa', 'descricao_pessoa', 'itens', 'valor_total', 'observacao', 'status', 'contato_whatsapp', 'data_registro', 'data_cobranca', 'data_pagamento', 'data_prejuizo'],
+  Ocorrencias: ['id', 'condominio', 'data_ocorrencia', 'hora', 'pessoa', 'descricao_pessoa', 'itens', 'valor_total', 'observacao', 'status', 'contato_whatsapp', 'data_registro', 'data_cobranca', 'data_pagamento', 'data_prejuizo', 'grupo_cobranca_id'],
   DiasFechados: ['condominio', 'data', 'status_dia', 'registrado_em'],
   Produtos: ['nome', 'preco', 'ativo', 'categoria', 'margem_pct', 'custo_atual', 'data_custo', 'preco_travado'],
   Pessoas: ['nome', 'condominio', 'contato_whatsapp', 'observacao'],
@@ -494,10 +494,11 @@ function criarOcorrenciaLinha_(params) {
     agora_(),
     '',
     '',
-    ''
+    '',
+    params.grupo_cobranca_id || ''
   ];
   const proximaLinha = aba.getLastRow() + 1;
-  escreverLinhaComoTexto_(aba, proximaLinha, linha, [3, 4, 12, 13, 14, 15]);
+  escreverLinhaComoTexto_(aba, proximaLinha, linha, [3, 4, 12, 13, 14, 15, 16]);
   return { id: id };
 }
 
@@ -505,7 +506,7 @@ function criarOcorrencia_(params) {
   return comTravamento_(function () { return criarOcorrenciaLinha_(params); });
 }
 
-const COLUNAS_TEXTO_OCORRENCIAS_ = { data_ocorrencia: true, hora: true, data_cobranca: true, data_pagamento: true, data_prejuizo: true };
+const COLUNAS_TEXTO_OCORRENCIAS_ = { data_ocorrencia: true, hora: true, data_cobranca: true, data_pagamento: true, data_prejuizo: true, grupo_cobranca_id: true };
 
 // Sem trava própria, mesmo motivo de criarOcorrenciaLinha_ acima.
 function atualizarOcorrenciaCampos_(id, params) {
@@ -518,7 +519,7 @@ function atualizarOcorrenciaCampos_(id, params) {
   for (let i = 1; i < valores.length; i++) {
     if (valores[i][colId] === id) {
       const linhaPlanilha = i + 1;
-      const camposPermitidos = ['pessoa', 'descricao_pessoa', 'itens', 'valor_total', 'observacao', 'status', 'contato_whatsapp', 'data_cobranca', 'data_pagamento', 'data_prejuizo', 'data_ocorrencia', 'hora'];
+      const camposPermitidos = ['pessoa', 'descricao_pessoa', 'itens', 'valor_total', 'observacao', 'status', 'contato_whatsapp', 'data_cobranca', 'data_pagamento', 'data_prejuizo', 'data_ocorrencia', 'hora', 'grupo_cobranca_id'];
       camposPermitidos.forEach(function (campo) {
         if (Object.prototype.hasOwnProperty.call(params, campo)) {
           const col = cabecalho.indexOf(campo);

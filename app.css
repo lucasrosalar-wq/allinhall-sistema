@@ -333,6 +333,19 @@
   .card .acoes button.whatsapp { background: #25D366; color: #fff; }
   .card .acoes button.whatsapp:hover { background: #1EBE5A; }
 
+  /* Card de lote no kanban — ocorrências cobradas juntas numa consolidada, que
+     continuam agrupadas ao mudar de coluna (ver agruparPorLote_ em gestao.js) */
+  .lista-lote { margin-top: 8px; border-top: 1px solid var(--borda); }
+  .linha-lote {
+    display: flex; align-items: center; justify-content: space-between; gap: 10px;
+    padding: 7px 0; border-bottom: 1px solid var(--borda); font-size: 11.5px;
+  }
+  .linha-lote:last-child { border-bottom: none; }
+  .linha-lote .info-lote { flex: 1 1 auto; min-width: 0; }
+  .linha-lote .data-lote { color: var(--texto-2); font-size: 11px; }
+  .linha-lote .itens-lote-resumo { margin-top: 1px; }
+  .linha-lote .valor-lote { font-weight: 700; white-space: nowrap; }
+
   /* Cobrança consolidada por pessoa */
   #secaoConsolidada:empty { display: none; }
   #secaoConsolidada { margin-bottom: 20px; }

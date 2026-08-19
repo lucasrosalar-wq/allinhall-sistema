@@ -226,7 +226,85 @@ function renderizarColunaKanban(idContainer, itens) {
     container.innerHTML = '<div class="vazio-relacao">Nada por aqui.</div>';
     return;
   }
-  container.innerHTML = itens.map(renderizarCard).join('');
+  container.innerHTML = agruparPorLote_(itens).map(function (grupo) {
+    return grupo.length === 1 ? renderizarCard(grupo[0]) : renderizarCardLote(grupo);
+  }).join('');
+}
+
+// Ocorrências cobradas juntas numa cobrança consolidada (mesmo grupo_cobranca_id)
+// continuam num card só depois de mudar de coluna — sem isso, uma cobrança de 3
+// consumos vira 3 cards soltos assim que passa a "Cobrado", dificultando saber
+// que aquilo era uma cobrança única. Só agrupa dentro da MESMA coluna: se parte
+// do lote já foi paga e o resto ainda está aguardando, cada parte aparece
+// corretamente na sua própria coluna (a paga sozinha, o resto ainda junto).
+function agruparPorLote_(itens) {
+  const posicaoDoLote = {};
+  const grupos = [];
+  itens.forEach(function (o) {
+    if (!o.grupo_cobranca_id) { grupos.push([o]); return; }
+    if (posicaoDoLote[o.grupo_cobranca_id] !== undefined) {
+      grupos[posicaoDoLote[o.grupo_cobranca_id]].push(o);
+      return;
+    }
+    posicaoDoLote[o.grupo_cobranca_id] = grupos.length;
+    grupos.push([o]);
+  });
+  return grupos;
+}
+
+// Card de um lote de cobrança consolidada: mesma pessoa, mesmo status, N ocorrências
+// somadas num total só. As ações agem sobre o lote inteiro de uma vez — é exatamente
+// o que se perdia quando cada ocorrência passava a se mover sozinha pelo kanban.
+// Edição/cancelamento individual de um item específico do lote continua disponível
+// pela ocorrência avulsa (ela já passou pela revisão da cobrança consolidada antes
+// de chegar aqui); o card de lote é só para as ações de cobrança em si.
+function renderizarCardLote(itens) {
+  const primeiro = itens[0];
+  const nomePessoa = primeiro.pessoa || primeiro.descricao_pessoa || 'Desconhecido(a)';
+  const statusClasse = primeiro.status.toLowerCase();
+  const totalLote = itens.reduce(function (soma, o) { return soma + o.valor_total; }, 0);
+  const ids = itens.map(function (o) { return o.id; });
+  const idsJs = "['" + ids.join("','") + "']";
+
+  const linhas = itens.slice()
+    .sort(function (a, b) { return (a.data_ocorrencia + a.hora).localeCompare(b.data_ocorrencia + b.hora); })
+    .map(function (o) {
+      const resumoItens = o.itens.map(function (i) { return i.qtd + 'x ' + i.produto; }).join(', ');
+      return '<div class="linha-lote">' +
+        '<div class="info-lote">' +
+          '<div class="data-lote">' + formatarDataBR(o.data_ocorrencia) + (o.hora ? ' às ' + o.hora : '') + '</div>' +
+          '<div class="itens-lote-resumo">' + resumoItens + '</div>' +
+        '</div>' +
+        '<div class="valor-lote">' + formatarMoeda(o.valor_total) + '</div>' +
+      '</div>';
+    }).join('');
+
+  let acoes = '';
+  if (primeiro.status === 'Cobrado') {
+    acoes += '<button class="destaque" onclick="reabrirNotificacaoLote(' + idsJs + ')">Reabrir notificação</button>';
+    acoes += '<button class="whatsapp" onclick="recobrarLoteWhatsapp(' + idsJs + ')">Recobrar</button>';
+    acoes += '<button onclick="marcarLoteComoPago(' + idsJs + ')">Marcar tudo como pago</button>';
+    acoes += '<button class="perigo" onclick="marcarLoteComoPrejuizo(' + idsJs + ')">Não pagaram</button>';
+  }
+  if (primeiro.status === STATUS_PREJUIZO_) {
+    acoes += '<button class="whatsapp" onclick="recobrarLoteWhatsapp(' + idsJs + ')">Recobrar</button>';
+    acoes += '<button onclick="marcarLoteComoPago(' + idsJs + ')">Recebi o pagamento</button>';
+    acoes += '<button onclick="reabrirLote(' + idsJs + ')">Voltar p/ cobrado</button>';
+  }
+
+  return '<div class="card card-lote">' +
+    '<div class="card-topo">' +
+      '<div class="info">' + primeiro.condominio + '</div>' +
+      '<div class="pessoa">' + nomePessoa + '</div>' +
+      '<div class="whatsapp-card">' + (primeiro.contato_whatsapp ? 'WhatsApp: ' + primeiro.contato_whatsapp : 'Sem WhatsApp cadastrado') + '</div>' +
+      '<div class="valor-linha">' +
+        '<span class="valor">' + formatarMoeda(totalLote) + '</span>' +
+        '<span class="badge ' + statusClasse + '">' + itens.length + ' cobranças · ' + rotuloStatus_(primeiro.status) + '</span>' +
+      '</div>' +
+    '</div>' +
+    '<div class="lista-lote">' + linhas + '</div>' +
+    '<div class="acoes">' + acoes + '</div>' +
+  '</div>';
 }
 
 function renderizarCard(o) {
@@ -599,9 +677,16 @@ function abrirCobrancaConsolidada(grupoId) {
   const idsMarcados = Array.from(document.querySelectorAll('.chk-consolidado[data-grupo="' + grupoId + '"]:checked')).map(function (chk) { return chk.dataset.occid; });
   const selecionadas = grupo.ocorrencias.filter(function (o) { return idsMarcados.indexOf(o.id) !== -1; });
   if (selecionadas.length === 0) return;
+  abrirModalCobrancaConsolidada_({ condominio: grupo.condominio, pessoa: grupo.pessoa, contato_whatsapp: grupo.contato_whatsapp }, selecionadas);
+}
 
+// Compartilhado entre a cobrança consolidada "de primeira viagem" (a partir dos
+// checkboxes na seção Pendente) e o "Reabrir notificação" de um lote que já foi
+// cobrado (a partir do card agrupado no kanban) — as duas só diferem em como
+// chegam na lista de ocorrências selecionadas.
+function abrirModalCobrancaConsolidada_(grupo, selecionadas) {
   ocorrenciasCobrancaConsolidadaAtual = selecionadas;
-  grupoCobrancaConsolidadaAtual = { condominio: grupo.condominio, pessoa: grupo.pessoa, contato_whatsapp: grupo.contato_whatsapp };
+  grupoCobrancaConsolidadaAtual = grupo;
 
   const condominioInfo = bootstrap.condominios.find(function (c) { return c.nome_curto === grupo.condominio; }) || {};
   const nomeCondominio = condominioInfo.nome_oficial || grupo.condominio;
@@ -657,12 +742,18 @@ function fecharCobrancaConsolidada() {
 
 async function confirmarCobrancaConsolidada() {
   const banner = document.getElementById('bannerCobrancaConsolidada');
+  // Todo mundo que sai daqui junto carrega a mesma etiqueta de lote — é isso que
+  // depois faz o kanban devolver o grupo inteiro como um card só, em vez de N
+  // ocorrências soltas. Se já é um lote existente sendo reaberto (reabrirNotificacaoLote),
+  // reaproveita o mesmo id em vez de fragmentar o grupo em dois.
+  const idLote = ocorrenciasCobrancaConsolidadaAtual[0].grupo_cobranca_id || gerarIdLote_();
   try {
     for (const o of ocorrenciasCobrancaConsolidadaAtual) {
-      const resposta = await chamarApi({ action: 'atualizarOcorrencia', id: o.id, status: 'Cobrado', data_cobranca: hojeISO() }, 'POST');
+      const resposta = await chamarApi({ action: 'atualizarOcorrencia', id: o.id, status: 'Cobrado', data_cobranca: hojeISO(), grupo_cobranca_id: idLote }, 'POST');
       if (!resposta.ok) throw new Error(resposta.erro);
       o.status = 'Cobrado';
       o.data_cobranca = hojeISO();
+      o.grupo_cobranca_id = idLote;
     }
     fecharCobrancaConsolidada();
     renderizarTotais();
@@ -670,6 +761,90 @@ async function confirmarCobrancaConsolidada() {
   } catch (err) {
     banner.className = 'banner erro';
     banner.textContent = 'Falha ao atualizar uma das ocorrências. As já processadas foram salvas — confira a lista e tente novamente para as restantes.';
+  }
+}
+
+function gerarIdLote_() {
+  return 'LT' + Date.now() + Math.floor(Math.random() * 90 + 10);
+}
+
+// ===================== AÇÕES EM LOTE (card agrupado do kanban) =====================
+// Reabre o mesmo modal de cobrança consolidada, mas a partir de um lote que já
+// tinha sido cobrado (em vez de partir dos checkboxes da seção Pendente).
+function reabrirNotificacaoLote(ids) {
+  const itens = ids.map(buscarOcorrencia);
+  const primeiro = itens[0];
+  abrirModalCobrancaConsolidada_({ condominio: primeiro.condominio, pessoa: primeiro.pessoa, contato_whatsapp: primeiro.contato_whatsapp }, itens);
+}
+
+function recobrarLoteWhatsapp(ids) {
+  const itens = ids.map(buscarOcorrencia);
+  const primeiro = itens[0];
+  const numero = normalizarWhatsapp(primeiro.contato_whatsapp);
+  if (!numero) {
+    alert('Esta pessoa não tem WhatsApp cadastrado. Edite a pessoa para adicionar o número.');
+    return;
+  }
+  const nomePessoa = primeiro.pessoa || 'Cliente';
+  const total = itens.reduce(function (soma, o) { return soma + o.valor_total; }, 0);
+  const datas = itens.map(function (o) { return o.data_ocorrencia; }).sort();
+  const periodoTexto = datas[0] === datas[datas.length - 1] ? formatarDataBR(datas[0]) : formatarDataBR(datas[0]) + ' a ' + formatarDataBR(datas[datas.length - 1]);
+  const mensagem = 'Olá ' + nomePessoa + ', tudo bem? Passando aqui da All in Hall só para lembrar sobre ' + itens.length +
+    ' cobranças no valor total de ' + formatarMoeda(total) + ', referentes ao período de ' + periodoTexto +
+    ' no ' + primeiro.condominio + ', que ainda constam em aberto. Pode verificar quando puder? Se já pagou, ' +
+    'nos envie o comprovante que atualizamos por aqui. Qualquer dúvida estamos à disposição!';
+  window.open('https://web.whatsapp.com/send?phone=' + numero + '&text=' + encodeURIComponent(mensagem), '_blank');
+}
+
+async function marcarLoteComoPago(ids) {
+  if (!confirm('Confirmar recebimento do pagamento de ' + ids.length + ' cobranças deste lote?')) return;
+  try {
+    for (const id of ids) {
+      const resposta = await chamarApi({ action: 'atualizarOcorrencia', id: id, status: 'Pago', data_pagamento: hojeISO(), data_prejuizo: '' }, 'POST');
+      if (!resposta.ok) throw new Error(resposta.erro);
+      const o = buscarOcorrencia(id);
+      o.status = 'Pago'; o.data_pagamento = hojeISO(); o.data_prejuizo = '';
+    }
+    renderizarTotais();
+    renderizarLista();
+  } catch (err) {
+    alert('Falha ao atualizar uma das cobranças do lote. As já processadas foram salvas — confira a lista e tente novamente para as restantes.');
+  }
+}
+
+async function marcarLoteComoPrejuizo(ids) {
+  const total = ids.map(buscarOcorrencia).reduce(function (soma, o) { return soma + o.valor_total; }, 0);
+  if (!confirm('Dar baixa como prejuízo nas ' + ids.length + ' cobranças deste lote? ' + formatarMoeda(total) + ' passam a contar como valor cobrado e não recebido.')) return;
+  try {
+    for (const id of ids) {
+      const resposta = await chamarApi({ action: 'atualizarOcorrencia', id: id, status: STATUS_PREJUIZO_, data_prejuizo: hojeISO() }, 'POST');
+      if (!resposta.ok) throw new Error(resposta.erro);
+      const o = buscarOcorrencia(id);
+      o.status = STATUS_PREJUIZO_; o.data_prejuizo = hojeISO();
+    }
+    renderizarTotais();
+    renderizarLista();
+  } catch (err) {
+    alert('Falha ao atualizar uma das cobranças do lote. As já processadas foram salvas — confira a lista e tente novamente para as restantes.');
+  }
+}
+
+// Lote agrupado só existe depois de cobrado (grupo_cobranca_id nasce junto com
+// data_cobranca em confirmarCobrancaConsolidada), então desfazer a baixa aqui
+// sempre volta para "Cobrado" — nunca para pendente, diferente da versão avulsa.
+async function reabrirLote(ids) {
+  if (!confirm('Desfazer a baixa de ' + ids.length + ' cobranças e voltar para "Cobrado, aguardando"?')) return;
+  try {
+    for (const id of ids) {
+      const resposta = await chamarApi({ action: 'atualizarOcorrencia', id: id, status: 'Cobrado', data_prejuizo: '' }, 'POST');
+      if (!resposta.ok) throw new Error(resposta.erro);
+      const o = buscarOcorrencia(id);
+      o.status = 'Cobrado'; o.data_prejuizo = '';
+    }
+    renderizarTotais();
+    renderizarLista();
+  } catch (err) {
+    alert('Falha ao atualizar uma das cobranças do lote. As já processadas foram salvas — confira a lista e tente novamente para as restantes.');
   }
 }
 
