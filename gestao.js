@@ -15,12 +15,6 @@ let gruposConsolidadosAtuais = {}; // grupoId -> { condominio, pessoa, contato_w
 let ocorrenciasCobrancaConsolidadaAtual = []; // ocorrências marcadas no momento em que "Cobrar selecionadas" foi clicado
 let grupoCobrancaConsolidadaAtual = null; // { condominio, pessoa, contato_whatsapp } do grupo aberto no modal
 
-// Status "cobrei e não recebi". Guardado sem acento porque o mesmo texto vira
-// classe de CSS (badge/coluna) e vai pra planilha — o acento só aparece na tela,
-// via rotuloStatus_.
-const STATUS_PREJUIZO_ = 'Prejuizo';
-function rotuloStatus_(status) { return status === STATUS_PREJUIZO_ ? 'Prejuízo' : status; }
-
 // ===================== INICIALIZAÇÃO =====================
 function inicializarGestao() {
   const selectCondominio = document.getElementById('filtroCondominio');

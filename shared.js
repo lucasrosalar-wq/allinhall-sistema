@@ -11,6 +11,12 @@ const URL_WEBAPP = 'https://script.google.com/macros/s/AKfycbz0RF9foxslKzWANlDHV
 let pin = '';
 let bootstrap = { produtos: [], condominios: [], pessoas: [] };
 
+// Status "cobrei e não recebi", usado na Gestão e na relação de ocorrências da
+// Conferência. Guardado sem acento porque o mesmo texto vira classe de CSS
+// (badge/coluna) e vai pra planilha — o acento só aparece na tela, via rotuloStatus_.
+const STATUS_PREJUIZO_ = 'Prejuizo';
+function rotuloStatus_(status) { return status === STATUS_PREJUIZO_ ? 'Prejuízo' : status; }
+
 // ===================== CHAMADAS À API =====================
 // O Apps Script pode demorar (primeira chamada "esquenta" o projeto, e escritas
 // esperam até 10s pelo travamento em comTravamento_ no backend). Sem um limite

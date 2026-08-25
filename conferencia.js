@@ -166,7 +166,13 @@ function abrirAcoesDia(dataISO, dia) {
   renderizarRelacaoDia(dataISO);
 }
 
+function ocorrenciaAtiva_(o) { return o.status === 'Pendente' || o.status === 'Identificado'; }
+
 // Mostra, abaixo do calendário, a relação de ocorrências já registradas no dia tocado.
+// Mostra o dia inteiro, ativas e já resolvidas — antes, uma ocorrência cobrada
+// (ou paga/prejuízo) sumia daqui na hora e só dava pra acompanhar pela Gestão;
+// quem usa o dia a dia acabava anotando à parte pra não perder o histórico. As
+// ativas vêm primeiro (é o que ainda precisa de ação), o resto é referência.
 function renderizarRelacaoDia(dataISO) {
   const container = document.getElementById('relacaoDia');
   const titulo = document.getElementById('tituloRelacaoDia');
@@ -175,32 +181,47 @@ function renderizarRelacaoDia(dataISO) {
   titulo.textContent = 'Ocorrências em ' + formatarDataBR(dataISO);
 
   const ocorrenciasDoDia = dadosCalendario.ocorrencias.filter(function (o) { return o.data_ocorrencia === dataISO; });
-  // Uma vez cobrada (ou paga/cancelada), a ocorrência sai da relação da Conferência —
-  // o acompanhamento dali em diante é feito pelo quadro kanban da Gestão.
-  const ocorrenciasAtivas = ocorrenciasDoDia.filter(function (o) { return o.status === 'Pendente' || o.status === 'Identificado'; });
 
-  if (ocorrenciasAtivas.length === 0) {
-    lista.innerHTML = ocorrenciasDoDia.length === 0
-      ? '<div class="vazio-relacao">Nenhuma ocorrência registrada neste dia.</div>'
-      : '<div class="vazio-relacao">Todas as ocorrências deste dia já foram cobradas — acompanhe em Gestão.</div>';
-  } else {
-    lista.innerHTML = ocorrenciasAtivas.map(function (o) {
-      const nomePessoa = o.pessoa || o.descricao_pessoa || 'Desconhecido(a)';
-      const resumoItens = o.itens.map(function (item) { return item.qtd + 'x ' + item.produto; }).join(', ');
-      return '<div class="card-relacao">' +
-        '<div class="topo">' +
-          '<div><div class="pessoa">' + nomePessoa + '</div><div class="hora">' + (o.hora || '—') + '</div></div>' +
-          '<div class="valor">' + formatarMoeda(o.valor_total) + '</div>' +
-        '</div>' +
-        '<div class="itens">' + resumoItens + '</div>' +
-        '<span class="badge-status ' + o.status.toLowerCase() + '">' + o.status + '</span>' +
-        '<div class="acoes-relacao">' +
-          '<button type="button" onclick="editarOcorrenciaDoDia(\'' + o.id + '\')">Editar</button>' +
-          '<button type="button" class="btn-excluir-relacao" onclick="excluirOcorrenciaDoDia(\'' + o.id + '\')">Excluir</button>' +
-        '</div>' +
-      '</div>';
-    }).join('');
+  if (ocorrenciasDoDia.length === 0) {
+    lista.innerHTML = '<div class="vazio-relacao">Nenhuma ocorrência registrada neste dia.</div>';
+    container.classList.remove('oculto');
+    return;
   }
+
+  const ocorrenciasOrdenadas = ocorrenciasDoDia.slice().sort(function (a, b) {
+    const ativaA = ocorrenciaAtiva_(a) ? 0 : 1;
+    const ativaB = ocorrenciaAtiva_(b) ? 0 : 1;
+    if (ativaA !== ativaB) return ativaA - ativaB;
+    return (a.hora || '').localeCompare(b.hora || '');
+  });
+
+  lista.innerHTML = ocorrenciasOrdenadas.map(function (o) {
+    const nomePessoa = o.pessoa || o.descricao_pessoa || 'Desconhecido(a)';
+    const resumoItens = o.itens.map(function (item) { return item.qtd + 'x ' + item.produto; }).join(', ');
+    const resolvida = !ocorrenciaAtiva_(o);
+
+    // Mesma regra da Gestão: itens dão pra corrigir enquanto não pagou (evita
+    // editar algo que já foi cobrado/pago com outro valor); excluir de vez só
+    // antes de qualquer cobrança — depois disso, "Cancelar" é o caminho, e isso
+    // já é feito pela Gestão, não por aqui.
+    let acoes = '';
+    if (o.status !== 'Cancelado' && o.status !== 'Pago') {
+      acoes += '<button type="button" onclick="editarOcorrenciaDoDia(\'' + o.id + '\')">Editar</button>';
+    }
+    if (ocorrenciaAtiva_(o)) {
+      acoes += '<button type="button" class="btn-excluir-relacao" onclick="excluirOcorrenciaDoDia(\'' + o.id + '\')">Excluir</button>';
+    }
+
+    return '<div class="card-relacao' + (resolvida ? ' resolvida' : '') + '">' +
+      '<div class="topo">' +
+        '<div><div class="pessoa">' + nomePessoa + '</div><div class="hora">' + (o.hora || '—') + '</div></div>' +
+        '<div class="valor">' + formatarMoeda(o.valor_total) + '</div>' +
+      '</div>' +
+      '<div class="itens">' + resumoItens + '</div>' +
+      '<span class="badge-status ' + o.status.toLowerCase() + '">' + rotuloStatus_(o.status) + '</span>' +
+      (acoes ? '<div class="acoes-relacao">' + acoes + '</div>' : '') +
+    '</div>';
+  }).join('');
 
   container.classList.remove('oculto');
 }

@@ -812,6 +812,14 @@
     transition: box-shadow .2s ease, transform .2s ease;
   }
   .card-relacao:hover { box-shadow: var(--sombra); transform: translateY(-1px); }
+  /* Já cobrada/paga/prejuízo: continua na lista (é o histórico que a Bárbara
+     pedia de volta), mas esmaecida — o que ainda precisa de ação chama mais
+     atenção. Passa o mouse/toca e volta ao normal pra ler direito.
+     Usa filter (não opacity): a animação de entrada compartilhada com todo
+     .card-relacao já anima opacity até 1 com fill-mode "both", e isso vence
+     qualquer opacity declarada aqui — filter fica de fora dessa disputa. */
+  .card-relacao.resolvida { filter: opacity(68%); }
+  .card-relacao.resolvida:hover, .card-relacao.resolvida:focus-within { filter: none; }
   .card-relacao .topo { display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; }
   .card-relacao .pessoa { font-weight: 700; font-size: 14.5px; }
   .card-relacao .hora { font-size: 12px; color: var(--texto-2); }
