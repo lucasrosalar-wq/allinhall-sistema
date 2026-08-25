@@ -294,18 +294,27 @@ function renderizarFurosReposicao() {
     return;
   }
 
-  lista.innerHTML = saldosFuroCondominio.map(function (s, indice) {
-    return '<div class="card-relacao">' +
-      '<div class="topo">' +
-        '<div><div class="pessoa">' + s.produto + '</div><div class="hora">desde ' + formatarDataBR(s.dataMaisAntiga) + '</div></div>' +
-        '<div class="valor">' + formatarMoeda(s.valor) + '</div>' +
-      '</div>' +
-      '<div class="itens">' + s.saldo + (s.saldo === 1 ? ' unidade em aberto' : ' unidades em aberto') + '</div>' +
-      '<div class="acoes-relacao">' +
-        '<button type="button" onclick="abrirIdentificarFuro(' + indice + ')">Identificar</button>' +
-      '</div>' +
-    '</div>';
+  const linhas = saldosFuroCondominio.map(function (s, indice) {
+    const rotuloSaldo = s.saldo + (s.saldo === 1 ? ' un.' : ' un.');
+    return '<tr>' +
+      '<td>' +
+        '<div class="produto-furo">' + s.produto + '</div>' +
+        '<div class="desde-furo">desde ' + formatarDataBR(s.dataMaisAntiga) + '</div>' +
+        '<div class="resumo-furo-compacto">' + rotuloSaldo + ' · ' + formatarMoeda(s.valor) + '</div>' +
+      '</td>' +
+      '<td class="col-numerica col-larga">' + rotuloSaldo + '</td>' +
+      '<td class="col-numerica col-larga">' + formatarMoeda(s.valor) + '</td>' +
+      '<td><button type="button" onclick="abrirIdentificarFuro(' + indice + ')">Identificar</button></td>' +
+    '</tr>';
   }).join('');
+
+  // Abaixo de 480px, as colunas "Em aberto"/"Valor" (col-larga) somem via CSS e
+  // o resumo compacto (escondido até ali) aparece no lugar — o botão de ação
+  // fica com espaço de sobra em vez de disputar largura com 4 colunas.
+  lista.innerHTML = '<div class="tabela-scroll"><table class="tabela-furos">' +
+    '<thead><tr><th>Produto</th><th class="col-numerica col-larga">Em aberto</th><th class="col-numerica col-larga">Valor</th><th></th></tr></thead>' +
+    '<tbody>' + linhas + '</tbody>' +
+  '</table></div>';
 
   container.classList.remove('oculto');
 }

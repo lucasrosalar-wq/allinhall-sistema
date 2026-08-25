@@ -847,6 +847,33 @@
     flex: 1; height: 32px; padding: 0 8px; font-size: 12.5px; background: var(--cinza); border-radius: 10px; font-weight: 600;
   }
   .acoes-relacao button:hover { background: #E2E8F0; }
+
+  /* Saldo de furos de reposição — tabela em vez de cards soltos, pra caber mais
+     produto por tela sem rolar tanto. Rola só na horizontal, e só se precisar
+     (nome de produto comprido), nunca a página inteira. */
+  .tabela-scroll { overflow-x: auto; border-radius: var(--raio); box-shadow: var(--sombra-sm); border: 1px solid var(--borda); background: #fff; }
+  .tabela-furos { width: 100%; border-collapse: collapse; font-size: 13px; }
+  .tabela-furos thead th {
+    text-align: left; font-size: 10.5px; font-weight: 700; color: var(--texto-2); text-transform: uppercase; letter-spacing: .03em;
+    padding: 12px 14px 10px; border-bottom: 1px solid var(--borda); white-space: nowrap;
+  }
+  .tabela-furos tbody td { padding: 10px 14px; border-bottom: 1px solid var(--borda); vertical-align: middle; }
+  .tabela-furos tbody tr:last-child td { border-bottom: none; }
+  .tabela-furos .produto-furo { font-weight: 700; }
+  .tabela-furos .desde-furo { font-size: 11px; color: var(--texto-2); margin-top: 1px; }
+  .tabela-furos .col-numerica { text-align: right; white-space: nowrap; }
+  .tabela-furos .resumo-furo-compacto { display: none; font-size: 12px; font-weight: 600; color: var(--preto); margin-top: 3px; }
+  .tabela-furos tbody button {
+    height: 32px; padding: 0 12px; font-size: 12px; background: var(--cinza); border-radius: 10px; font-weight: 600; white-space: nowrap;
+  }
+  .tabela-furos tbody button:hover { background: #E2E8F0; }
+  /* Tela estreita: as colunas de número saem, o resumo compacto entra no lugar
+     dentro da própria célula do produto — o botão "Identificar" para de disputar
+     espaço com 4 colunas. */
+  @media (max-width: 480px) {
+    .tabela-furos .col-larga { display: none; }
+    .tabela-furos .resumo-furo-compacto { display: block; }
+  }
   .acoes-relacao button.btn-excluir-relacao { background: none; color: var(--vermelho); border: 1px solid #FCA5A5; }
   .acoes-relacao button.btn-excluir-relacao:hover { background: #FEF2F2; }
 
