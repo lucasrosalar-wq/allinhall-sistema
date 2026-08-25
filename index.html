@@ -14,7 +14,7 @@
      que já tem guardados — e a tela fica misturando versão nova com antiga. Trocando
      o número aqui, a URL muda e o navegador é obrigado a buscar tudo de novo.
      SEMPRE mude este número ao publicar mudança em .css ou .js. -->
-<link rel="stylesheet" href="app.css?v=20260730k">
+<link rel="stylesheet" href="app.css?v=20260730o">
 </head>
 <body>
 
@@ -661,6 +661,8 @@
     </div>
 
     <div class="folha-corpo">
+      <div id="sugestoesFuroOcorrencia" class="sugestoes-furo oculto"></div>
+
       <div class="linha-dupla">
         <div>
           <label>Data da ocorrência</label>
@@ -712,23 +714,25 @@
   </div>
 </div>
 
-<!-- Modal: Identificar infrator de um furo de reposição (feito na Conferência) -->
+<!-- Modal: Identificar quem levou parte (ou tudo) do saldo em aberto de um furo de reposição (feito na Conferência) -->
 <div class="overlay" id="overlayIdentificarFuro">
   <div class="folha">
-    <h2>Identificar infrator</h2>
+    <h2>Identificar quem levou</h2>
     <div class="subtitulo" id="infoFuroReposicao">—</div>
 
+    <label>Quantidade</label>
+    <input type="number" id="inputQtdFuro" min="1" step="1" value="1">
     <label>Nome</label>
     <input type="text" id="inputPessoaFuro" placeholder="Nome completo">
     <label>WhatsApp (com DDD)</label>
     <input type="text" id="inputWhatsappFuro" placeholder="Ex: 41999998888">
     <div class="linha-dupla">
       <div>
-        <label>Dia da infração</label>
+        <label>Dia que viu na câmera</label>
         <input type="date" id="inputDataInfracaoFuro">
       </div>
       <div>
-        <label>Hora da infração</label>
+        <label>Hora</label>
         <input type="time" id="inputHoraInfracaoFuro">
       </div>
     </div>
@@ -897,11 +901,11 @@
   </div>
 </div>
 
-<script src="shared.js?v=20260730k"></script>
-<script src="conferencia.js?v=20260730k"></script>
-<script src="gestao.js?v=20260730k"></script>
-<script src="reposicao.js?v=20260730k"></script>
-<script src="aquisicao.js?v=20260730k"></script>
+<script src="shared.js?v=20260730o"></script>
+<script src="conferencia.js?v=20260730o"></script>
+<script src="gestao.js?v=20260730o"></script>
+<script src="reposicao.js?v=20260730o"></script>
+<script src="aquisicao.js?v=20260730o"></script>
 <script>
   if (window.lucide) lucide.createIcons();
 </script>

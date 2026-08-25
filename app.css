@@ -812,6 +812,14 @@
     transition: box-shadow .2s ease, transform .2s ease;
   }
   .card-relacao:hover { box-shadow: var(--sombra); transform: translateY(-1px); }
+  /* Já cobrada/paga/prejuízo: continua na lista (é o histórico que a Bárbara
+     pedia de volta), mas esmaecida — o que ainda precisa de ação chama mais
+     atenção. Passa o mouse/toca e volta ao normal pra ler direito.
+     Usa filter (não opacity): a animação de entrada compartilhada com todo
+     .card-relacao já anima opacity até 1 com fill-mode "both", e isso vence
+     qualquer opacity declarada aqui — filter fica de fora dessa disputa. */
+  .card-relacao.resolvida { filter: opacity(68%); }
+  .card-relacao.resolvida:hover, .card-relacao.resolvida:focus-within { filter: none; }
   .card-relacao .topo { display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; }
   .card-relacao .pessoa { font-weight: 700; font-size: 14.5px; }
   .card-relacao .hora { font-size: 12px; color: var(--texto-2); }
@@ -839,6 +847,33 @@
     flex: 1; height: 32px; padding: 0 8px; font-size: 12.5px; background: var(--cinza); border-radius: 10px; font-weight: 600;
   }
   .acoes-relacao button:hover { background: #E2E8F0; }
+
+  /* Saldo de furos de reposição — tabela em vez de cards soltos, pra caber mais
+     produto por tela sem rolar tanto. Rola só na horizontal, e só se precisar
+     (nome de produto comprido), nunca a página inteira. */
+  .tabela-scroll { overflow-x: auto; border-radius: var(--raio); box-shadow: var(--sombra-sm); border: 1px solid var(--borda); background: #fff; }
+  .tabela-furos { width: 100%; border-collapse: collapse; font-size: 13px; }
+  .tabela-furos thead th {
+    text-align: left; font-size: 10.5px; font-weight: 700; color: var(--texto-2); text-transform: uppercase; letter-spacing: .03em;
+    padding: 12px 14px 10px; border-bottom: 1px solid var(--borda); white-space: nowrap;
+  }
+  .tabela-furos tbody td { padding: 10px 14px; border-bottom: 1px solid var(--borda); vertical-align: middle; }
+  .tabela-furos tbody tr:last-child td { border-bottom: none; }
+  .tabela-furos .produto-furo { font-weight: 700; }
+  .tabela-furos .desde-furo { font-size: 11px; color: var(--texto-2); margin-top: 1px; }
+  .tabela-furos .col-numerica { text-align: right; white-space: nowrap; }
+  .tabela-furos .resumo-furo-compacto { display: none; font-size: 12px; font-weight: 600; color: var(--preto); margin-top: 3px; }
+  .tabela-furos tbody button {
+    height: 32px; padding: 0 12px; font-size: 12px; background: var(--cinza); border-radius: 10px; font-weight: 600; white-space: nowrap;
+  }
+  .tabela-furos tbody button:hover { background: #E2E8F0; }
+  /* Tela estreita: as colunas de número saem, o resumo compacto entra no lugar
+     dentro da própria célula do produto — o botão "Identificar" para de disputar
+     espaço com 4 colunas. */
+  @media (max-width: 480px) {
+    .tabela-furos .col-larga { display: none; }
+    .tabela-furos .resumo-furo-compacto { display: block; }
+  }
   .acoes-relacao button.btn-excluir-relacao { background: none; color: var(--vermelho); border: 1px solid #FCA5A5; }
   .acoes-relacao button.btn-excluir-relacao:hover { background: #FEF2F2; }
 
@@ -882,6 +917,19 @@
   }
   .linha-add-item button:hover { background: var(--laranja-escuro); }
   .linha-add-item button svg { width: 20px; height: 20px; }
+
+  /* Sugestão de furo em aberto, no topo do formulário de Registrar ocorrência —
+     mesmo tom de aviso usado em .banner.erro/.banner.sucesso (hex direto, não
+     tem token de "lavado" no :root pra isso). */
+  .sugestoes-furo { background: #FFF7ED; border: 1px solid #FDBA74; border-radius: var(--raio-sm); padding: 10px 12px; margin-bottom: 14px; }
+  .sugestoes-furo-titulo { font-size: 12px; font-weight: 700; color: var(--laranja-escuro); margin-bottom: 8px; }
+  .sugestoes-furo-lista { display: flex; flex-wrap: wrap; gap: 6px; }
+  .chip-sugestao-furo {
+    background: #fff; border: 1px solid #FDBA74; color: var(--laranja-escuro); border-radius: 20px;
+    padding: 6px 12px; font-size: 12.5px; font-weight: 600; display: inline-flex; align-items: center; gap: 6px;
+  }
+  .chip-sugestao-furo:hover { background: #FFEDD5; }
+  .chip-sugestao-furo span { font-size: 10.5px; font-weight: 700; color: var(--texto-2); }
 
   .item-adicionado {
     display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid var(--borda);

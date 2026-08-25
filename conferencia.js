@@ -15,8 +15,8 @@ let diaSelecionado = null; // 'yyyy-mm-dd'
 let itensAdicionados = []; // [{ produto, qtd, preco_unit }] da ocorrência em edição
 let ultimoPayloadFalhou = null; // guarda a última tentativa de salvar ocorrência para permitir reenvio
 let ocorrenciaEmEdicaoId = null; // id da ocorrência sendo corrigida, ou null quando é um registro novo
-let furosReposicaoCondominio = []; // furos de estoque (aba Reposição) do condomínio selecionado, pendentes ou já identificados
-let furoEmIdentificacaoId = null; // id do furo sendo identificado/editado no modal
+let saldosFuroCondominio = []; // [{ produto, saldo, valor, dataMaisAntiga }] do condomínio selecionado, ainda em aberto
+let produtoFuroEmIdentificacao = null; // { produto, saldo, valor, dataMaisAntiga } do saldo aberto no modal de identificar
 
 // ===================== INICIALIZAÇÃO =====================
 function inicializarConferencia() {
@@ -166,7 +166,13 @@ function abrirAcoesDia(dataISO, dia) {
   renderizarRelacaoDia(dataISO);
 }
 
+function ocorrenciaAtiva_(o) { return o.status === 'Pendente' || o.status === 'Identificado'; }
+
 // Mostra, abaixo do calendário, a relação de ocorrências já registradas no dia tocado.
+// Mostra o dia inteiro, ativas e já resolvidas — antes, uma ocorrência cobrada
+// (ou paga/prejuízo) sumia daqui na hora e só dava pra acompanhar pela Gestão;
+// quem usa o dia a dia acabava anotando à parte pra não perder o histórico. As
+// ativas vêm primeiro (é o que ainda precisa de ação), o resto é referência.
 function renderizarRelacaoDia(dataISO) {
   const container = document.getElementById('relacaoDia');
   const titulo = document.getElementById('tituloRelacaoDia');
@@ -175,44 +181,88 @@ function renderizarRelacaoDia(dataISO) {
   titulo.textContent = 'Ocorrências em ' + formatarDataBR(dataISO);
 
   const ocorrenciasDoDia = dadosCalendario.ocorrencias.filter(function (o) { return o.data_ocorrencia === dataISO; });
-  // Uma vez cobrada (ou paga/cancelada), a ocorrência sai da relação da Conferência —
-  // o acompanhamento dali em diante é feito pelo quadro kanban da Gestão.
-  const ocorrenciasAtivas = ocorrenciasDoDia.filter(function (o) { return o.status === 'Pendente' || o.status === 'Identificado'; });
 
-  if (ocorrenciasAtivas.length === 0) {
-    lista.innerHTML = ocorrenciasDoDia.length === 0
-      ? '<div class="vazio-relacao">Nenhuma ocorrência registrada neste dia.</div>'
-      : '<div class="vazio-relacao">Todas as ocorrências deste dia já foram cobradas — acompanhe em Gestão.</div>';
-  } else {
-    lista.innerHTML = ocorrenciasAtivas.map(function (o) {
-      const nomePessoa = o.pessoa || o.descricao_pessoa || 'Desconhecido(a)';
-      const resumoItens = o.itens.map(function (item) { return item.qtd + 'x ' + item.produto; }).join(', ');
-      return '<div class="card-relacao">' +
-        '<div class="topo">' +
-          '<div><div class="pessoa">' + nomePessoa + '</div><div class="hora">' + (o.hora || '—') + '</div></div>' +
-          '<div class="valor">' + formatarMoeda(o.valor_total) + '</div>' +
-        '</div>' +
-        '<div class="itens">' + resumoItens + '</div>' +
-        '<span class="badge-status ' + o.status.toLowerCase() + '">' + o.status + '</span>' +
-        '<div class="acoes-relacao">' +
-          '<button type="button" onclick="editarOcorrenciaDoDia(\'' + o.id + '\')">Editar</button>' +
-          '<button type="button" class="btn-excluir-relacao" onclick="excluirOcorrenciaDoDia(\'' + o.id + '\')">Excluir</button>' +
-        '</div>' +
-      '</div>';
-    }).join('');
+  if (ocorrenciasDoDia.length === 0) {
+    lista.innerHTML = '<div class="vazio-relacao">Nenhuma ocorrência registrada neste dia.</div>';
+    container.classList.remove('oculto');
+    return;
   }
+
+  const ocorrenciasOrdenadas = ocorrenciasDoDia.slice().sort(function (a, b) {
+    const ativaA = ocorrenciaAtiva_(a) ? 0 : 1;
+    const ativaB = ocorrenciaAtiva_(b) ? 0 : 1;
+    if (ativaA !== ativaB) return ativaA - ativaB;
+    return (a.hora || '').localeCompare(b.hora || '');
+  });
+
+  lista.innerHTML = ocorrenciasOrdenadas.map(function (o) {
+    const nomePessoa = o.pessoa || o.descricao_pessoa || 'Desconhecido(a)';
+    const resumoItens = o.itens.map(function (item) { return item.qtd + 'x ' + item.produto; }).join(', ');
+    const resolvida = !ocorrenciaAtiva_(o);
+
+    // Mesma regra da Gestão: itens dão pra corrigir enquanto não pagou (evita
+    // editar algo que já foi cobrado/pago com outro valor); excluir de vez só
+    // antes de qualquer cobrança — depois disso, "Cancelar" é o caminho, e isso
+    // já é feito pela Gestão, não por aqui.
+    let acoes = '';
+    if (o.status !== 'Cancelado' && o.status !== 'Pago') {
+      acoes += '<button type="button" onclick="editarOcorrenciaDoDia(\'' + o.id + '\')">Editar</button>';
+    }
+    if (ocorrenciaAtiva_(o)) {
+      acoes += '<button type="button" class="btn-excluir-relacao" onclick="excluirOcorrenciaDoDia(\'' + o.id + '\')">Excluir</button>';
+    }
+
+    return '<div class="card-relacao' + (resolvida ? ' resolvida' : '') + '">' +
+      '<div class="topo">' +
+        '<div><div class="pessoa">' + nomePessoa + '</div><div class="hora">' + (o.hora || '—') + '</div></div>' +
+        '<div class="valor">' + formatarMoeda(o.valor_total) + '</div>' +
+      '</div>' +
+      '<div class="itens">' + resumoItens + '</div>' +
+      '<span class="badge-status ' + o.status.toLowerCase() + '">' + rotuloStatus_(o.status) + '</span>' +
+      (acoes ? '<div class="acoes-relacao">' + acoes + '</div>' : '') +
+    '</div>';
+  }).join('');
 
   container.classList.remove('oculto');
 }
 
-// ===================== FUROS DE REPOSIÇÃO (identificação do infrator) =====================
-// Lista, por condomínio, os furos de estoque lançados na Reposição — pendentes e já
-// identificados. A Barby identifica quem foi aqui; produto/quantidade/valor/data do
-// furo são só-leitura (pertencem à Reposição). Uma vez identificado, o furo vira uma
-// Ocorrência (ocorrencia_id) — quando essa Ocorrência é cobrada (ou paga/cancelada/
-// dada como prejuízo), o furo sai daqui também, porque o acompanhamento passa a ser
-// feito pela Gestão.
-const STATUS_OCORRENCIA_RESOLVIDA_ = ['Cobrado', 'Pago', 'Cancelado', 'Prejuizo'];
+// ===================== SALDO DE FUROS DE REPOSIÇÃO =====================
+// Cada furo lançado na Reposição (ex: "3 Cocas") entra aqui como saldo em
+// aberto daquele produto, no condomínio — somando com outros lançamentos do
+// mesmo produto que ainda não tenham sido totalmente identificados. A Bárbara
+// vai abatendo esse saldo aos poucos, conforme reconhece gente na câmera
+// (1 unidade hoje, mais 2 amanhã, por exemplo), até zerar — não precisa
+// resolver o furo inteiro de uma vez. Cada abatimento vira uma Ocorrência de
+// verdade (mesmo fluxo que a Gestão já sabe cobrar); se um lançamento antigo
+// não for suficiente pra cobrir a quantidade pedida, o backend consome também
+// o(s) lançamento(s) seguinte(s) do mesmo produto, do mais antigo pro mais
+// novo (FIFO) — por isso o saldo mostrado aqui pode somar mais de um
+// lançamento sem a Bárbara precisar saber qual é qual.
+function calcularSaldosFuro_(reposicoes, ocorrencias, condominio) {
+  const jaIdentificado = {};
+  ocorrencias.forEach(function (o) {
+    if (!o.furo_reposicao_id || o.status === 'Cancelado') return;
+    const qtd = o.itens.reduce(function (soma, item) { return soma + (Number(item.qtd) || 0); }, 0);
+    jaIdentificado[o.furo_reposicao_id] = (jaIdentificado[o.furo_reposicao_id] || 0) + qtd;
+  });
+
+  const porProduto = {};
+  reposicoes
+    .filter(function (r) { return r.condominio === condominio && r.status !== 'Identificado'; })
+    .forEach(function (r) {
+      const restante = (Number(r.quantidade) || 0) - (jaIdentificado[r.id] || 0);
+      if (restante <= 0) return;
+      if (!porProduto[r.produto]) porProduto[r.produto] = { produto: r.produto, saldo: 0, valor: 0, dataMaisAntiga: r.data };
+      const entrada = porProduto[r.produto];
+      entrada.saldo += restante;
+      entrada.valor += restante * (Number(r.preco_unit) || 0);
+      if (String(r.data) < String(entrada.dataMaisAntiga)) entrada.dataMaisAntiga = r.data;
+    });
+
+  return Object.keys(porProduto).map(function (produto) { return porProduto[produto]; })
+    .sort(function (a, b) { return String(a.dataMaisAntiga).localeCompare(String(b.dataMaisAntiga)); });
+}
+
 async function carregarFurosReposicao() {
   const container = document.getElementById('furosPendentes');
   if (!condominioAtual) {
@@ -227,16 +277,7 @@ async function carregarFurosReposicao() {
     if (!respostaReposicoes.ok) throw new Error(respostaReposicoes.erro);
     if (!respostaOcorrencias.ok) throw new Error(respostaOcorrencias.erro);
 
-    const statusOcorrenciaPorId = {};
-    respostaOcorrencias.dados.forEach(function (o) { statusOcorrenciaPorId[o.id] = o.status; });
-
-    furosReposicaoCondominio = respostaReposicoes.dados
-      .filter(function (r) { return r.condominio === condominioAtual; })
-      .filter(function (r) {
-        const statusOcorrencia = r.ocorrencia_id ? statusOcorrenciaPorId[r.ocorrencia_id] : null;
-        return STATUS_OCORRENCIA_RESOLVIDA_.indexOf(statusOcorrencia) === -1;
-      })
-      .sort(function (a, b) { return String(b.data).localeCompare(String(a.data)); });
+    saldosFuroCondominio = calcularSaldosFuro_(respostaReposicoes.dados, respostaOcorrencias.dados, condominioAtual);
     renderizarFurosReposicao();
   } catch (err) {
     container.classList.remove('oculto');
@@ -248,40 +289,49 @@ function renderizarFurosReposicao() {
   const container = document.getElementById('furosPendentes');
   const lista = document.getElementById('listaFurosPendentes');
 
-  if (furosReposicaoCondominio.length === 0) {
+  if (saldosFuroCondominio.length === 0) {
     container.classList.add('oculto');
     return;
   }
 
-  lista.innerHTML = furosReposicaoCondominio.map(function (r) {
-    const rotuloBotao = r.status === 'Identificado' ? 'Editar identificação' : 'Identificar';
-    return '<div class="card-relacao">' +
-      '<div class="topo">' +
-        '<div><div class="pessoa">' + r.produto + '</div><div class="hora">' + formatarDataBR(r.data) + '</div></div>' +
-        '<div class="valor">' + formatarMoeda(r.valor_total) + '</div>' +
-      '</div>' +
-      '<div class="itens">' + r.quantidade + 'x — ' + (r.pessoa || 'Ainda não identificado') + '</div>' +
-      '<span class="badge-status ' + r.status.toLowerCase() + '">' + r.status + '</span>' +
-      '<div class="acoes-relacao">' +
-        '<button type="button" onclick="abrirIdentificarFuro(\'' + r.id + '\')">' + rotuloBotao + '</button>' +
-      '</div>' +
-    '</div>';
+  const linhas = saldosFuroCondominio.map(function (s, indice) {
+    const rotuloSaldo = s.saldo + (s.saldo === 1 ? ' un.' : ' un.');
+    return '<tr>' +
+      '<td>' +
+        '<div class="produto-furo">' + s.produto + '</div>' +
+        '<div class="desde-furo">desde ' + formatarDataBR(s.dataMaisAntiga) + '</div>' +
+        '<div class="resumo-furo-compacto">' + rotuloSaldo + ' · ' + formatarMoeda(s.valor) + '</div>' +
+      '</td>' +
+      '<td class="col-numerica col-larga">' + rotuloSaldo + '</td>' +
+      '<td class="col-numerica col-larga">' + formatarMoeda(s.valor) + '</td>' +
+      '<td><button type="button" onclick="abrirIdentificarFuro(' + indice + ')">Identificar</button></td>' +
+    '</tr>';
   }).join('');
+
+  // Abaixo de 480px, as colunas "Em aberto"/"Valor" (col-larga) somem via CSS e
+  // o resumo compacto (escondido até ali) aparece no lugar — o botão de ação
+  // fica com espaço de sobra em vez de disputar largura com 4 colunas.
+  lista.innerHTML = '<div class="tabela-scroll"><table class="tabela-furos">' +
+    '<thead><tr><th>Produto</th><th class="col-numerica col-larga">Em aberto</th><th class="col-numerica col-larga">Valor</th><th></th></tr></thead>' +
+    '<tbody>' + linhas + '</tbody>' +
+  '</table></div>';
 
   container.classList.remove('oculto');
 }
 
-function abrirIdentificarFuro(id) {
-  const r = furosReposicaoCondominio.find(function (x) { return x.id === id; });
-  if (!r) return;
+function abrirIdentificarFuro(indice) {
+  const s = saldosFuroCondominio[indice];
+  if (!s) return;
 
-  furoEmIdentificacaoId = id;
+  produtoFuroEmIdentificacao = s;
   document.getElementById('infoFuroReposicao').textContent =
-    r.condominio + ' — ' + formatarDataBR(r.data) + ' — ' + r.quantidade + 'x ' + r.produto + ' — ' + formatarMoeda(r.valor_total);
-  document.getElementById('inputPessoaFuro').value = r.pessoa || '';
-  document.getElementById('inputWhatsappFuro').value = r.contato_whatsapp || '';
-  document.getElementById('inputDataInfracaoFuro').value = r.data_infracao || r.data;
-  document.getElementById('inputHoraInfracaoFuro').value = r.hora_infracao || '';
+    condominioAtual + ' — ' + s.produto + ' — ' + s.saldo + (s.saldo === 1 ? ' unidade' : ' unidades') + ' em aberto (' + formatarMoeda(s.valor) + ')';
+  document.getElementById('inputQtdFuro').value = 1;
+  document.getElementById('inputQtdFuro').max = s.saldo;
+  document.getElementById('inputPessoaFuro').value = '';
+  document.getElementById('inputWhatsappFuro').value = '';
+  document.getElementById('inputDataInfracaoFuro').value = formatarISO(new Date());
+  document.getElementById('inputHoraInfracaoFuro').value = '';
   document.getElementById('bannerIdentificarFuro').className = 'banner';
   document.getElementById('bannerIdentificarFuro').textContent = '';
   abrirModal('overlayIdentificarFuro');
@@ -290,16 +340,25 @@ function abrirIdentificarFuro(id) {
 async function salvarIdentificacaoFuro() {
   const banner = document.getElementById('bannerIdentificarFuro');
   const pessoa = document.getElementById('inputPessoaFuro').value.trim();
+  const quantidade = Math.max(1, parseInt(document.getElementById('inputQtdFuro').value, 10) || 0);
+
   if (!pessoa) {
     banner.className = 'banner erro';
     banner.textContent = 'Digite o nome da pessoa.';
+    return;
+  }
+  if (!produtoFuroEmIdentificacao || quantidade > produtoFuroEmIdentificacao.saldo) {
+    banner.className = 'banner erro';
+    banner.textContent = 'Quantidade maior que o saldo em aberto.';
     return;
   }
 
   try {
     const resposta = await chamarApi({
       action: 'identificarFuroReposicao',
-      id: furoEmIdentificacaoId,
+      condominio: condominioAtual,
+      produto: produtoFuroEmIdentificacao.produto,
+      quantidade: quantidade,
       pessoa: pessoa,
       contato_whatsapp: document.getElementById('inputWhatsappFuro').value.trim(),
       data_infracao: document.getElementById('inputDataInfracaoFuro').value,
@@ -378,7 +437,39 @@ function abrirFormularioOcorrencia(ocorrencia) {
   document.getElementById('bannerOcorrencia').className = 'banner';
   document.getElementById('bannerOcorrencia').textContent = '';
   renderizarItensAdicionados();
+  // Sugestão só faz sentido pra ocorrência nova — quem está editando uma já
+  // registrada não está "reconhecendo alguém na câmera agora".
+  renderizarSugestoesFuro_(!ocorrencia);
   abrirModal('overlayOcorrencia');
+}
+
+// Lembra, na hora de registrar, que já existe furo de reposição em aberto
+// pra esse condomínio — ela reconheceu alguém na câmera, mas em vez de digitar
+// o produto do zero, um clique já leva direto pro fluxo que sabe abater do
+// saldo (com FIFO entre lançamentos e tudo mais), em vez de criar uma
+// ocorrência solta que não bate com o furo lançado na Reposição.
+function renderizarSugestoesFuro_(mostrar) {
+  const container = document.getElementById('sugestoesFuroOcorrencia');
+  if (!mostrar || saldosFuroCondominio.length === 0) {
+    container.classList.add('oculto');
+    container.innerHTML = '';
+    return;
+  }
+
+  container.innerHTML = '<div class="sugestoes-furo-titulo">Tem furo de reposição em aberto — é um desses?</div>' +
+    '<div class="sugestoes-furo-lista">' +
+      saldosFuroCondominio.map(function (s, indice) {
+        return '<button type="button" class="chip-sugestao-furo" onclick="usarFuroNaOcorrencia_(' + indice + ')">' +
+          s.produto + ' <span>' + s.saldo + (s.saldo === 1 ? ' un.' : ' un.') + '</span>' +
+        '</button>';
+      }).join('') +
+    '</div>';
+  container.classList.remove('oculto');
+}
+
+function usarFuroNaOcorrencia_(indice) {
+  fecharModal('overlayOcorrencia');
+  abrirIdentificarFuro(indice);
 }
 
 function editarOcorrenciaDoDia(id) {

@@ -25,7 +25,7 @@ const NOMES_ABAS = {
 };
 
 const CABECALHOS = {
-  Ocorrencias: ['id', 'condominio', 'data_ocorrencia', 'hora', 'pessoa', 'descricao_pessoa', 'itens', 'valor_total', 'observacao', 'status', 'contato_whatsapp', 'data_registro', 'data_cobranca', 'data_pagamento', 'data_prejuizo', 'grupo_cobranca_id'],
+  Ocorrencias: ['id', 'condominio', 'data_ocorrencia', 'hora', 'pessoa', 'descricao_pessoa', 'itens', 'valor_total', 'observacao', 'status', 'contato_whatsapp', 'data_registro', 'data_cobranca', 'data_pagamento', 'data_prejuizo', 'grupo_cobranca_id', 'furo_reposicao_id'],
   DiasFechados: ['condominio', 'data', 'status_dia', 'registrado_em'],
   Produtos: ['nome', 'preco', 'ativo', 'categoria', 'margem_pct', 'custo_atual', 'data_custo', 'preco_travado'],
   Pessoas: ['nome', 'condominio', 'contato_whatsapp', 'observacao'],
@@ -495,10 +495,11 @@ function criarOcorrenciaLinha_(params) {
     '',
     '',
     '',
-    params.grupo_cobranca_id || ''
+    params.grupo_cobranca_id || '',
+    params.furo_reposicao_id || ''
   ];
   const proximaLinha = aba.getLastRow() + 1;
-  escreverLinhaComoTexto_(aba, proximaLinha, linha, [3, 4, 12, 13, 14, 15, 16]);
+  escreverLinhaComoTexto_(aba, proximaLinha, linha, [3, 4, 12, 13, 14, 15, 16, 17]);
   return { id: id };
 }
 
@@ -506,7 +507,7 @@ function criarOcorrencia_(params) {
   return comTravamento_(function () { return criarOcorrenciaLinha_(params); });
 }
 
-const COLUNAS_TEXTO_OCORRENCIAS_ = { data_ocorrencia: true, hora: true, data_cobranca: true, data_pagamento: true, data_prejuizo: true, grupo_cobranca_id: true };
+const COLUNAS_TEXTO_OCORRENCIAS_ = { data_ocorrencia: true, hora: true, data_cobranca: true, data_pagamento: true, data_prejuizo: true, grupo_cobranca_id: true, furo_reposicao_id: true };
 
 // Sem trava própria, mesmo motivo de criarOcorrenciaLinha_ acima.
 function atualizarOcorrenciaCampos_(id, params) {
@@ -639,62 +640,106 @@ function atualizarReposicao_(params) {
   });
 }
 
-// Chamada a partir da Conferência: Barby identifica quem pegou o produto do furo.
-// Só mexe nos campos dela — nunca em produto/quantidade/valor/condomínio/data do furo.
-// Além de gravar a identificação em si, promove o furo pra uma Ocorrência de
-// verdade (mesma aba/fluxo que a Gestão já sabe cobrar) — na primeira vez que o
-// furo é identificado, cria a Ocorrência e guarda o vínculo em ocorrencia_id; se
-// a Barby usar "Editar identificação" depois pra corrigir algo, atualiza a
-// Ocorrência já criada em vez de duplicar.
+// Quanto de cada lançamento de reposição já foi identificado, somando os itens
+// de toda Ocorrência ligada a ele (furo_reposicao_id) que não tenha sido
+// cancelada — uma identificação cancelada (falso positivo) devolve a
+// quantidade pro saldo em aberto do furo.
+function identificadoPorFuro_(cabecalhoOc, valoresOc) {
+  const colStatus = cabecalhoOc.indexOf('status');
+  const colItens = cabecalhoOc.indexOf('itens');
+  const colFuroId = cabecalhoOc.indexOf('furo_reposicao_id');
+  const mapa = {};
+  for (let i = 1; i < valoresOc.length; i++) {
+    const furoId = valoresOc[i][colFuroId];
+    if (!furoId || valoresOc[i][colStatus] === 'Cancelado') continue;
+    let itens = [];
+    try { itens = JSON.parse(valoresOc[i][colItens] || '[]'); } catch (err) { itens = []; }
+    const qtd = itens.reduce(function (soma, item) { return soma + (Number(item.qtd) || 0); }, 0);
+    mapa[furoId] = (mapa[furoId] || 0) + qtd;
+  }
+  return mapa;
+}
+
+// Chamada a partir da Conferência: a Bárbara identifica quem levou uma parte
+// (ou tudo) do saldo em aberto de um produto, num condomínio. Um furo não é
+// mais tudo-ou-nada — ela pode ir abatendo aos poucos, em dias diferentes,
+// conforme reconhece gente na câmera. A quantidade pedida é descontada dos
+// lançamentos de reposição mais antigos primeiro (FIFO); se um único
+// lançamento não bastar, consome também o(s) seguinte(s), gerando uma
+// Ocorrência para cada lançamento tocado (todas com a mesma pessoa/contato/
+// data/hora informados) — é assim que o saldo mostrado já soma vários
+// lançamentos do mesmo produto, mas cada um mantém seu próprio histórico.
 function identificarFuroReposicao_(params) {
   return comTravamento_(function () {
-    const aba = obterAba_(NOMES_ABAS.REPOSICOES);
-    const valores = aba.getDataRange().getValues();
-    const cabecalho = valores[0];
-    const colId = cabecalho.indexOf('id');
-    const colStatus = cabecalho.indexOf('status');
-    const colOcorrenciaId = cabecalho.indexOf('ocorrencia_id');
+    const quantidadeAlvo = Math.floor(Number(params.quantidade) || 0);
+    if (quantidadeAlvo <= 0) throw new Error('Quantidade inválida.');
+    if (!params.pessoa) throw new Error('Informe o nome da pessoa.');
 
-    for (let i = 1; i < valores.length; i++) {
-      if (valores[i][colId] === params.id) {
-        const linhaPlanilha = i + 1;
-        const linhaAtual = valores[i];
-        const camposPermitidos = ['pessoa', 'contato_whatsapp', 'data_infracao', 'hora_infracao'];
-        camposPermitidos.forEach(function (campo) {
-          if (Object.prototype.hasOwnProperty.call(params, campo)) {
-            const col = cabecalho.indexOf(campo);
-            if (campo === 'data_infracao' || campo === 'hora_infracao') aba.getRange(linhaPlanilha, col + 1).setNumberFormat('@');
-            aba.getRange(linhaPlanilha, col + 1).setValue(params[campo]);
-          }
-        });
-        aba.getRange(linhaPlanilha, colStatus + 1).setValue('Identificado');
+    const abaRep = obterAba_(NOMES_ABAS.REPOSICOES);
+    const valoresRep = abaRep.getDataRange().getValues();
+    const cabecalhoRep = valoresRep[0];
+    const colId = cabecalhoRep.indexOf('id');
+    const colCondominio = cabecalhoRep.indexOf('condominio');
+    const colProduto = cabecalhoRep.indexOf('produto');
+    const colQuantidade = cabecalhoRep.indexOf('quantidade');
+    const colPrecoUnit = cabecalhoRep.indexOf('preco_unit');
+    const colStatus = cabecalhoRep.indexOf('status');
+    const colData = cabecalhoRep.indexOf('data');
 
-        const ocorrenciaIdExistente = linhaAtual[colOcorrenciaId];
-        const camposOcorrencia = {
-          pessoa: params.pessoa,
-          contato_whatsapp: params.contato_whatsapp || '',
-          data_ocorrencia: params.data_infracao || linhaAtual[cabecalho.indexOf('data')],
-          hora: params.hora_infracao || ''
-        };
+    const abaOc = obterAba_(NOMES_ABAS.OCORRENCIAS);
+    const cabecalhoOc = garantirColunasOcorrencias_(abaOc, abaOc.getRange(1, 1, 1, Math.max(abaOc.getLastColumn(), 1)).getValues()[0]);
+    const valoresOc = abaOc.getDataRange().getValues();
+    const jaIdentificado = identificadoPorFuro_(cabecalhoOc, valoresOc);
 
-        if (ocorrenciaIdExistente) {
-          atualizarOcorrenciaCampos_(ocorrenciaIdExistente, camposOcorrencia);
-        } else {
-          const quantidade = Number(linhaAtual[cabecalho.indexOf('quantidade')]) || 0;
-          const precoUnit = Number(linhaAtual[cabecalho.indexOf('preco_unit')]) || 0;
-          const resultado = criarOcorrenciaLinha_(Object.assign({
-            condominio: linhaAtual[cabecalho.indexOf('condominio')],
-            itens: [{ produto: linhaAtual[cabecalho.indexOf('produto')], qtd: quantidade, preco_unit: precoUnit }],
-            valor_total: Number(linhaAtual[cabecalho.indexOf('valor_total')]) || 0,
-            observacao: 'Furo de reposição identificado durante reabastecimento.'
-          }, camposOcorrencia));
-          aba.getRange(linhaPlanilha, colOcorrenciaId + 1).setValue(resultado.id);
-        }
-
-        return { identificado: true };
-      }
+    const candidatas = [];
+    for (let i = 1; i < valoresRep.length; i++) {
+      if (valoresRep[i][colCondominio] !== params.condominio) continue;
+      if (valoresRep[i][colProduto] !== params.produto) continue;
+      if (valoresRep[i][colStatus] === 'Identificado') continue;
+      const idLinha = valoresRep[i][colId];
+      const restante = (Number(valoresRep[i][colQuantidade]) || 0) - (jaIdentificado[idLinha] || 0);
+      if (restante <= 0) continue;
+      candidatas.push({
+        linhaPlanilha: i + 1,
+        id: idLinha,
+        restante: restante,
+        precoUnit: Number(valoresRep[i][colPrecoUnit]) || 0,
+        data: valoresRep[i][colData]
+      });
     }
-    throw new Error('Reposição não encontrada: ' + params.id);
+    candidatas.sort(function (a, b) { return String(a.data).localeCompare(String(b.data)); });
+
+    const saldoTotal = candidatas.reduce(function (soma, c) { return soma + c.restante; }, 0);
+    if (quantidadeAlvo > saldoTotal) {
+      throw new Error('Só há ' + saldoTotal + ' unidade(s) em aberto desse produto.');
+    }
+
+    const idsGerados = [];
+    let faltaConsumir = quantidadeAlvo;
+    candidatas.forEach(function (c) {
+      if (faltaConsumir <= 0) return;
+      const consumida = Math.min(faltaConsumir, c.restante);
+      faltaConsumir -= consumida;
+
+      const resultado = criarOcorrenciaLinha_({
+        condominio: params.condominio,
+        itens: [{ produto: params.produto, qtd: consumida, preco_unit: c.precoUnit }],
+        valor_total: consumida * c.precoUnit,
+        pessoa: params.pessoa,
+        contato_whatsapp: params.contato_whatsapp || '',
+        data_ocorrencia: params.data_infracao || c.data,
+        hora: params.hora_infracao || '',
+        observacao: 'Furo de reposição identificado durante reabastecimento.',
+        furo_reposicao_id: c.id
+      });
+      idsGerados.push(resultado.id);
+
+      if (consumida >= c.restante) {
+        abaRep.getRange(c.linhaPlanilha, colStatus + 1).setValue('Identificado');
+      }
+    });
+
+    return { identificado: true, ocorrencias: idsGerados };
   });
 }
 
