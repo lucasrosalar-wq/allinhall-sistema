@@ -15,8 +15,8 @@ let diaSelecionado = null; // 'yyyy-mm-dd'
 let itensAdicionados = []; // [{ produto, qtd, preco_unit }] da ocorrência em edição
 let ultimoPayloadFalhou = null; // guarda a última tentativa de salvar ocorrência para permitir reenvio
 let ocorrenciaEmEdicaoId = null; // id da ocorrência sendo corrigida, ou null quando é um registro novo
-let furosReposicaoCondominio = []; // furos de estoque (aba Reposição) do condomínio selecionado, pendentes ou já identificados
-let furoEmIdentificacaoId = null; // id do furo sendo identificado/editado no modal
+let saldosFuroCondominio = []; // [{ produto, saldo, valor, dataMaisAntiga }] do condomínio selecionado, ainda em aberto
+let produtoFuroEmIdentificacao = null; // { produto, saldo, valor, dataMaisAntiga } do saldo aberto no modal de identificar
 
 // ===================== INICIALIZAÇÃO =====================
 function inicializarConferencia() {
@@ -226,14 +226,43 @@ function renderizarRelacaoDia(dataISO) {
   container.classList.remove('oculto');
 }
 
-// ===================== FUROS DE REPOSIÇÃO (identificação do infrator) =====================
-// Lista, por condomínio, os furos de estoque lançados na Reposição — pendentes e já
-// identificados. A Barby identifica quem foi aqui; produto/quantidade/valor/data do
-// furo são só-leitura (pertencem à Reposição). Uma vez identificado, o furo vira uma
-// Ocorrência (ocorrencia_id) — quando essa Ocorrência é cobrada (ou paga/cancelada/
-// dada como prejuízo), o furo sai daqui também, porque o acompanhamento passa a ser
-// feito pela Gestão.
-const STATUS_OCORRENCIA_RESOLVIDA_ = ['Cobrado', 'Pago', 'Cancelado', 'Prejuizo'];
+// ===================== SALDO DE FUROS DE REPOSIÇÃO =====================
+// Cada furo lançado na Reposição (ex: "3 Cocas") entra aqui como saldo em
+// aberto daquele produto, no condomínio — somando com outros lançamentos do
+// mesmo produto que ainda não tenham sido totalmente identificados. A Bárbara
+// vai abatendo esse saldo aos poucos, conforme reconhece gente na câmera
+// (1 unidade hoje, mais 2 amanhã, por exemplo), até zerar — não precisa
+// resolver o furo inteiro de uma vez. Cada abatimento vira uma Ocorrência de
+// verdade (mesmo fluxo que a Gestão já sabe cobrar); se um lançamento antigo
+// não for suficiente pra cobrir a quantidade pedida, o backend consome também
+// o(s) lançamento(s) seguinte(s) do mesmo produto, do mais antigo pro mais
+// novo (FIFO) — por isso o saldo mostrado aqui pode somar mais de um
+// lançamento sem a Bárbara precisar saber qual é qual.
+function calcularSaldosFuro_(reposicoes, ocorrencias, condominio) {
+  const jaIdentificado = {};
+  ocorrencias.forEach(function (o) {
+    if (!o.furo_reposicao_id || o.status === 'Cancelado') return;
+    const qtd = o.itens.reduce(function (soma, item) { return soma + (Number(item.qtd) || 0); }, 0);
+    jaIdentificado[o.furo_reposicao_id] = (jaIdentificado[o.furo_reposicao_id] || 0) + qtd;
+  });
+
+  const porProduto = {};
+  reposicoes
+    .filter(function (r) { return r.condominio === condominio && r.status !== 'Identificado'; })
+    .forEach(function (r) {
+      const restante = (Number(r.quantidade) || 0) - (jaIdentificado[r.id] || 0);
+      if (restante <= 0) return;
+      if (!porProduto[r.produto]) porProduto[r.produto] = { produto: r.produto, saldo: 0, valor: 0, dataMaisAntiga: r.data };
+      const entrada = porProduto[r.produto];
+      entrada.saldo += restante;
+      entrada.valor += restante * (Number(r.preco_unit) || 0);
+      if (String(r.data) < String(entrada.dataMaisAntiga)) entrada.dataMaisAntiga = r.data;
+    });
+
+  return Object.keys(porProduto).map(function (produto) { return porProduto[produto]; })
+    .sort(function (a, b) { return String(a.dataMaisAntiga).localeCompare(String(b.dataMaisAntiga)); });
+}
+
 async function carregarFurosReposicao() {
   const container = document.getElementById('furosPendentes');
   if (!condominioAtual) {
@@ -248,16 +277,7 @@ async function carregarFurosReposicao() {
     if (!respostaReposicoes.ok) throw new Error(respostaReposicoes.erro);
     if (!respostaOcorrencias.ok) throw new Error(respostaOcorrencias.erro);
 
-    const statusOcorrenciaPorId = {};
-    respostaOcorrencias.dados.forEach(function (o) { statusOcorrenciaPorId[o.id] = o.status; });
-
-    furosReposicaoCondominio = respostaReposicoes.dados
-      .filter(function (r) { return r.condominio === condominioAtual; })
-      .filter(function (r) {
-        const statusOcorrencia = r.ocorrencia_id ? statusOcorrenciaPorId[r.ocorrencia_id] : null;
-        return STATUS_OCORRENCIA_RESOLVIDA_.indexOf(statusOcorrencia) === -1;
-      })
-      .sort(function (a, b) { return String(b.data).localeCompare(String(a.data)); });
+    saldosFuroCondominio = calcularSaldosFuro_(respostaReposicoes.dados, respostaOcorrencias.dados, condominioAtual);
     renderizarFurosReposicao();
   } catch (err) {
     container.classList.remove('oculto');
@@ -269,22 +289,20 @@ function renderizarFurosReposicao() {
   const container = document.getElementById('furosPendentes');
   const lista = document.getElementById('listaFurosPendentes');
 
-  if (furosReposicaoCondominio.length === 0) {
+  if (saldosFuroCondominio.length === 0) {
     container.classList.add('oculto');
     return;
   }
 
-  lista.innerHTML = furosReposicaoCondominio.map(function (r) {
-    const rotuloBotao = r.status === 'Identificado' ? 'Editar identificação' : 'Identificar';
+  lista.innerHTML = saldosFuroCondominio.map(function (s, indice) {
     return '<div class="card-relacao">' +
       '<div class="topo">' +
-        '<div><div class="pessoa">' + r.produto + '</div><div class="hora">' + formatarDataBR(r.data) + '</div></div>' +
-        '<div class="valor">' + formatarMoeda(r.valor_total) + '</div>' +
+        '<div><div class="pessoa">' + s.produto + '</div><div class="hora">desde ' + formatarDataBR(s.dataMaisAntiga) + '</div></div>' +
+        '<div class="valor">' + formatarMoeda(s.valor) + '</div>' +
       '</div>' +
-      '<div class="itens">' + r.quantidade + 'x — ' + (r.pessoa || 'Ainda não identificado') + '</div>' +
-      '<span class="badge-status ' + r.status.toLowerCase() + '">' + r.status + '</span>' +
+      '<div class="itens">' + s.saldo + (s.saldo === 1 ? ' unidade em aberto' : ' unidades em aberto') + '</div>' +
       '<div class="acoes-relacao">' +
-        '<button type="button" onclick="abrirIdentificarFuro(\'' + r.id + '\')">' + rotuloBotao + '</button>' +
+        '<button type="button" onclick="abrirIdentificarFuro(' + indice + ')">Identificar</button>' +
       '</div>' +
     '</div>';
   }).join('');
@@ -292,17 +310,19 @@ function renderizarFurosReposicao() {
   container.classList.remove('oculto');
 }
 
-function abrirIdentificarFuro(id) {
-  const r = furosReposicaoCondominio.find(function (x) { return x.id === id; });
-  if (!r) return;
+function abrirIdentificarFuro(indice) {
+  const s = saldosFuroCondominio[indice];
+  if (!s) return;
 
-  furoEmIdentificacaoId = id;
+  produtoFuroEmIdentificacao = s;
   document.getElementById('infoFuroReposicao').textContent =
-    r.condominio + ' — ' + formatarDataBR(r.data) + ' — ' + r.quantidade + 'x ' + r.produto + ' — ' + formatarMoeda(r.valor_total);
-  document.getElementById('inputPessoaFuro').value = r.pessoa || '';
-  document.getElementById('inputWhatsappFuro').value = r.contato_whatsapp || '';
-  document.getElementById('inputDataInfracaoFuro').value = r.data_infracao || r.data;
-  document.getElementById('inputHoraInfracaoFuro').value = r.hora_infracao || '';
+    condominioAtual + ' — ' + s.produto + ' — ' + s.saldo + (s.saldo === 1 ? ' unidade' : ' unidades') + ' em aberto (' + formatarMoeda(s.valor) + ')';
+  document.getElementById('inputQtdFuro').value = 1;
+  document.getElementById('inputQtdFuro').max = s.saldo;
+  document.getElementById('inputPessoaFuro').value = '';
+  document.getElementById('inputWhatsappFuro').value = '';
+  document.getElementById('inputDataInfracaoFuro').value = formatarISO(new Date());
+  document.getElementById('inputHoraInfracaoFuro').value = '';
   document.getElementById('bannerIdentificarFuro').className = 'banner';
   document.getElementById('bannerIdentificarFuro').textContent = '';
   abrirModal('overlayIdentificarFuro');
@@ -311,16 +331,25 @@ function abrirIdentificarFuro(id) {
 async function salvarIdentificacaoFuro() {
   const banner = document.getElementById('bannerIdentificarFuro');
   const pessoa = document.getElementById('inputPessoaFuro').value.trim();
+  const quantidade = Math.max(1, parseInt(document.getElementById('inputQtdFuro').value, 10) || 0);
+
   if (!pessoa) {
     banner.className = 'banner erro';
     banner.textContent = 'Digite o nome da pessoa.';
+    return;
+  }
+  if (!produtoFuroEmIdentificacao || quantidade > produtoFuroEmIdentificacao.saldo) {
+    banner.className = 'banner erro';
+    banner.textContent = 'Quantidade maior que o saldo em aberto.';
     return;
   }
 
   try {
     const resposta = await chamarApi({
       action: 'identificarFuroReposicao',
-      id: furoEmIdentificacaoId,
+      condominio: condominioAtual,
+      produto: produtoFuroEmIdentificacao.produto,
+      quantidade: quantidade,
       pessoa: pessoa,
       contato_whatsapp: document.getElementById('inputWhatsappFuro').value.trim(),
       data_infracao: document.getElementById('inputDataInfracaoFuro').value,
