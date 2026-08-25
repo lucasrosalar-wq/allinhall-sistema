@@ -891,6 +891,19 @@
   .linha-add-item button:hover { background: var(--laranja-escuro); }
   .linha-add-item button svg { width: 20px; height: 20px; }
 
+  /* Sugestão de furo em aberto, no topo do formulário de Registrar ocorrência —
+     mesmo tom de aviso usado em .banner.erro/.banner.sucesso (hex direto, não
+     tem token de "lavado" no :root pra isso). */
+  .sugestoes-furo { background: #FFF7ED; border: 1px solid #FDBA74; border-radius: var(--raio-sm); padding: 10px 12px; margin-bottom: 14px; }
+  .sugestoes-furo-titulo { font-size: 12px; font-weight: 700; color: var(--laranja-escuro); margin-bottom: 8px; }
+  .sugestoes-furo-lista { display: flex; flex-wrap: wrap; gap: 6px; }
+  .chip-sugestao-furo {
+    background: #fff; border: 1px solid #FDBA74; color: var(--laranja-escuro); border-radius: 20px;
+    padding: 6px 12px; font-size: 12.5px; font-weight: 600; display: inline-flex; align-items: center; gap: 6px;
+  }
+  .chip-sugestao-furo:hover { background: #FFEDD5; }
+  .chip-sugestao-furo span { font-size: 10.5px; font-weight: 700; color: var(--texto-2); }
+
   .item-adicionado {
     display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid var(--borda);
   }

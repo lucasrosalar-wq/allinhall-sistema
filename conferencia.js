@@ -428,7 +428,39 @@ function abrirFormularioOcorrencia(ocorrencia) {
   document.getElementById('bannerOcorrencia').className = 'banner';
   document.getElementById('bannerOcorrencia').textContent = '';
   renderizarItensAdicionados();
+  // Sugestão só faz sentido pra ocorrência nova — quem está editando uma já
+  // registrada não está "reconhecendo alguém na câmera agora".
+  renderizarSugestoesFuro_(!ocorrencia);
   abrirModal('overlayOcorrencia');
+}
+
+// Lembra, na hora de registrar, que já existe furo de reposição em aberto
+// pra esse condomínio — ela reconheceu alguém na câmera, mas em vez de digitar
+// o produto do zero, um clique já leva direto pro fluxo que sabe abater do
+// saldo (com FIFO entre lançamentos e tudo mais), em vez de criar uma
+// ocorrência solta que não bate com o furo lançado na Reposição.
+function renderizarSugestoesFuro_(mostrar) {
+  const container = document.getElementById('sugestoesFuroOcorrencia');
+  if (!mostrar || saldosFuroCondominio.length === 0) {
+    container.classList.add('oculto');
+    container.innerHTML = '';
+    return;
+  }
+
+  container.innerHTML = '<div class="sugestoes-furo-titulo">Tem furo de reposição em aberto — é um desses?</div>' +
+    '<div class="sugestoes-furo-lista">' +
+      saldosFuroCondominio.map(function (s, indice) {
+        return '<button type="button" class="chip-sugestao-furo" onclick="usarFuroNaOcorrencia_(' + indice + ')">' +
+          s.produto + ' <span>' + s.saldo + (s.saldo === 1 ? ' un.' : ' un.') + '</span>' +
+        '</button>';
+      }).join('') +
+    '</div>';
+  container.classList.remove('oculto');
+}
+
+function usarFuroNaOcorrencia_(indice) {
+  fecharModal('overlayOcorrencia');
+  abrirIdentificarFuro(indice);
 }
 
 function editarOcorrenciaDoDia(id) {
