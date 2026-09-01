@@ -157,6 +157,16 @@ function irParaView(nome, sub) {
     const secao = document.getElementById('view' + v.charAt(0).toUpperCase() + v.slice(1));
     if (secao) secao.classList.toggle('oculto', v !== nome);
   });
+  const grupoMon = document.getElementById('grupoMonitoramento');
+  const grupoAq = document.getElementById('grupoAquisicao');
+  if (nome === 'aquisicao') {
+    if (grupoAq) grupoAq.classList.add('aberto');
+    if (grupoMon) grupoMon.classList.remove('aberto');
+  } else {
+    if (grupoMon) grupoMon.classList.add('aberto');
+    if (grupoAq) grupoAq.classList.remove('aberto');
+  }
+
   const infoConferencia = document.getElementById('sidebarInfoConferencia');
   if (infoConferencia) infoConferencia.classList.toggle('oculto', nome !== 'conferencia');
 
