@@ -14,7 +14,7 @@
      que já tem guardados — e a tela fica misturando versão nova com antiga. Trocando
      o número aqui, a URL muda e o navegador é obrigado a buscar tudo de novo.
      SEMPRE mude este número ao publicar mudança em .css ou .js. -->
-<link rel="stylesheet" href="app.css?v=20260831s">
+<link rel="stylesheet" href="app.css?v=20260831t">
 </head>
 <body>
 
@@ -661,49 +661,59 @@
     </div>
 
     <div class="folha-corpo">
-      <div id="sugestoesFuroOcorrencia" class="sugestoes-furo oculto"></div>
+      <div class="grade-ocorrencia">
+        <!-- Coluna 1: Informações da Ocorrência e Identificação -->
+        <div class="coluna-ocorrencia">
+          <div class="linha-dupla">
+            <div>
+              <label>Data da ocorrência</label>
+              <input type="date" id="inputDataOcorrencia">
+            </div>
+            <div>
+              <label>Hora da ocorrência</label>
+              <input type="time" id="inputHora">
+            </div>
+          </div>
 
-      <div class="linha-dupla">
-        <div>
-          <label>Data da ocorrência</label>
-          <input type="date" id="inputDataOcorrencia">
+          <div class="linha-dupla">
+            <div>
+              <label>Nome da pessoa</label>
+              <input type="text" id="inputPessoaNome" placeholder="Se souber (opcional)">
+            </div>
+            <div>
+              <label>WhatsApp</label>
+              <input type="text" id="inputPessoaWhatsapp" placeholder="Ex: 41999998888">
+            </div>
+          </div>
+
+          <label>Descrição física (se desconhecido)</label>
+          <textarea id="inputDescricaoPessoa" rows="2" placeholder="Ex: mulher de casaco preto, homem de boné..."></textarea>
+
+          <label>Observações internas</label>
+          <textarea id="inputObservacao" rows="2" placeholder="Ex: câmera 2, saiu pro bloco B (opcional)"></textarea>
         </div>
-        <div>
-          <label>Hora da ocorrência</label>
-          <input type="time" id="inputHora">
+
+        <!-- Coluna 2: Furos de Reposição e Itens Retirados -->
+        <div class="coluna-ocorrencia">
+          <div id="sugestoesFuroOcorrencia" class="sugestoes-furo oculto"></div>
+
+          <label>Adicionar outro produto retirado</label>
+          <div class="linha-add-item">
+            <input type="text" id="inputProdutoNovo" list="listaProdutosDatalist" placeholder="Digite o produto...">
+            <input type="number" id="inputQtdNovo" min="1" step="1" value="1">
+            <button type="button" onclick="adicionarItemNaLista()" title="Adicionar item"><i data-lucide="plus"></i></button>
+          </div>
+          <datalist id="listaProdutosDatalist"></datalist>
+
+          <label style="margin-top: 10px;">Itens na ocorrência</label>
+          <div id="listaItensAdicionados" class="lista-itens-scroll"></div>
+
+          <div class="total-box">
+            <span>Total da ocorrência</span>
+            <strong id="totalOcorrencia">R$ 0,00</strong>
+          </div>
         </div>
       </div>
-
-      <div class="linha-dupla">
-        <div>
-          <label>Nome da pessoa</label>
-          <input type="text" id="inputPessoaNome" placeholder="Se souber — deixe em branco se não souber">
-        </div>
-        <div>
-          <label>WhatsApp</label>
-          <input type="text" id="inputPessoaWhatsapp" placeholder="Ex: 41999998888">
-        </div>
-      </div>
-
-      <label>Descrição da pessoa (opcional)</label>
-      <textarea id="inputDescricaoPessoa" rows="2" placeholder="Ex: mulher de casaco preto, saiu pro bloco B"></textarea>
-
-      <label>Itens retirados</label>
-      <div class="linha-add-item">
-        <input type="text" id="inputProdutoNovo" list="listaProdutosDatalist" placeholder="Digite o produto...">
-        <input type="number" id="inputQtdNovo" min="1" step="1" value="1">
-        <button type="button" onclick="adicionarItemNaLista()"><i data-lucide="plus"></i></button>
-      </div>
-      <datalist id="listaProdutosDatalist"></datalist>
-      <div id="listaItensAdicionados" class="lista-itens-scroll"></div>
-
-      <div class="total-box">
-        <span>Total</span>
-        <strong id="totalOcorrencia">R$ 0,00</strong>
-      </div>
-
-      <label>Observação</label>
-      <textarea id="inputObservacao" rows="2" placeholder="Observações adicionais (opcional)"></textarea>
     </div>
 
     <div class="folha-rodape">
@@ -903,11 +913,11 @@
   </div>
 </div>
 
-<script src="shared.js?v=20260831s"></script>
-<script src="conferencia.js?v=20260831s"></script>
-<script src="gestao.js?v=20260831s"></script>
-<script src="reposicao.js?v=20260831s"></script>
-<script src="aquisicao.js?v=20260831s"></script>
+<script src="shared.js?v=20260831t"></script>
+<script src="conferencia.js?v=20260831t"></script>
+<script src="gestao.js?v=20260831t"></script>
+<script src="reposicao.js?v=20260831t"></script>
+<script src="aquisicao.js?v=20260831t"></script>
 <script>
   if (window.lucide) lucide.createIcons();
 </script>

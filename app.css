@@ -877,25 +877,39 @@
   .acoes-relacao button.btn-excluir-relacao { background: none; color: var(--vermelho); border: 1px solid #FCA5A5; }
   .acoes-relacao button.btn-excluir-relacao:hover { background: #FEF2F2; }
 
-  /* Modal */
-  /* #overlayOcorrencia é o único modal "bottom sheet" (desliza de baixo,
-     cabeçalho/corpo/rodapé fixos com rolagem própria) — os outros modais
-     (Identificar, Editar, Cobrança, Identificar infrator...) usam o
-     .folha centralizado padrão, definido uma única vez lá em cima. */
-  #overlayOcorrencia { align-items: flex-end; }
+  /* Modal de Ocorrência */
+  #overlayOcorrencia { align-items: center; justify-content: center; padding: 20px; }
   #overlayOcorrencia .folha {
-    max-width: 480px; padding: 0; border-radius: 20px 20px 0 0; overflow-y: visible;
-    box-shadow: 0 -10px 40px rgba(17,24,39,.15);
-    transform: translateY(24px);
+    max-width: 880px; width: 100%; padding: 0; border-radius: var(--raio); overflow-y: visible;
+    box-shadow: 0 20px 60px rgba(17,24,39,.25);
+    transform: translateY(16px) scale(.98);
     display: flex; flex-direction: column;
+    max-height: 90vh;
   }
-  #overlayOcorrencia.aberto .folha { transform: translateY(0); }
+  #overlayOcorrencia.aberto .folha { transform: translateY(0) scale(1); }
   #overlayOcorrencia .folha .subtitulo { margin-bottom: 0; }
 
-  /* Cabeçalho e rodapé fixos, corpo com rolagem própria — evita rolar a tela
-     toda pra chegar nos botões quando o formulário fica comprido. */
+  .grade-ocorrencia {
+    display: grid;
+    grid-template-columns: 1fr 1.15fr;
+    gap: 24px;
+    align-items: start;
+    margin-top: 14px;
+  }
+  @media (max-width: 768px) {
+    #overlayOcorrencia { padding: 8px; align-items: flex-end; }
+    #overlayOcorrencia .folha { border-radius: 20px 20px 0 0; max-height: 94vh; }
+    .grade-ocorrencia { grid-template-columns: 1fr; gap: 14px; margin-top: 6px; }
+  }
+
+  .coluna-ocorrencia {
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* Cabeçalho e rodapé fixos, corpo com rolagem própria */
   .folha-cabecalho {
-    padding: 24px 24px 0; flex-shrink: 0; display: flex; align-items: flex-start; justify-content: space-between; gap: 12px;
+    padding: 22px 24px 0; flex-shrink: 0; display: flex; align-items: flex-start; justify-content: space-between; gap: 12px;
   }
   .btn-fechar-modal {
     background: var(--cinza); width: 32px; height: 32px; border-radius: 50%; padding: 0; flex-shrink: 0;
@@ -904,59 +918,72 @@
   .btn-fechar-modal:hover { background: #E2E8F0; }
   .btn-fechar-modal svg { width: 16px; height: 16px; }
   .folha-corpo { padding: 0 24px 16px; overflow-y: auto; flex: 1 1 auto; min-height: 0; }
-  .folha-rodape { padding: 12px 24px 24px; flex-shrink: 0; border-top: 1px solid var(--borda); }
+  .folha-rodape { padding: 14px 24px 22px; flex-shrink: 0; border-top: 1px solid var(--borda); }
   .linha-dupla { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-  .lista-itens-scroll { max-height: 144px; overflow-y: auto; }
 
-  .linha-add-item { display: flex; gap: 8px; margin-top: 6px; }
+  .linha-add-item { display: flex; gap: 8px; margin-top: 4px; }
   .linha-add-item input[type="text"] { flex: 1; }
   .linha-add-item input[type="number"] { width: 60px; text-align: center; padding: 0 4px; }
   .linha-add-item button {
-    width: 48px; height: 48px; flex-shrink: 0; background: var(--laranja); color: #fff; padding: 0; border-radius: var(--raio-sm);
+    width: 44px; height: 44px; flex-shrink: 0; background: var(--laranja); color: #fff; padding: 0; border-radius: var(--raio-sm);
     display: flex; align-items: center; justify-content: center;
   }
   .linha-add-item button:hover { background: var(--laranja-escuro); }
-  .linha-add-item button svg { width: 20px; height: 20px; }
+  .linha-add-item button svg { width: 18px; height: 18px; }
 
-  /* Sugestão de furo em aberto, no topo do formulário de Registrar ocorrência —
-     mesmo tom de aviso usado em .banner.erro/.banner.sucesso (hex direto, não
-     tem token de "lavado" no :root pra isso). */
-  .sugestoes-furo { background: #FFF7ED; border: 1px solid #FDBA74; border-radius: var(--raio-sm); padding: 10px 12px; margin-bottom: 14px; }
-  .sugestoes-furo-titulo { font-size: 12px; font-weight: 700; color: var(--laranja-escuro); margin-bottom: 8px; }
-  .sugestoes-furo-lista { display: flex; flex-wrap: wrap; gap: 6px; }
-  .chip-sugestao-furo {
-    background: #fff; border: 1px solid #FDBA74; color: var(--laranja-escuro); border-radius: 20px;
-    padding: 6px 12px; font-size: 12.5px; font-weight: 600; display: inline-flex; align-items: center; gap: 6px;
+  /* Sugestão de furo em aberto */
+  .sugestoes-furo {
+    background: #FFF7ED; border: 1px solid #FDBA74; border-radius: var(--raio-sm);
+    padding: 10px 12px; margin-bottom: 12px;
   }
-  .chip-sugestao-furo:hover { background: #FFEDD5; }
-  .chip-sugestao-furo span { font-size: 10.5px; font-weight: 700; color: var(--texto-2); }
+  .sugestoes-furo-titulo {
+    font-size: 11.5px; font-weight: 700; color: var(--laranja-escuro); margin-bottom: 6px;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .sugestoes-furo-lista {
+    display: flex; flex-wrap: wrap; gap: 6px; max-height: 120px; overflow-y: auto; padding-right: 2px;
+  }
+  .chip-sugestao-furo {
+    background: #fff; border: 1px solid #FDBA74; color: var(--laranja-escuro); border-radius: 14px;
+    padding: 4px 9px; font-size: 11.5px; font-weight: 600; display: inline-flex; align-items: center; gap: 5px;
+    cursor: pointer; transition: all .15s ease;
+  }
+  .chip-sugestao-furo:hover { background: #FFEDD5; border-color: var(--laranja); }
+  .chip-sugestao-furo span {
+    font-size: 10px; font-weight: 700; color: #9A3412; background: #FFEDD5; padding: 1px 5px; border-radius: 8px;
+  }
   .chip-sugestao-furo.chip-adicionado {
     background: #F0FDF4; border-color: #86EFAC; color: #166534; opacity: 0.85; cursor: default;
   }
   .chip-sugestao-furo.chip-adicionado:hover { background: #F0FDF4; }
   .chip-sugestao-furo.chip-adicionado .badge-adicionado {
-    background: #DCFCE7; color: #166534; font-size: 10px; font-weight: 700; padding: 1px 6px; border-radius: 10px;
+    background: #DCFCE7; color: #166534; font-size: 9.5px; font-weight: 700; padding: 1px 5px; border-radius: 8px;
   }
 
-  .item-adicionado {
-    display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid var(--borda);
+  .lista-itens-scroll {
+    max-height: 150px; min-height: 52px; overflow-y: auto; background: #F8FAFC;
+    border: 1px solid var(--borda); border-radius: var(--raio-sm); padding: 4px 10px; margin-top: 4px;
   }
-  .item-adicionado .info { font-size: 13.5px; font-weight: 500; }
-  .item-adicionado .qtd-preco { font-size: 11.5px; color: var(--texto-2); }
-  .item-adicionado .direita { display: flex; align-items: center; gap: 12px; }
-  .item-adicionado .subtotal { font-size: 13.5px; font-weight: 700; }
+  .item-adicionado {
+    display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid var(--borda);
+  }
+  .item-adicionado:last-child { border-bottom: none; }
+  .item-adicionado .info { font-size: 13px; font-weight: 500; }
+  .item-adicionado .qtd-preco { font-size: 11px; color: var(--texto-2); }
+  .item-adicionado .direita { display: flex; align-items: center; gap: 10px; }
+  .item-adicionado .subtotal { font-size: 13px; font-weight: 700; }
   .item-adicionado .btn-remover {
-    background: none; color: var(--vermelho); font-size: 18px; width: 28px; height: 28px; padding: 0; border-radius: 8px;
+    background: none; color: var(--vermelho); font-size: 18px; width: 24px; height: 24px; padding: 0; border-radius: 6px;
     display: flex; align-items: center; justify-content: center;
   }
   .item-adicionado .btn-remover:hover { background: #FEF2F2; }
-  .lista-vazia-itens { font-size: 12.5px; color: var(--texto-2); padding: 10px 0; text-align: center; }
+  .lista-vazia-itens { font-size: 12px; color: var(--texto-2); padding: 14px 0; text-align: center; }
 
   .total-box {
-    background: var(--preto); color: #fff; border-radius: var(--raio-sm); padding: 16px; margin-top: 16px;
-    display: flex; justify-content: space-between; align-items: center; font-size: 14.5px;
+    background: var(--preto); color: #fff; border-radius: var(--raio-sm); padding: 12px 14px; margin-top: 10px;
+    display: flex; justify-content: space-between; align-items: center; font-size: 13.5px;
   }
-  .total-box strong { font-size: 20px; font-weight: 700; }
+  .total-box strong { font-size: 18px; font-weight: 700; color: #fff; }
 
   .banner {
     padding: 12px 14px; border-radius: var(--raio-sm); font-size: 13px; margin-top: 12px; display: none; font-weight: 500;
