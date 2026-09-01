@@ -330,6 +330,9 @@ function abrirIdentificarFuro(indice) {
   document.getElementById('inputQtdFuro').max = s.saldo;
   document.getElementById('inputPessoaFuro').value = '';
   document.getElementById('inputWhatsappFuro').value = '';
+  if (document.getElementById('inputDescricaoPessoaFuro')) {
+    document.getElementById('inputDescricaoPessoaFuro').value = '';
+  }
   document.getElementById('inputDataInfracaoFuro').value = formatarISO(new Date());
   document.getElementById('inputHoraInfracaoFuro').value = '';
   document.getElementById('bannerIdentificarFuro').className = 'banner';
@@ -341,12 +344,9 @@ async function salvarIdentificacaoFuro() {
   const banner = document.getElementById('bannerIdentificarFuro');
   const pessoa = document.getElementById('inputPessoaFuro').value.trim();
   const quantidade = Math.max(1, parseInt(document.getElementById('inputQtdFuro').value, 10) || 0);
+  const inputDesc = document.getElementById('inputDescricaoPessoaFuro');
+  const descricaoPessoa = inputDesc ? inputDesc.value.trim() : '';
 
-  if (!pessoa) {
-    banner.className = 'banner erro';
-    banner.textContent = 'Digite o nome da pessoa.';
-    return;
-  }
   if (!produtoFuroEmIdentificacao || quantidade > produtoFuroEmIdentificacao.saldo) {
     banner.className = 'banner erro';
     banner.textContent = 'Quantidade maior que o saldo em aberto.';
@@ -360,6 +360,7 @@ async function salvarIdentificacaoFuro() {
       produto: produtoFuroEmIdentificacao.produto,
       quantidade: quantidade,
       pessoa: pessoa,
+      descricao_pessoa: descricaoPessoa,
       contato_whatsapp: document.getElementById('inputWhatsappFuro').value.trim(),
       data_infracao: document.getElementById('inputDataInfracaoFuro').value,
       hora_infracao: document.getElementById('inputHoraInfracaoFuro').value
@@ -367,6 +368,8 @@ async function salvarIdentificacaoFuro() {
     if (!resposta.ok) throw new Error(resposta.erro);
     fecharModal('overlayIdentificarFuro');
     await carregarFurosReposicao();
+    await carregarCalendario();
+    if (diaSelecionado) renderizarRelacaoDia(diaSelecionado);
   } catch (err) {
     banner.className = 'banner erro';
     banner.textContent = 'Falha ao salvar. Verifique a conexão e tente novamente.';

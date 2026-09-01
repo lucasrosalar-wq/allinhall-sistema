@@ -673,7 +673,6 @@ function identificarFuroReposicao_(params) {
   return comTravamento_(function () {
     const quantidadeAlvo = Math.floor(Number(params.quantidade) || 0);
     if (quantidadeAlvo <= 0) throw new Error('Quantidade inválida.');
-    if (!params.pessoa) throw new Error('Informe o nome da pessoa.');
 
     const abaRep = obterAba_(NOMES_ABAS.REPOSICOES);
     const valoresRep = abaRep.getDataRange().getValues();
@@ -725,17 +724,17 @@ function identificarFuroReposicao_(params) {
         condominio: params.condominio,
         itens: [{ produto: params.produto, qtd: consumida, preco_unit: c.precoUnit }],
         valor_total: consumida * c.precoUnit,
-        pessoa: params.pessoa,
+        pessoa: params.pessoa || '',
+        descricao_pessoa: params.descricao_pessoa || '',
         contato_whatsapp: params.contato_whatsapp || '',
         data_ocorrencia: params.data_infracao || c.data,
         hora: params.hora_infracao || '',
-        observacao: 'Furo de reposição identificado durante reabastecimento.',
+        observacao: 'Identificação de furo de reposição (' + params.produto + ').',
         furo_reposicao_id: c.id
       });
       idsGerados.push(resultado.id);
-
       if (consumida >= c.restante) {
-        abaRep.getRange(c.linhaPlanilha, colStatus + 1).setValue('Identificado');
+        abaRep.getRange(c.linhaPlanilha, colStatus + 1).setValue(params.pessoa ? 'Identificado' : 'Pendente');
       }
     });
 
