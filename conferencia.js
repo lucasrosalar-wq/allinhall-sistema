@@ -235,32 +235,38 @@ function renderizarRelacaoDia(dataISO) {
 // resolver o furo inteiro de uma vez. Cada abatimento vira uma Ocorrência de
 // verdade (mesmo fluxo que a Gestão já sabe cobrar); se um lançamento antigo
 // não for suficiente pra cobrir a quantidade pedida, o backend consome também
-// o(s) lançamento(s) seguinte(s) do mesmo produto, do mais antigo pro mais
 // novo (FIFO) — por isso o saldo mostrado aqui pode somar mais de um
 // lançamento sem a Bárbara precisar saber qual é qual.
 function calcularSaldosFuro_(reposicoes, ocorrencias, condominio) {
   const jaIdentificado = {};
   ocorrencias.forEach(function (o) {
     if (!o.furo_reposicao_id || o.status === 'Cancelado') return;
-    const qtd = o.itens.reduce(function (soma, item) { return soma + (Number(item.qtd) || 0); }, 0);
-    jaIdentificado[o.furo_reposicao_id] = (jaIdentificado[o.furo_reposicao_id] || 0) + qtd;
+    if (!jaIdentificado[o.furo_reposicao_id]) jaIdentificado[o.furo_reposicao_id] = {};
+    (o.itens || []).forEach(function (item) {
+      const qtd = Number(item.qtd) || 0;
+      jaIdentificado[o.furo_reposicao_id][item.produto] = (jaIdentificado[o.furo_reposicao_id][item.produto] || 0) + qtd;
+    });
   });
 
   const porProduto = {};
   reposicoes
     .filter(function (r) { return r.condominio === condominio && r.status !== 'Identificado'; })
     .forEach(function (r) {
-      const restante = (Number(r.quantidade) || 0) - (jaIdentificado[r.id] || 0);
+      const consumido = (jaIdentificado[r.id] && jaIdentificado[r.id][r.produto]) || 0;
+      const restante = (Number(r.quantidade) || 0) - consumido;
       if (restante <= 0) return;
-      if (!porProduto[r.produto]) porProduto[r.produto] = { produto: r.produto, saldo: 0, valor: 0, dataMaisAntiga: r.data };
+      if (!porProduto[r.produto]) porProduto[r.produto] = { produto: r.produto, saldo: 0, valor: 0, dataMaisAntiga: r.data, furoId: r.id };
       const entrada = porProduto[r.produto];
       entrada.saldo += restante;
       entrada.valor += restante * (Number(r.preco_unit) || 0);
-      if (String(r.data) < String(entrada.dataMaisAntiga)) entrada.dataMaisAntiga = r.data;
+      if (String(r.data) < String(entrada.dataMaisAntiga)) {
+        entrada.dataMaisAntiga = r.data;
+        entrada.furoId = r.id;
+      }
     });
 
   return Object.keys(porProduto).map(function (produto) { return porProduto[produto]; })
-    .sort(function (a, b) { return String(a.dataMaisAntiga).localeCompare(String(b.dataMaisAntiga)); });
+    .sort(function (a, b) { return String(a.dataMaisAntiga).localeCompare(String(a.dataMaisAntiga)); });
 }
 
 async function carregarFurosReposicao() {
@@ -471,8 +477,26 @@ function renderizarSugestoesFuro_(mostrar) {
 }
 
 function usarFuroNaOcorrencia_(indice) {
-  fecharModal('overlayOcorrencia');
-  abrirIdentificarFuro(indice);
+  const s = saldosFuroCondominio[indice];
+  if (!s) return;
+
+  const produtoSeed = encontrarProduto_(s.produto);
+  const precoUnit = (s.saldo > 0 && s.valor > 0) ? (s.valor / s.saldo) : (produtoSeed ? produtoSeed.preco : 0);
+  const qtdParaAdicionar = 1;
+
+  const existente = itensAdicionados.find(function (i) { return i.produto === s.produto; });
+  if (existente) {
+    existente.qtd += qtdParaAdicionar;
+  } else {
+    itensAdicionados.push({
+      produto: s.produto,
+      qtd: qtdParaAdicionar,
+      preco_unit: precoUnit,
+      furo_reposicao_id: s.furoId || null
+    });
+  }
+
+  renderizarItensAdicionados();
 }
 
 function editarOcorrenciaDoDia(id) {
@@ -579,6 +603,7 @@ async function enviarOcorrencia(payload) {
     setTimeout(async function () {
       fecharModal('overlayOcorrencia');
       await carregarCalendario();
+      await carregarFurosReposicao();
       renderizarRelacaoDia(diaSelecionado);
     }, 700);
   } catch (err) {

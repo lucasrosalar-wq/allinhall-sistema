@@ -504,7 +504,34 @@ function criarOcorrenciaLinha_(params) {
 }
 
 function criarOcorrencia_(params) {
-  return comTravamento_(function () { return criarOcorrenciaLinha_(params); });
+  return comTravamento_(function () {
+    if (!params.furo_reposicao_id && params.itens && params.itens.length > 0) {
+      const itemComFuro = params.itens.find(function (i) { return i && i.furo_reposicao_id; });
+      if (itemComFuro) {
+        params.furo_reposicao_id = itemComFuro.furo_reposicao_id;
+      } else if (params.condominio) {
+        try {
+          const abaRep = obterAba_(NOMES_ABAS.REPOSICOES);
+          const valoresRep = abaRep.getDataRange().getValues();
+          const cabecalhoRep = valoresRep[0];
+          const colId = cabecalhoRep.indexOf('id');
+          const colCond = cabecalhoRep.indexOf('condominio');
+          const colProd = cabecalhoRep.indexOf('produto');
+          const colStatus = cabecalhoRep.indexOf('status');
+          const nomesItens = params.itens.map(function (i) { return i.produto; });
+          for (let i = 1; i < valoresRep.length; i++) {
+            if (valoresRep[i][colCond] === params.condominio &&
+                nomesItens.indexOf(valoresRep[i][colProd]) !== -1 &&
+                valoresRep[i][colStatus] !== 'Identificado') {
+              params.furo_reposicao_id = valoresRep[i][colId];
+              break;
+            }
+          }
+        } catch (e) {}
+      }
+    }
+    return criarOcorrenciaLinha_(params);
+  });
 }
 
 const COLUNAS_TEXTO_OCORRENCIAS_ = { data_ocorrencia: true, hora: true, data_cobranca: true, data_pagamento: true, data_prejuizo: true, grupo_cobranca_id: true, furo_reposicao_id: true };
@@ -654,8 +681,11 @@ function identificadoPorFuro_(cabecalhoOc, valoresOc) {
     if (!furoId || valoresOc[i][colStatus] === 'Cancelado') continue;
     let itens = [];
     try { itens = JSON.parse(valoresOc[i][colItens] || '[]'); } catch (err) { itens = []; }
-    const qtd = itens.reduce(function (soma, item) { return soma + (Number(item.qtd) || 0); }, 0);
-    mapa[furoId] = (mapa[furoId] || 0) + qtd;
+    if (!mapa[furoId]) mapa[furoId] = {};
+    itens.forEach(function (item) {
+      const qtd = Number(item.qtd) || 0;
+      mapa[furoId][item.produto] = (mapa[furoId][item.produto] || 0) + qtd;
+    });
   }
   return mapa;
 }
@@ -696,7 +726,8 @@ function identificarFuroReposicao_(params) {
       if (valoresRep[i][colProduto] !== params.produto) continue;
       if (valoresRep[i][colStatus] === 'Identificado') continue;
       const idLinha = valoresRep[i][colId];
-      const restante = (Number(valoresRep[i][colQuantidade]) || 0) - (jaIdentificado[idLinha] || 0);
+      const consumido = (jaIdentificado[idLinha] && jaIdentificado[idLinha][valoresRep[i][colProduto]]) || 0;
+      const restante = (Number(valoresRep[i][colQuantidade]) || 0) - consumido;
       if (restante <= 0) continue;
       candidatas.push({
         linhaPlanilha: i + 1,
