@@ -117,7 +117,11 @@ function renderizarMiniCalendario(dados) {
   const diasNoMes = new Date(miniCalAno, miniCalMes, 0).getDate();
 
   const mapaOcorrencias = {};
-  dados.ocorrencias.forEach(function (o) { mapaOcorrencias[o.data_ocorrencia] = true; });
+  dados.ocorrencias.forEach(function (o) {
+    if (o.status === 'Cancelado') return;
+    if (!mapaOcorrencias[o.data_ocorrencia]) mapaOcorrencias[o.data_ocorrencia] = [];
+    mapaOcorrencias[o.data_ocorrencia].push(o);
+  });
   const mapaFechados = {};
   dados.diasFechados.forEach(function (d) { mapaFechados[d.data] = d.status_dia; });
 
@@ -130,9 +134,17 @@ function renderizarMiniCalendario(dados) {
     celula.className = 'mini-dia';
     celula.textContent = dia;
     if (dia === 1) celula.style.gridColumnStart = String(primeiroDiaSemana + 1);
-    if (mapaOcorrencias[dataISO]) celula.classList.add('ocorrencia');
-    else if (mapaFechados[dataISO] === 'Sem operacao') celula.classList.add('semoperacao');
-    else if (mapaFechados[dataISO] === 'OK') celula.classList.add('ok');
+
+    const ocsDoDia = mapaOcorrencias[dataISO] || [];
+    if (ocsDoDia.length > 0) {
+      const temAberta = ocsDoDia.some(function (o) { return o.status !== 'Pago'; });
+      if (temAberta) celula.classList.add('ocorrencia');
+      else celula.classList.add('ok');
+    } else if (mapaFechados[dataISO] === 'Sem operacao') {
+      celula.classList.add('semoperacao');
+    } else if (mapaFechados[dataISO] === 'OK') {
+      celula.classList.add('ok');
+    }
     fragmento.appendChild(celula);
   }
 

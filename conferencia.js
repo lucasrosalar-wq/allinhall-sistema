@@ -110,7 +110,9 @@ function renderizarCalendario() {
 
   const mapaOcorrencias = {};
   dadosCalendario.ocorrencias.forEach(function (o) {
-    mapaOcorrencias[o.data_ocorrencia] = true;
+    if (o.status === 'Cancelado') return;
+    if (!mapaOcorrencias[o.data_ocorrencia]) mapaOcorrencias[o.data_ocorrencia] = [];
+    mapaOcorrencias[o.data_ocorrencia].push(o);
   });
   const mapaFechados = {};
   dadosCalendario.diasFechados.forEach(function (d) {
@@ -130,8 +132,14 @@ function renderizarCalendario() {
     botao.textContent = dia;
     botao.dataset.iso = dataISO;
 
-    if (mapaOcorrencias[dataISO]) {
-      botao.classList.add('ocorrencia');
+    const ocsDoDia = mapaOcorrencias[dataISO] || [];
+    if (ocsDoDia.length > 0) {
+      const temAberta = ocsDoDia.some(function (o) { return o.status !== 'Pago'; });
+      if (temAberta) {
+        botao.classList.add('ocorrencia');
+      } else {
+        botao.classList.add('ok');
+      }
     } else if (mapaFechados[dataISO] === 'Sem operacao') {
       botao.classList.add('semoperacao');
     } else if (mapaFechados[dataISO] === 'OK') {
