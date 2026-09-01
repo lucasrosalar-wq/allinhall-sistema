@@ -459,26 +459,45 @@ function abrirFormularioOcorrencia(ocorrencia) {
 // ocorrência solta que não bate com o furo lançado na Reposição.
 function renderizarSugestoesFuro_(mostrar) {
   const container = document.getElementById('sugestoesFuroOcorrencia');
+  if (!container) return;
   if (!mostrar || saldosFuroCondominio.length === 0) {
     container.classList.add('oculto');
     container.innerHTML = '';
     return;
   }
 
+  const chipsHtml = saldosFuroCondominio.map(function (s, indice) {
+    const jaAdicionado = itensAdicionados
+      .filter(function (i) { return i.produto === s.produto; })
+      .reduce(function (soma, i) { return soma + (Number(i.qtd) || 0); }, 0);
+    const saldoRestante = Math.max(0, s.saldo - jaAdicionado);
+
+    if (saldoRestante === 0) {
+      return '<button type="button" class="chip-sugestao-furo chip-adicionado" disabled title="Item já adicionado aos itens retirados">' +
+        s.produto + ' <span class="badge-adicionado">✓ adicionado</span>' +
+      '</button>';
+    }
+
+    return '<button type="button" class="chip-sugestao-furo" onclick="usarFuroNaOcorrencia_(' + indice + ')" title="Clique para adicionar à ocorrência">' +
+      s.produto + ' <span>' + saldoRestante + (saldoRestante === 1 ? ' un.' : ' un.') + '</span>' +
+    '</button>';
+  }).join('');
+
   container.innerHTML = '<div class="sugestoes-furo-titulo">Tem furo de reposição em aberto — é um desses?</div>' +
-    '<div class="sugestoes-furo-lista">' +
-      saldosFuroCondominio.map(function (s, indice) {
-        return '<button type="button" class="chip-sugestao-furo" onclick="usarFuroNaOcorrencia_(' + indice + ')">' +
-          s.produto + ' <span>' + s.saldo + (s.saldo === 1 ? ' un.' : ' un.') + '</span>' +
-        '</button>';
-      }).join('') +
-    '</div>';
+    '<div class="sugestoes-furo-lista">' + chipsHtml + '</div>';
   container.classList.remove('oculto');
 }
 
 function usarFuroNaOcorrencia_(indice) {
   const s = saldosFuroCondominio[indice];
   if (!s) return;
+
+  const jaAdicionado = itensAdicionados
+    .filter(function (i) { return i.produto === s.produto; })
+    .reduce(function (soma, i) { return soma + (Number(i.qtd) || 0); }, 0);
+
+  const saldoDisponivel = s.saldo - jaAdicionado;
+  if (saldoDisponivel <= 0) return;
 
   const produtoSeed = encontrarProduto_(s.produto);
   const precoUnit = (s.saldo > 0 && s.valor > 0) ? (s.valor / s.saldo) : (produtoSeed ? produtoSeed.preco : 0);
@@ -557,6 +576,7 @@ function renderizarItensAdicionados() {
   }).join('') || '<div class="lista-vazia-itens">Nenhum item adicionado ainda.</div>';
 
   atualizarTotalOcorrencia();
+  renderizarSugestoesFuro_(!ocorrenciaEmEdicaoId);
 }
 
 function atualizarTotalOcorrencia() {
