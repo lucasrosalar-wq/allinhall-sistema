@@ -12,6 +12,7 @@
 let itensReposicao = [];
 let todasReposicoes = [];
 let reposicaoEmEdicaoId = null;
+let abaReposicaoAtiva = 'pendentes';
 
 // ===================== INICIALIZAÇÃO =====================
 function inicializarReposicao() {
@@ -26,12 +27,63 @@ function inicializarReposicao() {
   selectFiltro.innerHTML = '<option value="">Todos</option>' + opcoesCondominios;
 
   const datalistProdutos = document.getElementById('listaProdutosDatalistReposicao');
-  datalistProdutos.innerHTML = bootstrap.produtos.map(function (p) { return '<option value="' + p.nome + '">'; }).join('');
+  datalistProdutos.innerHTML = bootstrap.produtos.map(function (p) {
+    return '<option value="' + p.nome + '">';
+  }).join('');
 
   document.getElementById('dataReposicao').value = hojeISOReposicao_();
 
   mudarCondominioReposicao();
   carregarReposicoes();
+}
+
+function alternarAbaReposicao(tipo) {
+  abaReposicaoAtiva = tipo;
+  const btnPend = document.getElementById('abaFurosPendentes');
+  const btnHist = document.getElementById('abaHistoricoCompleto');
+  if (btnPend) btnPend.classList.toggle('ativa', tipo === 'pendentes');
+  if (btnHist) btnHist.classList.toggle('ativa', tipo === 'todas');
+  renderizarListaReposicoes();
+}
+
+function tratarEnterProdutoReposicao(event) {
+  if (event.key === 'Enter') {
+    event.preventDefault();
+    adicionarItemReposicao();
+  }
+}
+
+function atualizarKPIsReposicao() {
+  const condominio = document.getElementById('condominioReposicao').value || document.getElementById('filtroCondominioReposicao').value;
+  const chavePeriodo = miniCalReposicaoAno + '-' + String(miniCalReposicaoMes).padStart(2, '0');
+
+  let doMes = todasReposicoes.filter(function (r) {
+    if (condominio && r.condominio !== condominio) return false;
+    return String(r.data).indexOf(chavePeriodo) === 0;
+  });
+
+  const diasUnicos = new Set(doMes.map(function (r) { return r.data; }));
+  const totalVisitas = diasUnicos.size;
+
+  let totalPendente = 0;
+  let totalResolvido = 0;
+
+  doMes.forEach(function (r) {
+    const val = Number(r.valor_total) || 0;
+    if (r.status === 'Pendente') {
+      totalPendente += val;
+    } else if (r.status === 'Identificado' || r.status === 'OK') {
+      totalResolvido += val;
+    }
+  });
+
+  const elVisitas = document.getElementById('kpiVisitasReposicao');
+  const elPend = document.getElementById('kpiFurosPendentesReposicao');
+  const elResolv = document.getElementById('kpiFurosResolvidosReposicao');
+
+  if (elVisitas) elVisitas.textContent = totalVisitas;
+  if (elPend) elPend.textContent = formatarMoeda(totalPendente);
+  if (elResolv) elResolv.textContent = formatarMoeda(totalResolvido);
 }
 
 // Mostra o formulário de itens (e o mini-calendário) só depois que um
@@ -42,6 +94,7 @@ function mudarCondominioReposicao() {
   document.getElementById('conteudoFormularioReposicao').classList.toggle('oculto', !condominio);
   document.getElementById('formularioReposicaoVazio').classList.toggle('oculto', !!condominio);
   renderizarMiniCalReposicao();
+  atualizarKPIsReposicao();
 }
 
 function hojeISOReposicao_() {
@@ -60,6 +113,7 @@ async function carregarReposicoes() {
     todasReposicoes = resposta.dados;
     renderizarListaReposicoes();
     renderizarMiniCalReposicao();
+    atualizarKPIsReposicao();
   } catch (err) {
     banner.className = 'banner erro';
     banner.textContent = 'Não foi possível carregar as reposições. Verifique a conexão e tente novamente.';
@@ -67,9 +121,6 @@ async function carregarReposicoes() {
 }
 
 // ===================== MEMÓRIA: DIAS COM REPOSIÇÃO =====================
-// Calendário do condomínio selecionado em "Novo lançamento" — marca os dias
-// que já tiveram reposição lançada, pra lembrar quando foi a última visita.
-// Não faz chamada própria à API — só reaproveita o que já veio em todasReposicoes.
 let miniCalReposicaoMes = new Date().getMonth() + 1;
 let miniCalReposicaoAno = new Date().getFullYear();
 const NOMES_MESES_REPOSICAO_ = ['janeiro', 'fevereiro', 'março', 'abril', 'maio', 'junho', 'julho', 'agosto', 'setembro', 'outubro', 'novembro', 'dezembro'];
@@ -79,6 +130,7 @@ function mudarMesReposicao(delta) {
   if (miniCalReposicaoMes > 12) { miniCalReposicaoMes = 1; miniCalReposicaoAno++; }
   if (miniCalReposicaoMes < 1) { miniCalReposicaoMes = 12; miniCalReposicaoAno--; }
   renderizarMiniCalReposicao();
+  atualizarKPIsReposicao();
 }
 
 function mudarDataReposicaoManual() {
@@ -91,11 +143,13 @@ function mudarDataReposicaoManual() {
     }
   }
   renderizarMiniCalReposicao();
+  atualizarKPIsReposicao();
 }
 
 function selecionarDataReposicao_(dataISO) {
   document.getElementById('dataReposicao').value = dataISO;
   renderizarMiniCalReposicao();
+  atualizarKPIsReposicao();
 }
 
 function renderizarMiniCalReposicao() {
@@ -190,14 +244,17 @@ function renderizarListaReposicoes() {
   let candidatas = todasReposicoes;
   if (filtro) candidatas = candidatas.filter(function (r) { return r.condominio === filtro; });
 
-  // Furo já identificado sai da lista — ele já virou Ocorrência e passa a ser
-  // acompanhado por lá, não faz sentido continuar aparecendo aqui também.
-  const filtradas = candidatas.filter(function (r) { return r.status !== 'Identificado'; });
+  let filtradas = candidatas;
+  if (abaReposicaoAtiva === 'pendentes') {
+    filtradas = candidatas.filter(function (r) { return r.status === 'Pendente'; });
+  }
+
+  atualizarKPIsReposicao();
 
   if (filtradas.length === 0) {
-    const mensagem = candidatas.length === 0
-      ? 'Nenhuma reposição lançada ainda.'
-      : 'Nenhum furo pendente — os já identificados viram Ocorrência em Gestão.';
+    const mensagem = abaReposicaoAtiva === 'pendentes'
+      ? 'Nenhum furo pendente de identificação. Todos resolvidos! 🎉'
+      : (candidatas.length === 0 ? 'Nenhuma reposição lançada ainda.' : 'Nenhum lançamento encontrado.');
     lista.innerHTML = '<div class="vazio-relacao">' + mensagem + '</div>';
     return;
   }

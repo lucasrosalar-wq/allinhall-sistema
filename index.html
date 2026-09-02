@@ -274,82 +274,118 @@
       <p>Registre furos de estoque encontrados na reposição física</p>
     </div>
 
-    <div class="mini-calendario">
-      <div class="mini-calendario-topo">
-        <h3>Dias com reposição</h3>
-        <span class="mini-cal-condominio" id="miniCalReposicaoCondominioLabel">—</span>
-      </div>
-      <div id="miniCalReposicaoConteudo">
-        <div class="mini-calendario-nav">
-          <button type="button" onclick="mudarMesReposicao(-1)"><i data-lucide="chevron-left"></i></button>
-          <div id="miniCalReposicaoTitulo">—</div>
-          <button type="button" onclick="mudarMesReposicao(1)"><i data-lucide="chevron-right"></i></button>
-        </div>
-        <div class="mini-calendario-grade" id="miniCalReposicaoGrade"></div>
-        <div class="mini-calendario-legenda">
-          <span><span class="bolinha" style="background:var(--verde)"></span> Sem furos / Identificado</span>
-          <span><span class="bolinha" style="background:var(--amarelo)"></span> Furo pendente</span>
-        </div>
-      </div>
-      <div id="miniCalReposicaoVazio" class="mini-cal-vazio oculto">Selecione um condomínio pra ver os dias de reposição.</div>
-    </div>
-
-    <div class="painel-acoes-dia painel-nova-reposicao">
-      <h3 id="tituloFormularioReposicao">Novo lançamento</h3>
-      <div class="linha-dupla">
-        <div>
-          <label>Condomínio</label>
-          <select id="condominioReposicao" onchange="mudarCondominioReposicao()">
-            <option value="">Selecione um condomínio</option>
-          </select>
-        </div>
-        <div>
-          <label>Data</label>
-          <input type="date" id="dataReposicao" onchange="mudarDataReposicaoManual()">
-        </div>
-      </div>
-
-      <div id="conteudoFormularioReposicao" class="oculto">
-        <div class="acoes-rapidas-reposicao">
-          <button type="button" class="btn-visita-ok" id="btnMarcarVisitaReposicao" onclick="marcarVisitaReposicao()">
-            <i data-lucide="check-circle-2"></i> Marcar visita de reposição realizada (Sem furos)
-          </button>
-        </div>
-        <label>Ou adicione itens com furo de estoque:</label>
-        <div class="linha-add-item">
-          <input type="text" id="inputProdutoReposicao" list="listaProdutosDatalistReposicao" placeholder="Digite o produto...">
-          <input type="number" id="inputQtdReposicao" min="1" step="1" value="1">
-          <button type="button" onclick="adicionarItemReposicao()"><i data-lucide="plus"></i></button>
-        </div>
-        <datalist id="listaProdutosDatalistReposicao"></datalist>
-        <div id="listaItensReposicao" class="lista-itens-scroll"></div>
-
-        <div class="total-box">
-          <span>Total</span>
-          <strong id="totalReposicao">R$ 0,00</strong>
+    <div class="layout-reposicao">
+      <div class="coluna-calendario-reposicao">
+        <div class="kpis-reposicao" id="kpisReposicao">
+          <div class="kpi-card">
+            <span class="kpi-icone"><i data-lucide="truck"></i></span>
+            <div>
+              <div class="kpi-numero" id="kpiVisitasReposicao">0</div>
+              <div class="kpi-rotulo">Visitas no Mês</div>
+            </div>
+          </div>
+          <div class="kpi-card">
+            <span class="kpi-icone alerta"><i data-lucide="alert-circle"></i></span>
+            <div>
+              <div class="kpi-numero" id="kpiFurosPendentesReposicao">R$ 0,00</div>
+              <div class="kpi-rotulo">Furos Pendentes</div>
+            </div>
+          </div>
+          <div class="kpi-card">
+            <span class="kpi-icone sucesso"><i data-lucide="check-circle-2"></i></span>
+            <div>
+              <div class="kpi-numero" id="kpiFurosResolvidosReposicao">R$ 0,00</div>
+              <div class="kpi-rotulo">Resolvido/Pago</div>
+            </div>
+          </div>
         </div>
 
-        <div id="bannerReposicao" class="banner"></div>
-        <button class="btn-primaria" id="botaoSalvarReposicao" onclick="salvarReposicao()">Salvar reposição</button>
-        <button class="btn-fechar oculto" id="botaoCancelarEdicaoReposicao" onclick="cancelarEdicaoReposicao()">Cancelar edição</button>
-      </div>
-      <div id="formularioReposicaoVazio" class="mini-cal-vazio">Selecione um condomínio acima para lançar uma reposição.</div>
-    </div>
-
-    <div class="relacao-dia">
-      <h3>Lançamentos</h3>
-      <div class="filtros">
-        <div>
-          <label>Condomínio</label>
-          <select id="filtroCondominioReposicao" onchange="renderizarListaReposicoes()">
-            <option value="">Todos</option>
-          </select>
+        <div class="mini-calendario">
+          <div class="mini-calendario-topo">
+            <h3>Dias com reposição</h3>
+            <span class="mini-cal-condominio" id="miniCalReposicaoCondominioLabel">—</span>
+          </div>
+          <div id="miniCalReposicaoConteudo">
+            <div class="mini-calendario-nav">
+              <button type="button" onclick="mudarMesReposicao(-1)"><i data-lucide="chevron-left"></i></button>
+              <div id="miniCalReposicaoTitulo">—</div>
+              <button type="button" onclick="mudarMesReposicao(1)"><i data-lucide="chevron-right"></i></button>
+            </div>
+            <div class="mini-calendario-grade" id="miniCalReposicaoGrade"></div>
+            <div class="mini-calendario-legenda">
+              <span><span class="bolinha" style="background:var(--verde)"></span> Sem furos / Identificado</span>
+              <span><span class="bolinha" style="background:var(--amarelo)"></span> Furo pendente</span>
+            </div>
+          </div>
+          <div id="miniCalReposicaoVazio" class="mini-cal-vazio oculto">Selecione um condomínio pra ver os dias de reposição.</div>
         </div>
       </div>
 
-      <div id="bannerConciliacaoReposicao" class="oculto"></div>
-      <div id="bannerListaReposicoes" class="banner"></div>
-      <div id="listaReposicoes"></div>
+      <div class="coluna-conteudo-reposicao">
+        <div class="painel-acoes-dia painel-nova-reposicao">
+          <h3 id="tituloFormularioReposicao">Novo lançamento</h3>
+          <div class="linha-dupla">
+            <div>
+              <label>Condomínio</label>
+              <select id="condominioReposicao" onchange="mudarCondominioReposicao()">
+                <option value="">Selecione um condomínio</option>
+              </select>
+            </div>
+            <div>
+              <label>Data</label>
+              <input type="date" id="dataReposicao" onchange="mudarDataReposicaoManual()">
+            </div>
+          </div>
+
+          <div id="conteudoFormularioReposicao" class="oculto">
+            <div class="acoes-rapidas-reposicao">
+              <button type="button" class="btn-visita-ok" id="btnMarcarVisitaReposicao" onclick="marcarVisitaReposicao()">
+                <i data-lucide="check-circle-2"></i> Marcar visita de reposição realizada (Sem furos)
+              </button>
+            </div>
+            <label>Ou adicione itens com furo de estoque:</label>
+            <div class="linha-add-item">
+              <input type="text" id="inputProdutoReposicao" list="listaProdutosDatalistReposicao" placeholder="Digite o produto..." onkeydown="tratarEnterProdutoReposicao(event)">
+              <input type="number" id="inputQtdReposicao" min="1" step="1" value="1" onkeydown="tratarEnterProdutoReposicao(event)">
+              <button type="button" onclick="adicionarItemReposicao()"><i data-lucide="plus"></i></button>
+            </div>
+            <datalist id="listaProdutosDatalistReposicao"></datalist>
+            <div id="listaItensReposicao" class="lista-itens-scroll"></div>
+
+            <div class="total-box">
+              <span>Total</span>
+              <strong id="totalReposicao">R$ 0,00</strong>
+            </div>
+
+            <div id="bannerReposicao" class="banner"></div>
+            <button class="btn-primaria" id="botaoSalvarReposicao" onclick="salvarReposicao()">Salvar reposição</button>
+            <button class="btn-fechar oculto" id="botaoCancelarEdicaoReposicao" onclick="cancelarEdicaoReposicao()">Cancelar edição</button>
+          </div>
+          <div id="formularioReposicaoVazio" class="mini-cal-vazio">Selecione um condomínio acima para lançar uma reposição.</div>
+        </div>
+
+        <div class="relacao-dia">
+          <div class="topo-relacao-reposicao">
+            <h3>Lançamentos</h3>
+            <div class="abas-reposicao">
+              <button type="button" class="aba-btn ativa" id="abaFurosPendentes" onclick="alternarAbaReposicao('pendentes')">Furos Pendentes</button>
+              <button type="button" class="aba-btn" id="abaHistoricoCompleto" onclick="alternarAbaReposicao('todas')">Histórico Geral</button>
+            </div>
+          </div>
+          <div class="filtros">
+            <div>
+              <label>Condomínio</label>
+              <select id="filtroCondominioReposicao" onchange="renderizarListaReposicoes()">
+                <option value="">Todos</option>
+              </select>
+            </div>
+          </div>
+
+          <div id="bannerConciliacaoReposicao" class="oculto"></div>
+          <div id="bannerListaReposicoes" class="banner"></div>
+          <div id="listaReposicoes"></div>
+        </div>
+      </div>
     </div>
   </div>
   </section>
@@ -925,12 +961,12 @@
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
 
 <!-- App Scripts -->
-<script src="firebase-db.js?v=20260902g"></script>
-<script src="shared.js?v=20260902g"></script>
-<script src="conferencia.js?v=20260902g"></script>
-<script src="gestao.js?v=20260902g"></script>
-<script src="reposicao.js?v=20260902g"></script>
-<script src="aquisicao.js?v=20260902g"></script>
+<script src="firebase-db.js?v=20260902h"></script>
+<script src="shared.js?v=20260902h"></script>
+<script src="conferencia.js?v=20260902h"></script>
+<script src="gestao.js?v=20260902h"></script>
+<script src="reposicao.js?v=20260902h"></script>
+<script src="aquisicao.js?v=20260902h"></script>
 <script>
   if (window.lucide) lucide.createIcons();
 </script>

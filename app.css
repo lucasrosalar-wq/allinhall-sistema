@@ -439,6 +439,130 @@
     height: 16px;
   }
 
+  /* Layout em 2 Colunas da Reposição */
+  .layout-reposicao {
+    display: grid;
+    grid-template-columns: 340px 1fr;
+    gap: 24px;
+    align-items: start;
+  }
+  @media (max-width: 900px) {
+    .layout-reposicao {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+  }
+
+  /* KPIs da Reposição */
+  .kpis-reposicao {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 10px;
+    margin-bottom: 14px;
+  }
+  @media (max-width: 900px) {
+    .kpis-reposicao {
+      grid-template-columns: repeat(3, 1fr);
+    }
+  }
+  @media (max-width: 600px) {
+    .kpis-reposicao {
+      grid-template-columns: 1fr;
+    }
+  }
+  .kpi-card {
+    background: #fff;
+    border: 1px solid var(--borda);
+    border-radius: var(--raio);
+    padding: 12px 14px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    box-shadow: var(--sombra-sm);
+    transition: transform .15s ease;
+  }
+  .kpi-card:hover {
+    transform: translateY(-1px);
+    box-shadow: var(--sombra);
+  }
+  .kpi-icone {
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+    background: #f1f5f9;
+    color: var(--texto);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+  .kpi-icone.alerta {
+    background: #fef3c7;
+    color: #d97706;
+  }
+  .kpi-icone.sucesso {
+    background: #d1fae5;
+    color: #059669;
+  }
+  .kpi-icone svg {
+    width: 18px;
+    height: 18px;
+  }
+  .kpi-numero {
+    font-size: 16px;
+    font-weight: 800;
+    color: var(--preto);
+    line-height: 1.1;
+  }
+  .kpi-rotulo {
+    font-size: 11px;
+    color: var(--texto-2);
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: .02em;
+    margin-top: 2px;
+  }
+
+  /* Topo e Abas da Relação de Reposição */
+  .topo-relacao-reposicao {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 12px;
+    flex-wrap: wrap;
+  }
+  .topo-relacao-reposicao h3 {
+    margin: 0;
+  }
+  .abas-reposicao {
+    display: flex;
+    gap: 4px;
+    background: #f1f5f9;
+    padding: 3px;
+    border-radius: 8px;
+  }
+  .aba-btn {
+    background: transparent;
+    border: none;
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--texto-2);
+    cursor: pointer;
+    transition: all .15s ease;
+  }
+  .aba-btn:hover {
+    color: var(--preto);
+  }
+  .aba-btn.ativa {
+    background: #fff;
+    color: var(--preto);
+    box-shadow: 0 1px 3px rgba(0,0,0,.08);
+  }
+
   /* Quadro Agrupado de Reposição */
   .card-reposicao-agrupado {
     background: #fff;
