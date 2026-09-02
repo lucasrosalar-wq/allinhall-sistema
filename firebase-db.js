@@ -61,10 +61,16 @@ const FirebaseDB = {
     snapConds.forEach(doc => {
       const d = doc.data();
       if (d.ativo !== false) {
-        condominios.push(d.nome_curto || d.nome_oficial || d.nome || doc.id);
+        const nome = d.nome_curto || d.nome_oficial || d.nome || doc.id;
+        condominios.push({
+          nome_curto: nome,
+          nome_oficial: d.nome_oficial || nome,
+          cidade: d.cidade || 'Curitiba',
+          ativo: true
+        });
       }
     });
-    condominios.sort((a, b) => a.localeCompare(b));
+    condominios.sort((a, b) => a.nome_curto.localeCompare(b.nome_curto));
 
     const produtos = [];
     snapProds.forEach(doc => {
@@ -93,7 +99,7 @@ const FirebaseDB = {
   async obterCalendario(condominio, ano, mes) {
     const chaveMes = String(ano) + '-' + String(mes).padStart(2, '0');
 
-    // Usa consulta por condomínio simples (não requer índices compostos)
+    // Consulta por condomínio simples (sem exigência de índices compostos)
     const [snapOc, snapDias] = await Promise.all([
       db.collection('ocorrencias')
         .where('condominio', '==', condominio)
