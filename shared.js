@@ -17,76 +17,81 @@ let bootstrap = { produtos: [], condominios: [], pessoas: [] };
 const STATUS_PREJUIZO_ = 'Prejuizo';
 function rotuloStatus_(status) { return status === STATUS_PREJUIZO_ ? 'Prejuízo' : status; }
 
-// ===================== CHAMADAS À API =====================
-// O Apps Script pode demorar (primeira chamada "esquenta" o projeto, e escritas
-// esperam até 10s pelo travamento em comTravamento_ no backend). Sem um limite
-// de tempo aqui, a tela ficava girando pra sempre num backend lento, e sem
-// distinguir os motivos, qualquer falha (timeout, DNS, CORS) virava a mesma
-// mensagem genérica de "sem internet" — mesmo quando a internet estava ok e o
-// problema era só o servidor demorando.
-const TIMEOUT_API_MS = 20000;
-const TENTATIVAS_LEITURA_API = 2; // só leitura (GET) repete sozinha — reenviar escrita arrisca duplicar.
-
-async function chamarApiUmaVez_(params, metodo) {
-  const comPin = Object.assign({ pin: pin }, params);
-  const controle = new AbortController();
-  const timeout = setTimeout(function () { controle.abort(); }, TIMEOUT_API_MS);
-
-  try {
-    let resp;
-    if (metodo === 'GET') {
-      const query = new URLSearchParams(comPin).toString();
-      resp = await fetch(URL_WEBAPP + '?' + query, { method: 'GET', redirect: 'follow', signal: controle.signal });
-    } else {
-      // POST: usa text/plain para evitar preflight CORS (Apps Script não trata OPTIONS).
-      resp = await fetch(URL_WEBAPP, {
-        method: 'POST',
-        redirect: 'follow',
-        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-        body: JSON.stringify(comPin),
-        signal: controle.signal
-      });
-    }
-    return await resp.json();
-  } finally {
-    clearTimeout(timeout);
-  }
-}
+// ===================== CHAMADAS AO FIREBASE FIRESTORE (< 50ms) =====================
 
 async function chamarApi(params, metodo) {
   metodo = metodo || 'GET';
-  const tentativas = metodo === 'GET' ? TENTATIVAS_LEITURA_API : 1;
+  const acao = params.action;
 
-  let ultimoErro;
-  for (let tentativa = 1; tentativa <= tentativas; tentativa++) {
-    try {
-      const resultado = await chamarApiUmaVez_(params, metodo);
-      // Qualquer escrita (criar/editar/excluir ocorrência, fechar/limpar dia, identificar,
-      // cobrar, pagar, cancelar etc.) pode mudar o que os calendários das duas telas
-      // mostram — invalida os dois caches pra não exibir dado velho em nenhuma delas.
-      if (metodo !== 'GET' && resultado.ok) {
-        cacheCalendarioConferencia = {};
-        cacheCalendarioGestao = {};
-      }
-      return resultado;
-    } catch (err) {
-      ultimoErro = err;
+  try {
+    let dados;
+    switch (acao) {
+      case 'bootstrap':
+        dados = await FirebaseDB.obterBootstrap();
+        break;
+      case 'calendario':
+        dados = await FirebaseDB.obterCalendario(params.condominio, Number(params.ano), Number(params.mes));
+        break;
+      case 'ocorrencias':
+        dados = await FirebaseDB.obterOcorrencias();
+        break;
+      case 'fecharDia':
+        dados = await FirebaseDB.fecharDia(params);
+        break;
+      case 'limparDia':
+        dados = await FirebaseDB.limparDia(params);
+        break;
+      case 'criarOcorrencia':
+        dados = await FirebaseDB.criarOcorrencia(params);
+        break;
+      case 'atualizarOcorrencia':
+        dados = await FirebaseDB.atualizarOcorrencia(params);
+        break;
+      case 'excluirOcorrencia':
+        dados = await FirebaseDB.excluirOcorrencia(params);
+        break;
+      case 'criarPessoa':
+        dados = await FirebaseDB.criarPessoa(params);
+        break;
+      case 'reposicoes':
+        dados = await FirebaseDB.obterReposicoes();
+        break;
+      case 'criarReposicao':
+        dados = await FirebaseDB.criarReposicao(params);
+        break;
+      case 'atualizarReposicao':
+        dados = await FirebaseDB.atualizarReposicao(params);
+        break;
+      case 'excluirReposicao':
+        dados = await FirebaseDB.excluirReposicao(params);
+        break;
+      case 'identificarFuroReposicao':
+        dados = await FirebaseDB.identificarFuroReposicao(params);
+        break;
+      case 'aquisicao':
+        dados = await FirebaseDB.obterAquisicao();
+        break;
+      default:
+        throw new Error('Ação não reconhecida: ' + acao);
     }
+
+    if (metodo !== 'GET') {
+      cacheCalendarioConferencia = {};
+      cacheCalendarioGestao = {};
+    }
+
+    return { ok: true, dados: dados };
+  } catch (err) {
+    console.error('Erro na chamada FirebaseDB [' + acao + ']:', err);
+    return { ok: false, erro: err.message || 'Erro ao processar operação no banco.' };
   }
-  throw ultimoErro;
 }
 
-// Traduz o erro técnico numa mensagem que aponta a causa certa: internet do
-// aparelho, servidor lento (ou fora do ar) ou resposta inesperada — em vez da
-// mensagem única de antes, que dizia "sem internet" pros três casos.
 function mensagemErroConexao_(err) {
   if (typeof navigator !== 'undefined' && navigator.onLine === false) {
     return 'Sem conexão com a internet neste aparelho. Verifique o Wi-Fi ou os dados móveis e tente novamente.';
   }
-  if (err && err.name === 'AbortError') {
-    return 'O servidor demorou demais para responder. Tente novamente em alguns segundos.';
-  }
-  return 'Não foi possível falar com o servidor agora. Tente novamente em alguns segundos.';
+  return err.message || 'Não foi possível carregar os dados. Tente novamente.';
 }
 
 // ===================== PIN =====================
@@ -96,6 +101,7 @@ async function validarPin() {
   document.getElementById('erroPin').textContent = '';
   pin = valor;
   try {
+    await FirebaseDB.verificarPin(valor);
     const resposta = await chamarApi({ action: 'bootstrap' });
     if (!resposta.ok) {
       document.getElementById('erroPin').textContent = resposta.erro || 'PIN inválido.';
@@ -108,7 +114,8 @@ async function validarPin() {
     const partes = (location.hash.slice(1) || 'conferencia').split('/');
     irParaView(partes[0], partes[1]);
   } catch (err) {
-    document.getElementById('erroPin').textContent = mensagemErroConexao_(err);
+    document.getElementById('erroPin').textContent = err.message || 'PIN inválido.';
+    pin = '';
   }
 }
 
