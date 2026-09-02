@@ -444,6 +444,92 @@
     word-break: break-word;
     font-size: 12.5px;
   }
+  .sugestao-card-acoes-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .btn-rolar-furo {
+    background: #eff6ff;
+    color: #2563eb;
+    border: 1px solid #bfdbfe;
+    border-radius: 4px;
+    padding: 2px 8px;
+    font-size: 11px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all .15s ease;
+  }
+  .btn-rolar-furo:hover {
+    background: #dbeafe;
+    color: #1d4ed8;
+  }
+  .produto-furo-linha-topo {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  .badge-furo-conciliavel {
+    background: #eff6ff;
+    color: #1d4ed8;
+    border: 1px solid #93c5fd;
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: 700;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    cursor: pointer;
+    box-shadow: 0 1px 3px rgba(37,99,235,.15);
+    transition: all .2s ease;
+    animation: pulsoBadgeMatch 2.5s infinite ease-in-out;
+  }
+  .badge-furo-conciliavel:hover {
+    background: #2563eb;
+    color: #fff;
+    border-color: #2563eb;
+    transform: translateY(-1px);
+  }
+  .badge-furo-conciliavel svg {
+    width: 12px;
+    height: 12px;
+  }
+  @keyframes pulsoBadgeMatch {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.04); box-shadow: 0 0 8px rgba(37,99,235,.35); }
+  }
+
+  /* Efeitos de Realce Bidirecional */
+  .furo-destacado-link {
+    background: #eff6ff !important;
+    outline: 2px solid #3b82f6 !important;
+    transition: all .2s ease !important;
+  }
+  .sugestao-destacada-link {
+    border-color: #3b82f6 !important;
+    box-shadow: 0 0 14px rgba(59,130,246,.3) !important;
+    transform: translateY(-2px);
+    transition: all .2s ease !important;
+  }
+  .furo-destacado-pulso {
+    animation: pulsoFuroTabela 1.8s ease;
+  }
+  .sugestao-destacada-pulso {
+    animation: pulsoCardSugestao 1.8s ease;
+  }
+  @keyframes pulsoFuroTabela {
+    0% { background: #dbeafe; outline: 3px solid #2563eb; }
+    50% { background: #eff6ff; outline: 2px solid #3b82f6; }
+    100% { background: transparent; outline: none; }
+  }
+  @keyframes pulsoCardSugestao {
+    0% { border-color: #2563eb; box-shadow: 0 0 20px rgba(37,99,235,.5); }
+    50% { border-color: #60a5fa; box-shadow: 0 0 10px rgba(37,99,235,.25); }
+    100% { border-color: #dbeafe; box-shadow: 0 1px 3px rgba(37,99,235,.06); }
+  }
+
   .sugestao-match-data {
     color: var(--texto-2);
     font-size: 11px;

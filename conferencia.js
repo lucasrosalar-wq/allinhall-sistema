@@ -457,13 +457,16 @@ function renderizarBannerConciliacao_() {
     '</p>' +
     '<div class="lista-sugestoes-conciliacao">' +
       sugestoesConciliacao.map(function (s) {
-        return '<div class="item-sugestao-conciliacao-card">' +
+        return '<div class="item-sugestao-conciliacao-card" id="card-sugestao-furo-' + s.furoId + '" onmouseenter="destacarFuroNaTabela(\'' + s.furoId + '\', true)" onmouseleave="destacarFuroNaTabela(\'' + s.furoId + '\', false)">' +
           '<div class="sugestao-card-cabecalho">' +
             '<div class="sugestao-card-prod">' +
               '<span class="sugestao-card-icone">📦</span>' +
               '<strong>' + s.qtdFuro + 'x ' + s.produto + '</strong>' +
             '</div>' +
-            '<span class="sugestao-card-data">Furo de ' + formatarDataBR(s.furoData) + '</span>' +
+            '<div class="sugestao-card-acoes-header">' +
+              '<span class="sugestao-card-data">Furo de ' + formatarDataBR(s.furoData) + '</span>' +
+              '<button type="button" class="btn-rolar-furo" onclick="rolarAteFuroNaTabela(\'' + s.furoId + '\')" title="Ver linha do furo na tabela abaixo">🔍 Ver furo</button>' +
+            '</div>' +
           '</div>' +
           '<div class="sugestao-card-matches">' +
             s.ocorrenciasCompativeis.map(function (o) {
@@ -490,6 +493,34 @@ function renderizarBannerConciliacao_() {
   if (window.lucide) lucide.createIcons();
 }
 
+function destacarFuroNaTabela(furoId, ativar) {
+  const el = document.getElementById('linha-furo-tabela-' + furoId);
+  if (el) el.classList.toggle('furo-destacado-link', ativar);
+}
+
+function destacarSugestaoNoCard(furoId, ativar) {
+  const el = document.getElementById('card-sugestao-furo-' + furoId);
+  if (el) el.classList.toggle('sugestao-destacada-link', ativar);
+}
+
+function rolarAteFuroNaTabela(furoId) {
+  const el = document.getElementById('linha-furo-tabela-' + furoId);
+  if (el) {
+    el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    el.classList.add('furo-destacado-pulso');
+    setTimeout(function () { el.classList.remove('furo-destacado-pulso'); }, 2000);
+  }
+}
+
+function rolarAteSugestao(furoId) {
+  const el = document.getElementById('card-sugestao-furo-' + furoId);
+  if (el) {
+    el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    el.classList.add('sugestao-destacada-pulso');
+    setTimeout(function () { el.classList.remove('sugestao-destacada-pulso'); }, 2000);
+  }
+}
+
 async function aplicarConciliacaoAutomatica() {
   if (sugestoesConciliacao.length === 0) return;
   const botao = document.getElementById('btnConciliarAuto');
@@ -502,17 +533,12 @@ async function aplicarConciliacaoAutomatica() {
     const pares = [];
     sugestoesConciliacao.forEach(function (s) {
       const pessoaNome = s.ocorrenciasCompativeis.map(function (o) { return o.pessoa; }).filter(Boolean).join(', ') || 'Identificado em Ocorrência';
-      const whatsapp = s.ocorrenciasCompativeis.map(function (o) { return o.contato_whatsapp; }).filter(Boolean)[0] || '';
-      const primeiraOc = s.ocorrenciasCompativeis[0] || {};
-
-      s.ocorrenciasCompativeis.forEach(function (oc) {
+      s.ocorrenciasCompativeis.forEach(function (o) {
         pares.push({
-          furo_id: s.furoId,
-          ocorrencia_id: oc.ocorrenciaId,
-          pessoa: pessoaNome,
-          contato_whatsapp: whatsapp,
-          data: primeiraOc.data || '',
-          hora: primeiraOc.hora || ''
+          ocorrenciaId: o.ocorrenciaId,
+          furoId: s.furoId,
+          condominio: condominioAtual,
+          pessoa: pessoaNome
         });
       });
     });
@@ -547,9 +573,22 @@ function renderizarFurosReposicao() {
 
   const linhas = saldosFuroCondominio.map(function (s, indice) {
     const rotuloSaldo = s.saldo + (s.saldo === 1 ? ' un.' : ' un.');
-    return '<tr>' +
+    const sugCorrespondente = sugestoesConciliacao.find(function (sug) {
+      return (sug.produto || '').trim().toLowerCase() === (s.produto || '').trim().toLowerCase() || sug.furoId === s.furoId;
+    });
+    const temSugestao = !!sugCorrespondente;
+    const targetFuroId = sugCorrespondente ? sugCorrespondente.furoId : s.furoId;
+
+    const badgeSugestaoHtml = temSugestao
+      ? '<span class="badge-furo-conciliavel" onclick="rolarAteSugestao(\'' + targetFuroId + '\')" title="Clique para ver a correspondência encontrada no quadro de conciliação"><i data-lucide="zap"></i> Compatível na Câmera</span>'
+      : '';
+
+    return '<tr id="linha-furo-tabela-' + targetFuroId + '" class="' + (temSugestao ? 'linha-furo-com-match' : '') + '" onmouseenter="destacarSugestaoNoCard(\'' + targetFuroId + '\', true)" onmouseleave="destacarSugestaoNoCard(\'' + targetFuroId + '\', false)">' +
       '<td>' +
-        '<div class="produto-furo">' + s.produto + '</div>' +
+        '<div class="produto-furo-linha-topo">' +
+          '<div class="produto-furo">' + s.produto + '</div>' +
+          badgeSugestaoHtml +
+        '</div>' +
         '<div class="desde-furo">desde ' + formatarDataBR(s.dataMaisAntiga) + '</div>' +
         '<div class="resumo-furo-compacto">' + rotuloSaldo + ' · ' + formatarMoeda(s.valor) + '</div>' +
       '</td>' +
@@ -565,6 +604,7 @@ function renderizarFurosReposicao() {
   '</table></div>';
 
   container.classList.remove('oculto');
+  if (window.lucide) lucide.createIcons();
 }
 
 function abrirIdentificarFuro(indice) {
