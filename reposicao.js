@@ -192,8 +192,7 @@ function renderizarListaReposicoes() {
 
   // Furo já identificado sai da lista — ele já virou Ocorrência e passa a ser
   // acompanhado por lá, não faz sentido continuar aparecendo aqui também.
-  const filtradas = candidatas.filter(function (r) { return r.status !== 'Identificado'; })
-    .slice().sort(function (a, b) { return String(b.data).localeCompare(String(a.data)); });
+  const filtradas = candidatas.filter(function (r) { return r.status !== 'Identificado'; });
 
   if (filtradas.length === 0) {
     const mensagem = candidatas.length === 0
@@ -203,25 +202,110 @@ function renderizarListaReposicoes() {
     return;
   }
 
-  lista.innerHTML = filtradas.map(function (r) {
-    const semFuros = r.status === 'OK' || r.produto === 'Reposição realizada (Sem furos)' || Number(r.valor_total) === 0;
-    const itensTexto = semFuros ? '✓ Visita de reposição física realizada (Sem furos de estoque)' : (r.quantidade + 'x ' + r.produto);
-    const badgeClasse = semFuros ? 'pago' : r.status.toLowerCase();
-    const badgeTexto = semFuros ? 'Sem furos (OK)' : r.status;
+  // Agrupa os itens por Condomínio + Data
+  const mapaGrupos = {};
+  filtradas.forEach(function (r) {
+    const chave = r.condominio + '___' + r.data;
+    if (!mapaGrupos[chave]) {
+      mapaGrupos[chave] = {
+        condominio: r.condominio,
+        data: r.data,
+        itens: [],
+        totalValor: 0,
+        totalQtd: 0,
+        ids: []
+      };
+    }
+    mapaGrupos[chave].itens.push(r);
+    mapaGrupos[chave].ids.push(r.id);
+    mapaGrupos[chave].totalValor += Number(r.valor_total) || 0;
+    mapaGrupos[chave].totalQtd += Number(r.quantidade) || 0;
+  });
 
-    return '<div class="card-relacao">' +
-      '<div class="topo">' +
-        '<div><div class="pessoa">' + r.condominio + '</div><div class="hora">' + formatarDataBR(r.data) + '</div></div>' +
-        '<div class="valor">' + (semFuros ? '—' : formatarMoeda(r.valor_total)) + '</div>' +
+  const grupos = Object.values(mapaGrupos)
+    .sort(function (a, b) { return String(b.data).localeCompare(String(a.data)); });
+
+  lista.innerHTML = grupos.map(function (g) {
+    const semFuros = g.itens.every(function (i) {
+      return i.status === 'OK' || i.produto === 'Reposição realizada (Sem furos)' || Number(i.valor_total) === 0;
+    });
+    const temPendente = g.itens.some(function (i) { return i.status === 'Pendente'; });
+    const badgeClasse = semFuros ? 'pago' : (temPendente ? 'pendente' : 'pago');
+    const badgeTexto = semFuros ? 'Sem furos (OK)' : (temPendente ? 'Pendente' : 'Identificado');
+
+    let corpoHtml = '';
+    if (semFuros) {
+      corpoHtml = '<div class="visita-sem-furos-aviso">' +
+        '<i data-lucide="check-circle-2"></i> Visita de reposição física realizada sem divergência de estoque' +
+      '</div>';
+    } else {
+      corpoHtml = '<div class="tabela-reposicao-wrap">' +
+        '<table class="tabela-reposicao-itens">' +
+          '<thead>' +
+            '<tr>' +
+              '<th>Produto</th>' +
+              '<th class="centro">Qtd</th>' +
+              '<th class="direita">Unitário</th>' +
+              '<th class="direita">Subtotal</th>' +
+              '<th class="centro">Ação</th>' +
+            '</tr>' +
+          '</thead>' +
+          '<tbody>' +
+            g.itens.map(function (item) {
+              return '<tr>' +
+                '<td class="col-prod"><strong>' + item.produto + '</strong></td>' +
+                '<td class="centro col-qtd">' + item.quantidade + ' un.</td>' +
+                '<td class="direita col-unit">' + formatarMoeda(item.preco_unit) + '</td>' +
+                '<td class="direita col-subtotal"><strong>' + formatarMoeda(item.valor_total) + '</strong></td>' +
+                '<td class="centro col-acoes">' +
+                  '<button type="button" class="btn-excluir-item-tabela" title="Excluir este item" onclick="excluirReposicao(\'' + item.id + '\')">' +
+                    '<i data-lucide="trash-2"></i>' +
+                  '</button>' +
+                '</td>' +
+              '</tr>';
+            }).join('') +
+          '</tbody>' +
+        '</table>' +
+      '</div>';
+    }
+
+    return '<div class="card-reposicao-agrupado">' +
+      '<div class="card-reposicao-cabecalho">' +
+        '<div class="card-reposicao-titulo">' +
+          '<h4>' + g.condominio + '</h4>' +
+          '<span class="card-reposicao-data">' + formatarDataBR(g.data) + '</span>' +
+        '</div>' +
+        '<div class="card-reposicao-direita">' +
+          '<span class="badge-status ' + badgeClasse + '">' + badgeTexto + '</span>' +
+          '<div class="card-reposicao-total">' + (semFuros ? '—' : formatarMoeda(g.totalValor)) + '</div>' +
+        '</div>' +
       '</div>' +
-      '<div class="itens">' + itensTexto + '</div>' +
-      '<span class="badge-status ' + badgeClasse + '">' + badgeTexto + '</span>' +
-      '<div class="acoes-relacao">' +
-        (!semFuros ? '<button type="button" onclick="editarReposicao(\'' + r.id + '\')">Editar</button>' : '') +
-        '<button type="button" class="btn-excluir-relacao" onclick="excluirReposicao(\'' + r.id + '\')">Excluir</button>' +
+      corpoHtml +
+      '<div class="card-reposicao-rodape">' +
+        '<span class="card-reposicao-qtd">' +
+          (semFuros ? 'Visita realizada' : (g.itens.length + ' produto(s) com furo · ' + g.totalQtd + ' unidades no total')) +
+        '</span>' +
+        '<button type="button" class="btn-excluir-lote" onclick="excluirLoteReposicao([\'' + g.ids.join("','") + '\'])">' +
+          '<i data-lucide="trash"></i> Excluir lançamento' +
+        '</button>' +
       '</div>' +
     '</div>';
   }).join('');
+
+  if (window.lucide) lucide.createIcons();
+}
+
+async function excluirLoteReposicao(ids) {
+  if (!ids || ids.length === 0) return;
+  if (!confirm('Deseja excluir este lançamento de reposição (' + ids.length + ' item/itens)?')) return;
+  try {
+    for (let i = 0; i < ids.length; i++) {
+      await chamarApi({ action: 'excluirReposicao', id: ids[i] }, 'POST');
+    }
+    await carregarReposicoes();
+  } catch (err) {
+    alert('Erro ao excluir: ' + (err.message || err));
+  }
 }
 
 // ===================== ITENS DO LANÇAMENTO =====================

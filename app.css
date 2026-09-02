@@ -316,6 +316,174 @@
   }
   .btn-visita-ok svg { width: 16px; height: 16px; }
 
+  /* Quadro Agrupado de Reposição */
+  .card-reposicao-agrupado {
+    background: #fff;
+    border-radius: var(--raio);
+    padding: 16px 18px;
+    margin-bottom: 16px;
+    box-shadow: var(--sombra-sm);
+    border: 1px solid var(--borda);
+    transition: box-shadow .2s var(--ease), transform .2s var(--ease);
+  }
+  .card-reposicao-agrupado:hover {
+    box-shadow: var(--sombra);
+  }
+  .card-reposicao-cabecalho {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--borda);
+  }
+  .card-reposicao-titulo h4 {
+    margin: 0;
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--preto);
+  }
+  .card-reposicao-data {
+    font-size: 12px;
+    color: var(--texto-2);
+    font-weight: 500;
+  }
+  .card-reposicao-direita {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    text-align: right;
+  }
+  .card-reposicao-total {
+    font-size: 16px;
+    font-weight: 800;
+    color: var(--laranja);
+    letter-spacing: -.02em;
+  }
+
+  .visita-sem-furos-aviso {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 14px 12px;
+    color: #059669;
+    font-size: 13px;
+    font-weight: 600;
+    background: #f0fdf4;
+    border-radius: 8px;
+    margin: 12px 0;
+  }
+  .visita-sem-furos-aviso svg {
+    width: 18px;
+    height: 18px;
+  }
+
+  .tabela-reposicao-wrap {
+    overflow-x: auto;
+    margin: 10px 0;
+  }
+  .tabela-reposicao-itens {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12.5px;
+    text-align: left;
+  }
+  .tabela-reposicao-itens th {
+    padding: 8px 10px;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--texto-2);
+    text-transform: uppercase;
+    letter-spacing: .03em;
+    border-bottom: 1px solid var(--borda);
+    background: #fafafa;
+  }
+  .tabela-reposicao-itens td {
+    padding: 9px 10px;
+    border-bottom: 1px solid var(--cinza, #f1f5f9);
+    vertical-align: middle;
+    color: var(--texto);
+  }
+  .tabela-reposicao-itens tr:last-child td {
+    border-bottom: none;
+  }
+  .tabela-reposicao-itens .col-prod strong {
+    font-size: 13px;
+    color: var(--preto);
+  }
+  .tabela-reposicao-itens .col-qtd {
+    font-weight: 600;
+    color: var(--texto);
+    white-space: nowrap;
+  }
+  .tabela-reposicao-itens .col-unit {
+    color: var(--texto-2);
+    white-space: nowrap;
+  }
+  .tabela-reposicao-itens .col-subtotal {
+    color: var(--preto);
+    white-space: nowrap;
+  }
+  .tabela-reposicao-itens .centro { text-align: center; }
+  .tabela-reposicao-itens .direita { text-align: right; }
+
+  .btn-excluir-item-tabela {
+    background: none;
+    border: none;
+    padding: 4px;
+    color: #94a3b8;
+    cursor: pointer;
+    border-radius: 4px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: all .15s ease;
+  }
+  .btn-excluir-item-tabela:hover {
+    color: var(--vermelho);
+    background: #fee2e2;
+  }
+  .btn-excluir-item-tabela svg {
+    width: 14px;
+    height: 14px;
+  }
+
+  .card-reposicao-rodape {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-top: 10px;
+    border-top: 1px solid var(--borda);
+    margin-top: 6px;
+  }
+  .card-reposicao-qtd {
+    font-size: 11.5px;
+    color: var(--texto-2);
+    font-weight: 500;
+  }
+  .btn-excluir-lote {
+    background: none;
+    border: 1px solid #fee2e2;
+    padding: 5px 10px;
+    border-radius: 6px;
+    font-size: 11.5px;
+    font-weight: 600;
+    color: #dc2626;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    cursor: pointer;
+    transition: all .15s ease;
+  }
+  .btn-excluir-lote:hover {
+    background: #fef2f2;
+    border-color: #fca5a5;
+  }
+  .btn-excluir-lote svg {
+    width: 13px;
+    height: 13px;
+  }
+
   /* Contagem de ocorrências por status, abaixo dos filtros */
   .contagem-status {
     background: #fff; border-radius: var(--raio); padding: 18px; box-shadow: var(--sombra); border: 1px solid var(--borda);
