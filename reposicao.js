@@ -102,15 +102,22 @@ function hojeISOReposicao_() {
   return h.getFullYear() + '-' + String(h.getMonth() + 1).padStart(2, '0') + '-' + String(h.getDate()).padStart(2, '0');
 }
 
+let todasOcorrenciasReposicao = [];
+
 // ===================== LISTA DE REPOSIÇÕES =====================
 async function carregarReposicoes() {
   const banner = document.getElementById('bannerListaReposicoes');
   banner.className = 'banner';
   banner.textContent = '';
   try {
-    const resposta = await chamarApi({ action: 'reposicoes' });
+    const [resposta, respostaOc] = await Promise.all([
+      chamarApi({ action: 'reposicoes' }),
+      chamarApi({ action: 'ocorrencias' })
+    ]);
     if (!resposta.ok) throw new Error(resposta.erro);
     todasReposicoes = resposta.dados;
+    if (respostaOc.ok) todasOcorrenciasReposicao = respostaOc.dados;
+
     renderizarListaReposicoes();
     renderizarMiniCalReposicao();
     atualizarKPIsReposicao();
@@ -286,9 +293,23 @@ function renderizarListaReposicoes() {
     const semFuros = g.itens.every(function (i) {
       return i.status === 'OK' || i.produto === 'Reposição realizada (Sem furos)' || Number(i.valor_total) === 0;
     });
-    const temPendente = g.itens.some(function (i) { return i.status === 'Pendente'; });
-    const badgeClasse = semFuros ? 'pago' : (temPendente ? 'pendente' : 'pago');
-    const badgeTexto = semFuros ? 'Sem furos (OK)' : (temPendente ? 'Pendente' : 'Identificado');
+    
+    const qtdIdentificados = g.itens.filter(function (i) { return i.status === 'Identificado'; }).length;
+    const qtdPendentes = g.itens.filter(function (i) { return i.status === 'Pendente'; }).length;
+    let badgeClasse = 'pago';
+    let badgeTexto = 'Sem furos (OK)';
+    if (!semFuros) {
+      if (qtdPendentes === 0) {
+        badgeClasse = 'pago';
+        badgeTexto = '✓ Todos os ' + g.itens.length + ' furos identificados';
+      } else if (qtdIdentificados > 0) {
+        badgeClasse = 'pendente';
+        badgeTexto = qtdIdentificados + ' identificado(s) · ' + qtdPendentes + ' em aberto';
+      } else {
+        badgeClasse = 'pendente';
+        badgeTexto = qtdPendentes + ' furo(s) em aberto';
+      }
+    }
 
     let corpoHtml = '';
     if (semFuros) {
@@ -304,16 +325,53 @@ function renderizarListaReposicoes() {
               '<th class="centro">Qtd</th>' +
               '<th class="direita">Unitário</th>' +
               '<th class="direita">Subtotal</th>' +
+              '<th>Status / Identificação</th>' +
               '<th class="centro">Ação</th>' +
             '</tr>' +
           '</thead>' +
           '<tbody>' +
             g.itens.map(function (item) {
+              const semFuroItem = item.status === 'OK' || item.produto === 'Reposição realizada (Sem furos)' || Number(item.valor_total) === 0;
+
+              const ocsVinculadas = todasOcorrenciasReposicao.filter(function (o) {
+                return o.furo_reposicao_id === item.id;
+              });
+
+              let statusIdentificacaoHtml = '';
+              if (semFuroItem) {
+                statusIdentificacaoHtml = '<span class="badge-status pago">Sem divergência</span>';
+              } else if (ocsVinculadas.length > 0) {
+                statusIdentificacaoHtml = ocsVinculadas.map(function (o) {
+                  const badgeClass = o.status === 'Pago' ? 'pago' : (o.status === 'Cobrado' ? 'cobrado' : 'pendente');
+                  let rotuloQtd = '';
+                  const itemOc = (o.itens || []).find(function (it) {
+                    return (it.produto || '').trim().toLowerCase() === (item.produto || '').trim().toLowerCase();
+                  });
+                  if (itemOc && Number(itemOc.qtd) > 0 && Number(itemOc.qtd) !== Number(item.quantidade)) {
+                    rotuloQtd = ' (' + itemOc.qtd + ' un.)';
+                  }
+                  return '<div class="item-identificacao-linha">' +
+                    '<span class="badge-status ' + badgeClass + '">' + o.status + '</span> ' +
+                    '<strong class="pessoa-identificada">' + (o.pessoa || 'Identificado') + '</strong>' + rotuloQtd +
+                  '</div>';
+                }).join('');
+              } else if (item.status === 'Identificado') {
+                statusIdentificacaoHtml = '<div class="item-identificacao-linha">' +
+                  '<span class="badge-status pago">Identificado</span> ' +
+                  '<strong class="pessoa-identificada">' + (item.pessoa || 'Vinculado') + '</strong>' +
+                '</div>';
+              } else {
+                statusIdentificacaoHtml = '<span class="badge-status furo-aberto">' +
+                  '<i data-lucide="alert-triangle"></i> Furo em Aberto' +
+                '</span>';
+              }
+
               return '<tr>' +
                 '<td class="col-prod"><strong>' + item.produto + '</strong></td>' +
                 '<td class="centro col-qtd">' + item.quantidade + ' un.</td>' +
                 '<td class="direita col-unit">' + formatarMoeda(item.preco_unit) + '</td>' +
                 '<td class="direita col-subtotal"><strong>' + formatarMoeda(item.valor_total) + '</strong></td>' +
+                '<td class="col-identificacao-furo">' + statusIdentificacaoHtml + '</td>' +
                 '<td class="centro col-acoes">' +
                   '<button type="button" class="btn-excluir-item-tabela" title="Excluir este item" onclick="excluirReposicao(\'' + item.id + '\')">' +
                     '<i data-lucide="trash-2"></i>' +
