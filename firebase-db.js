@@ -394,6 +394,27 @@ const FirebaseDB = {
     return { ok: true, ocorrencias_ids: criadas };
   },
 
+  async vincularConciliacaoAutomatica(params) {
+    const pares = params.pares || [];
+    for (const p of pares) {
+      if (p.furo_id) {
+        await db.collection('reposicoes').doc(p.furo_id).update({
+          status: 'Identificado',
+          pessoa: p.pessoa || '',
+          contato_whatsapp: p.contato_whatsapp || '',
+          data_infracao: p.data || '',
+          hora_infracao: p.hora || ''
+        });
+      }
+      if (p.ocorrencia_id) {
+        await db.collection('ocorrencias').doc(p.ocorrencia_id).update({
+          furo_reposicao_id: p.furo_id || ''
+        });
+      }
+    }
+    return { ok: true, conciliados: pares.length };
+  },
+
   async criarPessoa(params) {
     const nome = (params.nome || '').trim();
     if (!nome) throw new Error('Nome da pessoa não informado.');

@@ -277,6 +277,75 @@ function calcularSaldosFuro_(reposicoes, ocorrencias, condominio) {
     .sort(function (a, b) { return String(a.dataMaisAntiga).localeCompare(String(a.dataMaisAntiga)); });
 }
 
+let sugestoesConciliacao = [];
+
+function detectarConciliacoesPossiveis(reposicoes, ocorrencias, condominio) {
+  if (!condominio) return [];
+
+  const reposPendentes = reposicoes.filter(function (r) {
+    return r.condominio === condominio && r.status !== 'Identificado' && Number(r.quantidade) > 0 && r.produto !== 'Reposição realizada (Sem furos)';
+  });
+
+  if (reposPendentes.length === 0) return [];
+
+  const ocorrenciasValidas = ocorrencias.filter(function (o) {
+    return o.condominio === condominio && o.status !== 'Cancelado';
+  });
+
+  const ocorrenciasUsadas = new Set();
+  ocorrenciasValidas.forEach(function (o) {
+    if (o.furo_reposicao_id) ocorrenciasUsadas.add(o.id);
+  });
+
+  const sugestoes = [];
+
+  reposPendentes.forEach(function (r) {
+    const qtdFuro = Number(r.quantidade) || 0;
+    const prodNome = (r.produto || '').trim().toLowerCase();
+    const compativeis = [];
+    let qtdAcumulada = 0;
+
+    for (let i = 0; i < ocorrenciasValidas.length; i++) {
+      const oc = ocorrenciasValidas[i];
+      if (ocorrenciasUsadas.has(oc.id)) continue;
+
+      (oc.itens || []).forEach(function (item) {
+        if (!item) return;
+        const itemNome = (item.produto || '').trim().toLowerCase();
+        if (itemNome === prodNome || itemNome.includes(prodNome) || prodNome.includes(itemNome)) {
+          compativeis.push({
+            ocorrenciaId: oc.id,
+            data: oc.data_ocorrencia,
+            hora: oc.hora,
+            pessoa: oc.pessoa || oc.descricao_pessoa || 'Identificado',
+            contato_whatsapp: oc.contato_whatsapp || '',
+            status: oc.status || 'Pendente',
+            qtd: Number(item.qtd) || 1,
+            preco_unit: Number(item.preco_unit) || Number(r.preco_unit) || 0
+          });
+          qtdAcumulada += Number(item.qtd) || 1;
+        }
+      });
+
+      if (qtdAcumulada >= qtdFuro) break;
+    }
+
+    if (compativeis.length > 0) {
+      sugestoes.push({
+        furoId: r.id,
+        furoData: r.data,
+        produto: r.produto,
+        qtdFuro: qtdFuro,
+        precoUnit: Number(r.preco_unit) || 0,
+        ocorrenciasCompativeis: compativeis
+      });
+      compativeis.forEach(function (c) { ocorrenciasUsadas.add(c.ocorrenciaId); });
+    }
+  });
+
+  return sugestoes;
+}
+
 async function carregarFurosReposicao() {
   const container = document.getElementById('furosPendentes');
   if (!condominioAtual) {
@@ -292,6 +361,9 @@ async function carregarFurosReposicao() {
     if (!respostaOcorrencias.ok) throw new Error(respostaOcorrencias.erro);
 
     saldosFuroCondominio = calcularSaldosFuro_(respostaReposicoes.dados, respostaOcorrencias.dados, condominioAtual);
+    sugestoesConciliacao = detectarConciliacoesPossiveis(respostaReposicoes.dados, respostaOcorrencias.dados, condominioAtual);
+    
+    renderizarBannerConciliacao_();
     renderizarFurosReposicao();
   } catch (err) {
     container.classList.remove('oculto');
@@ -299,11 +371,109 @@ async function carregarFurosReposicao() {
   }
 }
 
+function renderizarBannerConciliacao_() {
+  const banner = document.getElementById('bannerConciliacaoInteligente');
+  if (!banner) return;
+
+  if (sugestoesConciliacao.length === 0) {
+    banner.classList.add('oculto');
+    banner.innerHTML = '';
+    return;
+  }
+
+  banner.innerHTML = '<div class="banner-conciliacao-inteligente">' +
+    '<div class="banner-conciliacao-topo">' +
+      '<div class="banner-conciliacao-titulo">' +
+        '<i data-lucide="zap"></i>' +
+        '<strong>Conciliação Inteligente</strong>' +
+      '</div>' +
+      '<span class="badge-conciliacao-contador">' + sugestoesConciliacao.length + ' furo(s) com correspondência</span>' +
+    '</div>' +
+    '<p class="banner-conciliacao-desc">' +
+      'Detectamos que os seguintes produtos já foram identificados nas câmeras ou pagos por moradores:' +
+    '</p>' +
+    '<div class="lista-sugestoes-conciliacao">' +
+      sugestoesConciliacao.map(function (s) {
+        return '<div class="item-sugestao-conciliacao">' +
+          '<div class="sugestao-esq">' +
+            '<strong>' + s.qtdFuro + 'x ' + s.produto + '</strong>' +
+            '<span class="sugestao-data">Furo de ' + formatarDataBR(s.furoData) + '</span>' +
+          '</div>' +
+          '<div class="sugestao-seta">➔</div>' +
+          '<div class="sugestao-dir">' +
+            s.ocorrenciasCompativeis.map(function (o) {
+              const badgeClass = o.status === 'Pago' ? 'pago' : (o.status === 'Cobrado' ? 'cobrado' : 'pendente');
+              return '<div class="ocorrencia-match">' +
+                '<span class="badge-status ' + badgeClass + '">' + o.status + '</span>' +
+                '<strong>' + o.pessoa + '</strong> (' + formatarDataBR(o.data) + ') · ' + o.qtd + ' un.' +
+              '</div>';
+            }).join('') +
+          '</div>' +
+        '</div>';
+      }).join('') +
+    '</div>' +
+    '<div class="banner-conciliacao-acoes">' +
+      '<button type="button" class="btn-conciliar-auto" id="btnConciliarAuto" onclick="aplicarConciliacaoAutomatica()">' +
+        '<i data-lucide="check-check"></i> Conciliar e Baixar Automaticamente (' + sugestoesConciliacao.length + ' furos)' +
+      '</button>' +
+    '</div>' +
+  '</div>';
+
+  banner.classList.remove('oculto');
+  if (window.lucide) lucide.createIcons();
+}
+
+async function aplicarConciliacaoAutomatica() {
+  if (sugestoesConciliacao.length === 0) return;
+  const botao = document.getElementById('btnConciliarAuto');
+  if (botao) {
+    botao.disabled = true;
+    botao.innerHTML = 'Conciliando...';
+  }
+
+  try {
+    const pares = [];
+    sugestoesConciliacao.forEach(function (s) {
+      const pessoaNome = s.ocorrenciasCompativeis.map(function (o) { return o.pessoa; }).filter(Boolean).join(', ') || 'Identificado em Ocorrência';
+      const whatsapp = s.ocorrenciasCompativeis.map(function (o) { return o.contato_whatsapp; }).filter(Boolean)[0] || '';
+      const primeiraOc = s.ocorrenciasCompativeis[0] || {};
+
+      s.ocorrenciasCompativeis.forEach(function (oc) {
+        pares.push({
+          furo_id: s.furoId,
+          ocorrencia_id: oc.ocorrenciaId,
+          pessoa: pessoaNome,
+          contato_whatsapp: whatsapp,
+          data: primeiraOc.data || '',
+          hora: primeiraOc.hora || ''
+        });
+      });
+    });
+
+    const resposta = await chamarApi({
+      action: 'vincularConciliacaoAutomatica',
+      pares: pares
+    }, 'POST');
+
+    if (!resposta.ok) throw new Error(resposta.erro || 'Falha ao conciliar.');
+
+    alert('Conciliação realizada com sucesso! ' + sugestoesConciliacao.length + ' furos foram conciliados e baixados.');
+    sugestoesConciliacao = [];
+    await carregarFurosReposicao();
+    await carregarCalendario();
+    if (diaSelecionado) renderizarRelacaoDia(diaSelecionado);
+  } catch (err) {
+    alert('Erro ao conciliar: ' + (err.message || err));
+  } finally {
+    if (botao) botao.disabled = false;
+  }
+}
+
 function renderizarFurosReposicao() {
   const container = document.getElementById('furosPendentes');
   const lista = document.getElementById('listaFurosPendentes');
 
-  if (saldosFuroCondominio.length === 0) {
+  if (saldosFuroCondominio.length === 0 && sugestoesConciliacao.length === 0) {
     container.classList.add('oculto');
     return;
   }
@@ -322,12 +492,9 @@ function renderizarFurosReposicao() {
     '</tr>';
   }).join('');
 
-  // Abaixo de 480px, as colunas "Em aberto"/"Valor" (col-larga) somem via CSS e
-  // o resumo compacto (escondido até ali) aparece no lugar — o botão de ação
-  // fica com espaço de sobra em vez de disputar largura com 4 colunas.
   lista.innerHTML = '<div class="tabela-scroll"><table class="tabela-furos">' +
     '<thead><tr><th>Produto</th><th class="col-numerica col-larga">Em aberto</th><th class="col-numerica col-larga">Valor</th><th></th></tr></thead>' +
-    '<tbody>' + linhas + '</tbody>' +
+    '<tbody>' + (linhas || '<tr><td colspan="4" class="centro" style="padding:16px;color:var(--texto-2)">Nenhum furo restante.</td></tr>') + '</tbody>' +
   '</table></div>';
 
   container.classList.remove('oculto');
