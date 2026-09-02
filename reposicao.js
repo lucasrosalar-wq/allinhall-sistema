@@ -93,7 +93,15 @@ function mudarCondominioReposicao() {
   const condominio = document.getElementById('condominioReposicao').value;
   document.getElementById('conteudoFormularioReposicao').classList.toggle('oculto', !condominio);
   document.getElementById('formularioReposicaoVazio').classList.toggle('oculto', !!condominio);
+
+  // Sincroniza o filtro da listagem para focar no mesmo condomínio selecionado
+  const selectFiltro = document.getElementById('filtroCondominioReposicao');
+  if (selectFiltro && condominio) {
+    selectFiltro.value = condominio;
+  }
+
   renderizarMiniCalReposicao();
+  renderizarListaReposicoes();
   atualizarKPIsReposicao();
 }
 
