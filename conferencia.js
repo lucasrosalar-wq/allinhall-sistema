@@ -457,18 +457,22 @@ function renderizarBannerConciliacao_() {
     '</p>' +
     '<div class="lista-sugestoes-conciliacao">' +
       sugestoesConciliacao.map(function (s) {
-        return '<div class="item-sugestao-conciliacao">' +
-          '<div class="sugestao-esq">' +
-            '<strong>' + s.qtdFuro + 'x ' + s.produto + '</strong>' +
-            '<span class="sugestao-data">Furo de ' + formatarDataBR(s.furoData) + '</span>' +
+        return '<div class="item-sugestao-conciliacao-card">' +
+          '<div class="sugestao-card-cabecalho">' +
+            '<div class="sugestao-card-prod">' +
+              '<span class="sugestao-card-icone">📦</span>' +
+              '<strong>' + s.qtdFuro + 'x ' + s.produto + '</strong>' +
+            '</div>' +
+            '<span class="sugestao-card-data">Furo de ' + formatarDataBR(s.furoData) + '</span>' +
           '</div>' +
-          '<div class="sugestao-seta">➔</div>' +
-          '<div class="sugestao-dir">' +
+          '<div class="sugestao-card-matches">' +
             s.ocorrenciasCompativeis.map(function (o) {
               const badgeClass = o.status === 'Pago' ? 'pago' : (o.status === 'Cobrado' ? 'cobrado' : 'pendente');
-              return '<div class="ocorrencia-match">' +
+              return '<div class="sugestao-match-linha">' +
+                '<span class="sugestao-match-seta">➔</span>' +
                 '<span class="badge-status ' + badgeClass + '">' + o.status + '</span>' +
-                '<strong>' + o.pessoa + '</strong> (' + formatarDataBR(o.data) + ') · ' + o.qtd + ' un.' +
+                '<span class="sugestao-match-qtd">' + o.qtd + ' un.</span>' +
+                '<span class="sugestao-match-pessoa">' + o.pessoa + ' <span class="sugestao-match-data">(' + formatarDataBR(o.data) + ')</span></span>' +
               '</div>';
             }).join('') +
           '</div>' +

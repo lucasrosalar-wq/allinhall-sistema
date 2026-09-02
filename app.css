@@ -367,46 +367,87 @@
     gap: 8px;
     margin-bottom: 14px;
   }
-  .item-sugestao-conciliacao {
+  .item-sugestao-conciliacao-card {
     background: #fff;
-    border: 1px solid #e2e8f0;
-    border-radius: 8px;
-    padding: 10px 14px;
+    border: 1px solid #dbeafe;
+    border-radius: 10px;
+    padding: 12px 14px;
+    box-shadow: 0 1px 3px rgba(37,99,235,.06);
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .sugestao-card-cabecalho {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 12px;
+    gap: 8px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid #eff6ff;
   }
-  .sugestao-esq {
+  .sugestao-card-prod {
     display: flex;
-    flex-direction: column;
-    gap: 2px;
-  }
-  .sugestao-esq strong {
-    font-size: 13px;
-    color: var(--preto);
-  }
-  .sugestao-data {
-    font-size: 11px;
-    color: var(--texto-2);
-  }
-  .sugestao-seta {
-    color: #94a3b8;
-    font-weight: bold;
-    font-size: 14px;
-  }
-  .sugestao-dir {
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-    text-align: right;
-  }
-  .ocorrencia-match {
-    display: inline-flex;
     align-items: center;
     gap: 6px;
-    font-size: 12px;
+    font-size: 13.5px;
+    color: var(--preto);
+  }
+  .sugestao-card-icone {
+    font-size: 14px;
+  }
+  .sugestao-card-data {
+    font-size: 11.5px;
+    color: #64748b;
+    background: #f1f5f9;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-weight: 500;
+  }
+  .sugestao-card-matches {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .sugestao-match-linha {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12.5px;
     color: var(--texto);
+    padding: 6px 10px;
+    border-radius: 6px;
+    background: #f8fafc;
+    border: 1px solid #f1f5f9;
+  }
+  .sugestao-match-seta {
+    color: #3b82f6;
+    font-size: 12px;
+    font-weight: bold;
+    flex-shrink: 0;
+  }
+  .sugestao-match-linha .badge-status {
+    flex-shrink: 0;
+    margin: 0;
+    font-size: 10px;
+    padding: 2px 7px;
+    letter-spacing: .02em;
+  }
+  .sugestao-match-qtd {
+    font-weight: 800;
+    color: var(--preto);
+    flex-shrink: 0;
+    font-size: 12px;
+  }
+  .sugestao-match-pessoa {
+    color: var(--texto);
+    line-height: 1.35;
+    word-break: break-word;
+    font-size: 12.5px;
+  }
+  .sugestao-match-data {
+    color: var(--texto-2);
+    font-size: 11px;
+    font-weight: normal;
   }
   .banner-conciliacao-acoes {
     display: flex;
