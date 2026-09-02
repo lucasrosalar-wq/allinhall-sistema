@@ -225,6 +225,69 @@ const FirebaseDB = {
 
   async criarReposicao(params) {
     const agora = new Date();
+
+    if (params.sem_furos || (!params.itens && !params.produto)) {
+      const id = 'REP' + agora.getFullYear() +
+        String(agora.getMonth() + 1).padStart(2, '0') +
+        String(agora.getDate()).padStart(2, '0') +
+        String(agora.getHours()).padStart(2, '0') +
+        String(agora.getMinutes()).padStart(2, '0') +
+        String(agora.getSeconds()).padStart(2, '0') +
+        Math.floor(Math.random() * 90 + 10);
+
+      const docData = {
+        id: id,
+        condominio: params.condominio || '',
+        data: params.data || '',
+        produto: 'Reposição realizada (Sem furos)',
+        quantidade: 0,
+        preco_unit: 0,
+        valor_total: 0,
+        status: 'OK',
+        pessoa: '',
+        contato_whatsapp: '',
+        data_infracao: '',
+        hora_infracao: '',
+        data_criacao: agora.toISOString()
+      };
+      await db.collection('reposicoes').doc(id).set(docData);
+      return { id: id, ok: true };
+    }
+
+    if (params.itens && params.itens.length > 0) {
+      const ids = [];
+      for (let i = 0; i < params.itens.length; i++) {
+        const item = params.itens[i];
+        const id = 'REP' + agora.getFullYear() +
+          String(agora.getMonth() + 1).padStart(2, '0') +
+          String(agora.getDate()).padStart(2, '0') +
+          String(agora.getHours()).padStart(2, '0') +
+          String(agora.getMinutes()).padStart(2, '0') +
+          String(agora.getSeconds()).padStart(2, '0') +
+          '-' + i + Math.floor(Math.random() * 90 + 10);
+
+        const docData = {
+          id: id,
+          condominio: params.condominio || '',
+          data: params.data || '',
+          produto: item.produto || '',
+          quantidade: Number(item.qtd) || 0,
+          preco_unit: Number(item.preco_unit) || 0,
+          valor_total: (Number(item.qtd) || 0) * (Number(item.preco_unit) || 0),
+          status: 'Pendente',
+          pessoa: '',
+          contato_whatsapp: '',
+          data_infracao: '',
+          hora_infracao: '',
+          data_criacao: agora.toISOString()
+        };
+        await db.collection('reposicoes').doc(id).set(docData);
+        ids.push(id);
+      }
+      return { ids: ids, ok: true };
+    }
+
+    // Item individual único
     const id = 'REP' + agora.getFullYear() +
       String(agora.getMonth() + 1).padStart(2, '0') +
       String(agora.getDate()).padStart(2, '0') +
@@ -241,7 +304,7 @@ const FirebaseDB = {
       quantidade: Number(params.quantidade) || 0,
       preco_unit: Number(params.preco_unit) || 0,
       valor_total: (Number(params.quantidade) || 0) * (Number(params.preco_unit) || 0),
-      status: 'Aberto',
+      status: params.status || 'Pendente',
       pessoa: params.pessoa || '',
       contato_whatsapp: params.contato_whatsapp || '',
       data_infracao: params.data_infracao || '',
@@ -249,7 +312,7 @@ const FirebaseDB = {
       data_criacao: agora.toISOString()
     };
     await db.collection('reposicoes').doc(id).set(docData);
-    return { id: id };
+    return { id: id, ok: true };
   },
 
   async atualizarReposicao(params) {

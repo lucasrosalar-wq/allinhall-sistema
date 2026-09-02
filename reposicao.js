@@ -81,11 +81,29 @@ function mudarMesReposicao(delta) {
   renderizarMiniCalReposicao();
 }
 
+function mudarDataReposicaoManual() {
+  const data = document.getElementById('dataReposicao').value;
+  if (data) {
+    const partes = data.split('-');
+    if (partes.length === 3) {
+      miniCalReposicaoAno = parseInt(partes[0], 10);
+      miniCalReposicaoMes = parseInt(partes[1], 10);
+    }
+  }
+  renderizarMiniCalReposicao();
+}
+
+function selecionarDataReposicao_(dataISO) {
+  document.getElementById('dataReposicao').value = dataISO;
+  renderizarMiniCalReposicao();
+}
+
 function renderizarMiniCalReposicao() {
   const condominio = document.getElementById('condominioReposicao').value;
   const conteudo = document.getElementById('miniCalReposicaoConteudo');
   const vazio = document.getElementById('miniCalReposicaoVazio');
   const rotulo = document.getElementById('miniCalReposicaoCondominioLabel');
+  const dataSelecionada = document.getElementById('dataReposicao').value;
 
   if (!condominio) {
     rotulo.textContent = '—';
@@ -99,12 +117,14 @@ function renderizarMiniCalReposicao() {
   document.getElementById('miniCalReposicaoTitulo').textContent = NOMES_MESES_REPOSICAO_[miniCalReposicaoMes - 1] + ' de ' + miniCalReposicaoAno;
 
   const chavePeriodo = miniCalReposicaoAno + '-' + String(miniCalReposicaoMes).padStart(2, '0');
-  const mapaDias = {}; // 'yyyy-mm-dd' -> 'pendente' | 'identificado'
+  const mapaDias = {}; // 'yyyy-mm-dd' -> 'pendente' | 'identificado' | 'ok'
   todasReposicoes.forEach(function (r) {
     if (r.condominio !== condominio) return;
     if (String(r.data).indexOf(chavePeriodo) !== 0) return;
     if (mapaDias[r.data] !== 'pendente') {
-      mapaDias[r.data] = r.status === 'Pendente' ? 'pendente' : 'identificado';
+      if (r.status === 'Pendente') mapaDias[r.data] = 'pendente';
+      else if (r.status === 'OK') mapaDias[r.data] = 'ok';
+      else mapaDias[r.data] = 'identificado';
     }
   });
 
@@ -118,13 +138,49 @@ function renderizarMiniCalReposicao() {
     const celula = document.createElement('div');
     celula.className = 'mini-dia';
     celula.textContent = dia;
+    celula.title = 'Clique para selecionar o dia ' + formatarDataBR(dataISO);
     if (dia === 1) celula.style.gridColumnStart = String(primeiroDiaSemana + 1);
+    if (dataISO === dataSelecionada) celula.classList.add('selecionado');
     if (mapaDias[dataISO] === 'pendente') celula.classList.add('ocorrencia');
-    else if (mapaDias[dataISO] === 'identificado') celula.classList.add('ok');
+    else if (mapaDias[dataISO] === 'identificado' || mapaDias[dataISO] === 'ok') celula.classList.add('ok');
+
+    celula.onclick = function () { selecionarDataReposicao_(dataISO); };
     fragmento.appendChild(celula);
   }
   grade.innerHTML = '';
   grade.appendChild(fragmento);
+}
+
+async function marcarVisitaReposicao() {
+  const condominio = document.getElementById('condominioReposicao').value;
+  const data = document.getElementById('dataReposicao').value;
+
+  if (!condominio) { mostrarBannerReposicao_('erro', 'Selecione o condomínio primeiro.'); return; }
+  if (!data) { mostrarBannerReposicao_('erro', 'Selecione a data da reposição.'); return; }
+
+  const botao = document.getElementById('btnMarcarVisitaReposicao');
+  const textoOriginal = botao.innerHTML;
+  botao.disabled = true;
+  botao.innerHTML = 'Salvando visita...';
+
+  try {
+    const resposta = await chamarApi({
+      action: 'criarReposicao',
+      condominio: condominio,
+      data: data,
+      sem_furos: true
+    }, 'POST');
+
+    if (!resposta.ok) throw new Error(resposta.erro || 'Erro ao registrar visita.');
+    mostrarBannerReposicao_('sucesso', 'Visita de reposição em ' + formatarDataBR(data) + ' registrada com sucesso (Sem furos)!');
+    await carregarReposicoes();
+  } catch (err) {
+    mostrarBannerReposicao_('erro', err.message || 'Falha ao registrar visita.');
+  } finally {
+    botao.disabled = false;
+    botao.innerHTML = textoOriginal;
+    if (window.lucide) lucide.createIcons();
+  }
 }
 
 function renderizarListaReposicoes() {
@@ -148,15 +204,20 @@ function renderizarListaReposicoes() {
   }
 
   lista.innerHTML = filtradas.map(function (r) {
+    const semFuros = r.status === 'OK' || r.produto === 'Reposição realizada (Sem furos)' || Number(r.valor_total) === 0;
+    const itensTexto = semFuros ? '✓ Visita de reposição física realizada (Sem furos de estoque)' : (r.quantidade + 'x ' + r.produto);
+    const badgeClasse = semFuros ? 'pago' : r.status.toLowerCase();
+    const badgeTexto = semFuros ? 'Sem furos (OK)' : r.status;
+
     return '<div class="card-relacao">' +
       '<div class="topo">' +
         '<div><div class="pessoa">' + r.condominio + '</div><div class="hora">' + formatarDataBR(r.data) + '</div></div>' +
-        '<div class="valor">' + formatarMoeda(r.valor_total) + '</div>' +
+        '<div class="valor">' + (semFuros ? '—' : formatarMoeda(r.valor_total)) + '</div>' +
       '</div>' +
-      '<div class="itens">' + r.quantidade + 'x ' + r.produto + '</div>' +
-      '<span class="badge-status ' + r.status.toLowerCase() + '">' + r.status + '</span>' +
+      '<div class="itens">' + itensTexto + '</div>' +
+      '<span class="badge-status ' + badgeClasse + '">' + badgeTexto + '</span>' +
       '<div class="acoes-relacao">' +
-        '<button type="button" onclick="editarReposicao(\'' + r.id + '\')">Editar</button>' +
+        (!semFuros ? '<button type="button" onclick="editarReposicao(\'' + r.id + '\')">Editar</button>' : '') +
         '<button type="button" class="btn-excluir-relacao" onclick="excluirReposicao(\'' + r.id + '\')">Excluir</button>' +
       '</div>' +
     '</div>';

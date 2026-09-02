@@ -286,8 +286,8 @@
         </div>
         <div class="mini-calendario-grade" id="miniCalReposicaoGrade"></div>
         <div class="mini-calendario-legenda">
-          <span><span class="bolinha" style="background:var(--verde)"></span> Identificado</span>
-          <span><span class="bolinha" style="background:var(--amarelo)"></span> Pendente</span>
+          <span><span class="bolinha" style="background:var(--verde)"></span> Sem furos / Identificado</span>
+          <span><span class="bolinha" style="background:var(--amarelo)"></span> Furo pendente</span>
         </div>
       </div>
       <div id="miniCalReposicaoVazio" class="mini-cal-vazio oculto">Selecione um condomínio pra ver os dias de reposição.</div>
@@ -304,12 +304,17 @@
         </div>
         <div>
           <label>Data</label>
-          <input type="date" id="dataReposicao">
+          <input type="date" id="dataReposicao" onchange="mudarDataReposicaoManual()">
         </div>
       </div>
 
       <div id="conteudoFormularioReposicao" class="oculto">
-        <label>Itens do furo</label>
+        <div class="acoes-rapidas-reposicao">
+          <button type="button" class="btn-visita-ok" id="btnMarcarVisitaReposicao" onclick="marcarVisitaReposicao()">
+            <i data-lucide="check-circle-2"></i> Marcar visita de reposição realizada (Sem furos)
+          </button>
+        </div>
+        <label>Ou adicione itens com furo de estoque:</label>
         <div class="linha-add-item">
           <input type="text" id="inputProdutoReposicao" list="listaProdutosDatalistReposicao" placeholder="Digite o produto...">
           <input type="number" id="inputQtdReposicao" min="1" step="1" value="1">
@@ -918,12 +923,12 @@
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
 
 <!-- App Scripts -->
-<script src="firebase-db.js?v=20260902c"></script>
-<script src="shared.js?v=20260902c"></script>
-<script src="conferencia.js?v=20260902c"></script>
-<script src="gestao.js?v=20260902c"></script>
-<script src="reposicao.js?v=20260902c"></script>
-<script src="aquisicao.js?v=20260902c"></script>
+<script src="firebase-db.js?v=20260902d"></script>
+<script src="shared.js?v=20260902d"></script>
+<script src="conferencia.js?v=20260902d"></script>
+<script src="gestao.js?v=20260902d"></script>
+<script src="reposicao.js?v=20260902d"></script>
+<script src="aquisicao.js?v=20260902d"></script>
 <script>
   if (window.lucide) lucide.createIcons();
 </script>

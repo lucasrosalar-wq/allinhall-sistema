@@ -278,13 +278,43 @@
     width: 100%; height: 20px; min-height: 0; max-height: 20px; overflow: hidden;
     border-radius: 5px; background: var(--cinza); display: flex; align-items: center; justify-content: center;
     font-size: 8px; color: #9CA3AF; font-weight: 600; box-sizing: border-box; line-height: 20px;
+    cursor: pointer; transition: transform .15s ease, filter .15s ease;
   }
+  .mini-dia:hover { filter: brightness(0.92); transform: scale(1.08); }
+  .mini-dia.selecionado { outline: 2px solid var(--laranja); font-weight: 800; }
   .mini-dia.ok { background: var(--verde); color: #fff; }
   .mini-dia.ocorrencia { background: var(--amarelo); color: var(--preto); }
   .mini-dia.semoperacao { background: var(--azul); color: #fff; }
   .mini-calendario-legenda { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; font-size: 8.5px; color: var(--texto-2); }
   .mini-calendario-legenda span { display: inline-flex; align-items: center; gap: 3px; }
   .mini-calendario-legenda .bolinha { width: 6px; height: 6px; border-radius: 50%; display: inline-block; }
+
+  .acoes-rapidas-reposicao {
+    margin: 12px 0 16px;
+    padding-bottom: 12px;
+    border-bottom: 1px dashed var(--borda);
+  }
+  .btn-visita-ok {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 9px 15px;
+    background: #ecfdf5;
+    color: #059669;
+    border: 1px solid #a7f3d0;
+    border-radius: var(--raio-sm);
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all .2s ease;
+  }
+  .btn-visita-ok:hover {
+    background: #d1fae5;
+    border-color: #6ee7b7;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(16,185,129,.15);
+  }
+  .btn-visita-ok svg { width: 16px; height: 16px; }
 
   /* Contagem de ocorrências por status, abaixo dos filtros */
   .contagem-status {
