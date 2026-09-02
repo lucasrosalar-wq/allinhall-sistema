@@ -19,6 +19,13 @@ if (typeof firebase !== 'undefined' && !firebase.apps.length) {
 }
 const db = (typeof firebase !== 'undefined' && firebase.apps.length) ? firebase.firestore() : null;
 
+function formatarDataBRLocal_(iso) {
+  if (!iso) return '';
+  const p = String(iso).split('T')[0].split('-');
+  if (p.length !== 3) return iso;
+  return p[2] + '/' + p[1] + '/' + p[0];
+}
+
 // ===================== FUNÇÕES DE ACESSO AO BANCO FIRESTORE =====================
 
 const FirebaseDB = {
@@ -85,14 +92,11 @@ const FirebaseDB = {
 
   async obterCalendario(condominio, ano, mes) {
     const chaveMes = String(ano) + '-' + String(mes).padStart(2, '0');
-    const inicio = chaveMes + '-01';
-    const fim = chaveMes + '-31';
 
+    // Usa consulta por condomínio simples (não requer índices compostos)
     const [snapOc, snapDias] = await Promise.all([
       db.collection('ocorrencias')
         .where('condominio', '==', condominio)
-        .where('data_ocorrencia', '>=', inicio)
-        .where('data_ocorrencia', '<=', fim)
         .get(),
       db.collection('dias_fechados')
         .where('condominio', '==', condominio)
@@ -102,7 +106,7 @@ const FirebaseDB = {
     const ocorrencias = [];
     snapOc.forEach(doc => {
       const d = doc.data();
-      if (d.status !== 'Cancelado') {
+      if (d.status !== 'Cancelado' && String(d.data_ocorrencia || '').startsWith(chaveMes)) {
         ocorrencias.push(Object.assign({ id: doc.id }, d));
       }
     });
@@ -110,7 +114,7 @@ const FirebaseDB = {
     const diasFechados = [];
     snapDias.forEach(doc => {
       const d = doc.data();
-      if (String(d.data).indexOf(chaveMes) === 0) {
+      if (String(d.data || '').startsWith(chaveMes)) {
         diasFechados.push(Object.assign({ id: doc.id }, d));
       }
     });
@@ -158,7 +162,6 @@ const FirebaseDB = {
       furo_reposicao_id: params.furo_reposicao_id || ''
     };
 
-    // Se houver furo de reposição associado, vincula
     if (!docData.furo_reposicao_id && params.itens && params.itens.length > 0) {
       const comFuro = params.itens.find(i => i && i.furo_reposicao_id);
       if (comFuro) docData.furo_reposicao_id = comFuro.furo_reposicao_id;
@@ -267,13 +270,12 @@ const FirebaseDB = {
 
     const snapRep = await db.collection('reposicoes')
       .where('condominio', '==', params.condominio)
-      .where('produto', '==', params.produto)
       .get();
 
     const candidatas = [];
     snapRep.forEach(doc => {
       const d = doc.data();
-      if (d.status !== 'Identificado') {
+      if (d.status !== 'Identificado' && d.produto === params.produto) {
         candidatas.push(Object.assign({ id: doc.id }, d));
       }
     });
@@ -305,7 +307,7 @@ const FirebaseDB = {
         }],
         valor_total: qtdDeste * cand.preco_unit,
         furo_reposicao_id: cand.id,
-        observacao: 'Furo de reposição de ' + formatarDataBR(cand.data) + (params.observacao ? ' — ' + params.observacao : '')
+        observacao: 'Furo de reposição de ' + formatarDataBRLocal_(cand.data) + (params.observacao ? ' — ' + params.observacao : '')
       });
       criadas.push(resOc.id);
 
