@@ -152,12 +152,75 @@ function renderizarCalendario() {
     fragmento.appendChild(botao);
   }
 
+  // Atualiza barra de progresso do mês
+  let conferidosCount = 0;
+  for (let dia = 1; dia <= diasNoMes; dia++) {
+    const dataISO = anoAtual + '-' + String(mesAtual).padStart(2, '0') + '-' + String(dia).padStart(2, '0');
+    const ocsDoDia = mapaOcorrencias[dataISO] || [];
+    if (ocsDoDia.length > 0 || mapaFechados[dataISO] === 'OK' || mapaFechados[dataISO] === 'Sem operacao') {
+      conferidosCount++;
+    }
+  }
+
+  const wrapProg = document.getElementById('progressoConferenciaMes');
+  if (wrapProg) {
+    if (condominioAtual) {
+      wrapProg.classList.remove('oculto');
+      const pct = Math.round((conferidosCount / diasNoMes) * 100);
+      const restantes = diasNoMes - conferidosCount;
+      document.getElementById('progressoConferenciaTexto').textContent = conferidosCount + ' de ' + diasNoMes + ' dias conferidos (' + pct + '%)';
+      document.getElementById('progressoConferenciaRestante').textContent = restantes === 0 ? 'Mês 100% conferido! 🎉' : restantes + (restantes === 1 ? ' dia restante' : ' dias restantes');
+      document.getElementById('progressoConferenciaBarra').style.width = pct + '%';
+    } else {
+      wrapProg.classList.add('oculto');
+    }
+  }
+
   grade.innerHTML = '';
   grade.appendChild(fragmento);
 }
 
 function formatarISO(data) {
   return data.getFullYear() + '-' + String(data.getMonth() + 1).padStart(2, '0') + '-' + String(data.getDate()).padStart(2, '0');
+}
+
+// Navegação rápida pelo teclado (setas ← e →)
+document.addEventListener('keydown', function (e) {
+  const viewConf = document.getElementById('viewConferencia');
+  if (!viewConf || viewConf.classList.contains('oculto')) return;
+
+  const modalAberto = document.querySelector('.modal-overlay:not(.oculto)');
+  if (modalAberto) {
+    if (e.key === 'Escape') {
+      fecharModal(modalAberto.id);
+    }
+    return;
+  }
+
+  if (['INPUT', 'TEXTAREA', 'SELECT'].includes(document.activeElement.tagName)) return;
+  if (!condominioAtual) return;
+
+  if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
+    e.preventDefault();
+    navegarDiaTeclado_(e.key === 'ArrowRight' ? 1 : -1);
+  }
+});
+
+function navegarDiaTeclado_(delta) {
+  const diasNoMes = new Date(anoAtual, mesAtual, 0).getDate();
+  let diaAlvo = 1;
+  if (diaSelecionado) {
+    const partes = diaSelecionado.split('-');
+    if (partes.length === 3 && parseInt(partes[0], 10) === anoAtual && parseInt(partes[1], 10) === mesAtual) {
+      diaAlvo = parseInt(partes[2], 10) + delta;
+    }
+  }
+
+  if (diaAlvo < 1) diaAlvo = 1;
+  if (diaAlvo > diasNoMes) diaAlvo = diasNoMes;
+
+  const dataISO = anoAtual + '-' + String(mesAtual).padStart(2, '0') + '-' + String(diaAlvo).padStart(2, '0');
+  abrirAcoesDia(dataISO, diaAlvo);
 }
 
 // ===================== PAINEL: AÇÕES DO DIA =====================

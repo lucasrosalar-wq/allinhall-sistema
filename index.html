@@ -107,6 +107,16 @@
       </select>
 
       <div id="calendarioConteudo">
+        <div id="progressoConferenciaMes" class="progresso-conferencia-wrap oculto">
+          <div class="progresso-conferencia-topo">
+            <span class="progresso-texto" id="progressoConferenciaTexto">0 de 0 dias conferidos (0%)</span>
+            <span class="progresso-restante" id="progressoConferenciaRestante">0 restantes</span>
+          </div>
+          <div class="progresso-barra-fundo">
+            <div class="progresso-barra-valor" id="progressoConferenciaBarra" style="width: 0%"></div>
+          </div>
+        </div>
+
         <div class="nav-mes">
           <button onclick="mudarMes(-1)"><i data-lucide="chevron-left"></i></button>
           <div class="titulo-mes" id="tituloMes">—</div>
@@ -132,12 +142,22 @@
 
     <div class="coluna-detalhes">
       <div id="painelAcoesDia" class="painel-acoes-dia oculto">
-        <h3 id="tituloDiaSelecionado">Dia —</h3>
-        <div class="subtitulo" id="condominioDiaSelecionado">—</div>
-        <button class="btn-primaria btn-icone" onclick="abrirFormularioOcorrencia()"><i data-lucide="plus-circle"></i> Registrar ocorrência</button>
-        <button class="btn-secundaria btn-icone" onclick="fecharDiaComoOk()"><i data-lucide="check-circle"></i> Fechar dia (OK)</button>
-        <button class="btn-secundaria btn-icone" onclick="marcarSemOperacao()"><i data-lucide="ban"></i> Marcar sem operação</button>
-        <button class="btn-fechar btn-icone" onclick="limparDiaSelecionado()"><i data-lucide="eraser"></i> Limpar marcação do dia</button>
+        <div class="topo-painel-dia">
+          <div>
+            <h3 id="tituloDiaSelecionado">Dia —</h3>
+            <div class="subtitulo" id="condominioDiaSelecionado">—</div>
+          </div>
+          <div class="dica-teclado-dia">Navegue com as setas <strong>←</strong> e <strong>→</strong></div>
+        </div>
+
+        <div class="grade-botoes-dia-principais">
+          <button class="btn-primaria btn-icone" onclick="abrirFormularioOcorrencia()"><i data-lucide="plus-circle"></i> Registrar ocorrência</button>
+          <button class="btn-fechar-ok btn-icone" onclick="fecharDiaComoOk()"><i data-lucide="check-circle-2"></i> Fechar dia (OK)</button>
+        </div>
+        <div class="grade-botoes-dia-secundarios">
+          <button class="btn-secundaria-sm btn-icone" onclick="marcarSemOperacao()"><i data-lucide="ban"></i> Sem operação</button>
+          <button class="btn-secundaria-sm btn-icone" onclick="limparDiaSelecionado()"><i data-lucide="eraser"></i> Limpar marcação</button>
+        </div>
       </div>
 
       <div id="relacaoDia" class="relacao-dia oculto">
@@ -961,12 +981,12 @@
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
 
 <!-- App Scripts -->
-<script src="firebase-db.js?v=20260902h"></script>
-<script src="shared.js?v=20260902h"></script>
-<script src="conferencia.js?v=20260902h"></script>
-<script src="gestao.js?v=20260902h"></script>
-<script src="reposicao.js?v=20260902h"></script>
-<script src="aquisicao.js?v=20260902h"></script>
+<script src="firebase-db.js?v=20260902i"></script>
+<script src="shared.js?v=20260902i"></script>
+<script src="conferencia.js?v=20260902i"></script>
+<script src="gestao.js?v=20260902i"></script>
+<script src="reposicao.js?v=20260902i"></script>
+<script src="aquisicao.js?v=20260902i"></script>
 <script>
   if (window.lucide) lucide.createIcons();
 </script>
