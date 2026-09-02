@@ -30,7 +30,13 @@ function inicializarGestao() {
   for (let ano = anoAtualFiltro + 1; ano >= anoAtualFiltro - 2; ano--) {
     opcoesAno.push('<option value="' + ano + '">' + ano + '</option>');
   }
-  selectAno.innerHTML = '<option value="">Todos</option>' + opcoesAno.join('');
+  const mesAtual = String(new Date().getMonth() + 1).padStart(2, '0');
+  const selectMes = document.getElementById('filtroMes');
+  if (selectMes) selectMes.value = mesAtual;
+  if (selectAno) selectAno.value = String(anoAtualFiltro);
+
+  const btnAtual = document.getElementById('btnPeriodoMesAtual');
+  if (btnAtual) btnAtual.classList.add('ativo');
 
   carregarMiniCalendario();
 
@@ -195,8 +201,109 @@ function renderizarTotais() {
 // ===================== QUADRO KANBAN (Pendente / Cobrado / Recebido / Prejuízo) =====================
 // Ocorrências Canceladas não entram em nenhuma coluna — mesmo critério que já valia
 // para os totais acima, agora estendido pra lista inteira.
+
+// ===================== BUSCA RÁPIDA E ATALHOS DE PERÍODO =====================
+let buscaTextoGestao = '';
+
+function filtrarPorBuscaGestao() {
+  const input = document.getElementById('inputBuscaGestao');
+  buscaTextoGestao = (input ? input.value : '').trim().toLowerCase();
+  const btnLimpar = document.getElementById('btnLimparBuscaGestao');
+  if (btnLimpar) btnLimpar.classList.toggle('oculto', !buscaTextoGestao);
+  renderizarLista();
+}
+
+function limparBuscaGestao() {
+  const input = document.getElementById('inputBuscaGestao');
+  if (input) input.value = '';
+  buscaTextoGestao = '';
+  const btnLimpar = document.getElementById('btnLimparBuscaGestao');
+  if (btnLimpar) btnLimpar.classList.add('oculto');
+  renderizarLista();
+}
+
+function aplicarPeriodoGestao(tipo) {
+  const h = new Date();
+  const mesAtual = String(h.getMonth() + 1).padStart(2, '0');
+  const anoAtual = String(h.getFullYear());
+
+  let mesPassadoNum = h.getMonth(); // 0-based for previous month
+  let anoMesPassado = h.getFullYear();
+  if (mesPassadoNum === 0) {
+    mesPassadoNum = 12;
+    anoMesPassado--;
+  }
+  const mesPassado = String(mesPassadoNum).padStart(2, '0');
+
+  const selectMes = document.getElementById('filtroMes');
+  const selectAno = document.getElementById('filtroAno');
+  const inputInicio = document.getElementById('filtroDataInicio');
+  const inputFim = document.getElementById('filtroDataFim');
+
+  if (inputInicio) inputInicio.value = '';
+  if (inputFim) inputFim.value = '';
+
+  ['btnPeriodoMesAtual', 'btnPeriodoMesPassado', 'btnPeriodoAnoAtual', 'btnPeriodoTodos'].forEach(function (id) {
+    const el = document.getElementById(id);
+    if (el) el.classList.remove('ativo');
+  });
+
+  if (tipo === 'mes-atual') {
+    if (selectMes) selectMes.value = mesAtual;
+    if (selectAno) selectAno.value = anoAtual;
+    const btn = document.getElementById('btnPeriodoMesAtual');
+    if (btn) btn.classList.add('ativo');
+  } else if (tipo === 'mes-passado') {
+    if (selectMes) selectMes.value = mesPassado;
+    if (selectAno) selectAno.value = String(anoMesPassado);
+    const btn = document.getElementById('btnPeriodoMesPassado');
+    if (btn) btn.classList.add('ativo');
+  } else if (tipo === 'ano-atual') {
+    if (selectMes) selectMes.value = '';
+    if (selectAno) selectAno.value = anoAtual;
+    const btn = document.getElementById('btnPeriodoAnoAtual');
+    if (btn) btn.classList.add('ativo');
+  } else if (tipo === 'todos') {
+    if (selectMes) selectMes.value = '';
+    if (selectAno) selectAno.value = '';
+    const btn = document.getElementById('btnPeriodoTodos');
+    if (btn) btn.classList.add('ativo');
+  }
+
+  renderizarLista();
+}
+
+function atualizarTaxaRecuperacaoGestao(lista) {
+  const barraWrap = document.getElementById('barraRecuperacaoGestao');
+  const elPct = document.getElementById('taxaRecuperacaoPct');
+  const elDetalhe = document.getElementById('taxaRecuperacaoDetalhe');
+  const elBarra = document.getElementById('taxaRecuperacaoBarra');
+  if (!barraWrap || !elPct || !elDetalhe || !elBarra) return;
+
+  const totalPago = lista.filter(function (o) { return o.status === 'Pago'; })
+    .reduce(function (soma, o) { return soma + (Number(o.valor_total) || 0); }, 0);
+
+  const totalCobrado = lista.filter(function (o) { return o.status === 'Cobrado'; })
+    .reduce(function (soma, o) { return soma + (Number(o.valor_total) || 0); }, 0);
+
+  const totalPrejuizo = lista.filter(function (o) { return o.status === STATUS_PREJUIZO_; })
+    .reduce(function (soma, o) { return soma + (Number(o.valor_total) || 0); }, 0);
+
+  const totalBase = totalPago + totalCobrado + totalPrejuizo;
+
+  if (totalBase === 0) {
+    barraWrap.classList.add('oculto');
+    return;
+  }
+
+  barraWrap.classList.remove('oculto');
+  const pct = Math.round((totalPago / totalBase) * 100);
+  elPct.textContent = pct + '%';
+  elDetalhe.textContent = formatarMoeda(totalPago) + ' recebidos de ' + formatarMoeda(totalBase) + ' movimentados';
+  elBarra.style.width = Math.min(100, Math.max(0, pct)) + '%';
+}
+
 function renderizarLista() {
-  renderizarConsolidado();
   carregarMiniCalendario();
   renderizarContagemStatus();
 
@@ -213,8 +320,27 @@ function renderizarLista() {
     if (ano && String(o.data_ocorrencia).slice(0, 4) !== ano) return false;
     if (dataInicio && o.data_ocorrencia < dataInicio) return false;
     if (dataFim && o.data_ocorrencia > dataFim) return false;
+
+    if (buscaTextoGestao) {
+      const textoCompleto = [
+        o.pessoa || '',
+        o.descricao_pessoa || '',
+        o.contato_whatsapp || '',
+        o.condominio || '',
+        o.data_ocorrencia || '',
+        o.hora || '',
+        o.observacao || '',
+        (o.itens || []).map(function (i) { return i.produto; }).join(' ')
+      ].join(' ').toLowerCase();
+
+      if (textoCompleto.indexOf(buscaTextoGestao) === -1) return false;
+    }
+
     return true;
   });
+
+  // Atualizar Indicador Executivo de Taxa de Recuperação
+  atualizarTaxaRecuperacaoGestao(lista);
 
   lista.sort(function (a, b) {
     return (b.data_ocorrencia + b.hora).localeCompare(a.data_ocorrencia + a.hora);
@@ -224,6 +350,8 @@ function renderizarLista() {
   renderizarColunaKanban('kanbanColunaCobrado', lista.filter(function (o) { return o.status === 'Cobrado'; }));
   renderizarColunaKanban('kanbanColunaRecebido', lista.filter(function (o) { return o.status === 'Pago'; }));
   renderizarColunaKanban('kanbanColunaPrejuizo', lista.filter(function (o) { return o.status === STATUS_PREJUIZO_; }));
+
+  if (window.lucide) lucide.createIcons();
 }
 
 function renderizarColunaKanban(idContainer, itens) {
@@ -285,31 +413,56 @@ function renderizarCardLote(itens) {
       '</div>';
     }).join('');
 
-  let acoes = '';
+  let acoesHtml = '';
   if (primeiro.status === 'Cobrado') {
-    acoes += '<button class="destaque" onclick="reabrirNotificacaoLote(' + idsJs + ')">Reabrir notificação</button>';
-    acoes += '<button class="whatsapp" onclick="recobrarLoteWhatsapp(' + idsJs + ')">Recobrar</button>';
-    acoes += '<button onclick="marcarLoteComoPago(' + idsJs + ')">Marcar tudo como pago</button>';
-    acoes += '<button class="perigo" onclick="marcarLoteComoPrejuizo(' + idsJs + ')">Não pagaram</button>';
-  }
-  if (primeiro.status === STATUS_PREJUIZO_) {
-    acoes += '<button class="whatsapp" onclick="recobrarLoteWhatsapp(' + idsJs + ')">Recobrar</button>';
-    acoes += '<button onclick="marcarLoteComoPago(' + idsJs + ')">Recebi o pagamento</button>';
-    acoes += '<button onclick="reabrirLote(' + idsJs + ')">Voltar p/ cobrado</button>';
+    acoesHtml = '<div class="acoes-card-grid">' +
+      '<button class="btn-card-primario sucesso" onclick="marcarLoteComoPago(' + idsJs + ')">' +
+        '<i data-lucide="check-circle-2"></i> Confirmar Tudo como Pago' +
+      '</button>' +
+      '<div class="acoes-card-secundarias">' +
+        '<button class="btn-card-sm whatsapp" onclick="recobrarLoteWhatsapp(' + idsJs + ')" title="Recobrar no WhatsApp">' +
+          '<i data-lucide="message-circle"></i> Recobrar' +
+        '</button>' +
+        '<button class="btn-card-sm" onclick="reabrirNotificacaoLote(' + idsJs + ')" title="Ver Notificação PDF">' +
+          '<i data-lucide="file-text"></i> Notificação' +
+        '</button>' +
+        '<button class="btn-card-sm perigo" onclick="marcarLoteComoPrejuizo(' + idsJs + ')" title="Marcar como não pagaram">' +
+          '<i data-lucide="x-circle"></i> Não pagaram' +
+        '</button>' +
+      '</div>' +
+    '</div>';
+  } else if (primeiro.status === STATUS_PREJUIZO_) {
+    acoesHtml = '<div class="acoes-card-grid">' +
+      '<button class="btn-card-primario sucesso" onclick="marcarLoteComoPago(' + idsJs + ')">' +
+        '<i data-lucide="check-circle-2"></i> Recebi o Pagamento' +
+      '</button>' +
+      '<div class="acoes-card-secundarias">' +
+        '<button class="btn-card-sm whatsapp" onclick="recobrarLoteWhatsapp(' + idsJs + ')">' +
+          '<i data-lucide="message-circle"></i> Recobrar' +
+        '</button>' +
+        '<button class="btn-card-sm" onclick="reabrirLote(' + idsJs + ')">' +
+          '<i data-lucide="undo-2"></i> Voltar p/ Cobrado' +
+        '</button>' +
+      '</div>' +
+    '</div>';
+  } else if (primeiro.status === 'Pago') {
+    acoesHtml = '<div class="pagamento-confirmado-card">' +
+      '<i data-lucide="check-check"></i> <span>Lote recebido via Pix (' + itens.length + ' consumos)</span>' +
+    '</div>';
   }
 
-  return '<div class="card card-lote">' +
+  return '<div class="card card-lote card-gestao-moderno">' +
     '<div class="card-topo">' +
-      '<div class="info">' + primeiro.condominio + '</div>' +
+      '<div class="info"><strong>' + primeiro.condominio + '</strong> · Lote consolidado</div>' +
       '<div class="pessoa">' + nomePessoa + '</div>' +
-      '<div class="whatsapp-card">' + (primeiro.contato_whatsapp ? 'WhatsApp: ' + primeiro.contato_whatsapp : 'Sem WhatsApp cadastrado') + '</div>' +
+      '<div class="whatsapp-card">' + (primeiro.contato_whatsapp ? '<i data-lucide="phone" style="width:11px;height:11px;display:inline-block;vertical-align:middle;margin-right:3px"></i>' + primeiro.contato_whatsapp : 'Sem WhatsApp cadastrado') + '</div>' +
       '<div class="valor-linha">' +
         '<span class="valor">' + formatarMoeda(totalLote) + '</span>' +
         '<span class="badge ' + statusClasse + '">' + itens.length + ' cobranças · ' + rotuloStatus_(primeiro.status) + '</span>' +
       '</div>' +
     '</div>' +
     '<div class="lista-lote">' + linhas + '</div>' +
-    '<div class="acoes">' + acoes + '</div>' +
+    (acoesHtml ? '<div class="acoes-modernas">' + acoesHtml + '</div>' : '') +
   '</div>';
 }
 
@@ -319,51 +472,79 @@ function renderizarCard(o) {
   const statusClasse = o.status.toLowerCase();
   const rotuloIdentificar = o.pessoa ? 'Editar pessoa' : 'Identificar';
 
-  let acoes = '';
-  if (o.status !== 'Cancelado' && o.status !== 'Pago') {
-    acoes += '<button onclick="abrirIdentificar(\'' + o.id + '\')">' + rotuloIdentificar + '</button>';
-    acoes += '<button onclick="abrirEditar(\'' + o.id + '\')">Editar itens</button>';
-  }
+  let acoesHtml = '';
+
   if (o.status === 'Pendente' || o.status === 'Identificado') {
-    acoes += '<button class="destaque" onclick="abrirCobranca(\'' + o.id + '\')">Cobrar</button>';
-    // Ocorrência que nunca vai ser cobrada (ninguém identificado, por exemplo)
-    // também é prejuízo — não precisa passar por "Cobrado" antes.
-    acoes += '<button class="perigo" onclick="marcarComoPrejuizo(\'' + o.id + '\')">Dar baixa</button>';
-  }
-  if (o.status === 'Cobrado') {
-    acoes += '<button class="destaque" onclick="abrirCobranca(\'' + o.id + '\')">Reabrir notificação</button>';
-    acoes += '<button class="whatsapp" onclick="recobrarWhatsapp(\'' + o.id + '\')">Recobrar</button>';
-    acoes += '<button onclick="marcarComoPago(\'' + o.id + '\')">Marcar como pago</button>';
-    // A pessoa foi cobrada e pegou mais coisa antes de pagar: melhor juntar tudo
-    // numa cobrança só do que notificar duas vezes o mesmo morador.
-    acoes += '<button onclick="voltarParaPendente(\'' + o.id + '\')">Voltar p/ pendente</button>';
-    acoes += '<button class="perigo" onclick="marcarComoPrejuizo(\'' + o.id + '\')">Não pagou</button>';
-  }
-  // Prejuízo não é o fim da linha: se a pessoa reaparece, dá pra recobrar,
-  // receber ou simplesmente devolver a ocorrência para a coluna de cobrança.
-  if (o.status === STATUS_PREJUIZO_) {
-    acoes += '<button class="whatsapp" onclick="recobrarWhatsapp(\'' + o.id + '\')">Recobrar</button>';
-    acoes += '<button onclick="marcarComoPago(\'' + o.id + '\')">Recebi o pagamento</button>';
-    acoes += '<button onclick="reabrirOcorrencia(\'' + o.id + '\')">' + (o.data_cobranca ? 'Voltar p/ cobrado' : 'Voltar p/ pendente') + '</button>';
-  }
-  if (o.status !== 'Cancelado' && o.status !== 'Pago') {
-    acoes += '<button class="perigo" onclick="cancelarOcorrencia(\'' + o.id + '\')">Cancelar</button>';
+    acoesHtml = '<div class="acoes-card-grid">' +
+      '<button class="btn-card-primario alerta" onclick="abrirCobranca(\'' + o.id + '\')">' +
+        '<i data-lucide="zap"></i> Cobrar' +
+      '</button>' +
+      '<div class="acoes-card-secundarias">' +
+        '<button class="btn-card-sm" onclick="abrirIdentificar(\'' + o.id + '\')" title="' + rotuloIdentificar + '">' +
+          '<i data-lucide="user"></i> ' + (o.pessoa ? 'Pessoa' : 'Identificar') +
+        '</button>' +
+        '<button class="btn-card-sm" onclick="abrirEditar(\'' + o.id + '\')" title="Editar itens">' +
+          '<i data-lucide="edit-3"></i> Itens' +
+        '</button>' +
+        '<button class="btn-card-sm perigo" onclick="marcarComoPrejuizo(\'' + o.id + '\')" title="Dar baixa como prejuízo">' +
+          '<i data-lucide="trash-2"></i> Baixa' +
+        '</button>' +
+      '</div>' +
+    '</div>';
+  } else if (o.status === 'Cobrado') {
+    acoesHtml = '<div class="acoes-card-grid">' +
+      '<button class="btn-card-primario sucesso" onclick="marcarComoPago(\'' + o.id + '\')">' +
+        '<i data-lucide="check-circle-2"></i> Confirmar Pix (Pago)' +
+      '</button>' +
+      '<div class="acoes-card-secundarias">' +
+        '<button class="btn-card-sm whatsapp" onclick="recobrarWhatsapp(\'' + o.id + '\')" title="Enviar mensagem de cobrança">' +
+          '<i data-lucide="message-circle"></i> Recobrar' +
+        '</button>' +
+        '<button class="btn-card-sm" onclick="abrirCobranca(\'' + o.id + '\')" title="Ver PDF / Notificação">' +
+          '<i data-lucide="file-text"></i> Notificação' +
+        '</button>' +
+        '<button class="btn-card-sm" onclick="voltarParaPendente(\'' + o.id + '\')" title="Voltar para pendente">' +
+          '<i data-lucide="undo-2"></i> Voltar' +
+        '</button>' +
+        '<button class="btn-card-sm perigo" onclick="marcarComoPrejuizo(\'' + o.id + '\')" title="Marcar como não pagou">' +
+          '<i data-lucide="x-circle"></i> Não pagou' +
+        '</button>' +
+      '</div>' +
+    '</div>';
+  } else if (o.status === 'Pago') {
+    acoesHtml = '<div class="pagamento-confirmado-card">' +
+      '<i data-lucide="check-check"></i> <span>Recebido via Pix ' + (o.data_pagamento ? 'em ' + formatarDataBR(o.data_pagamento) : '') + '</span>' +
+    '</div>';
+  } else if (o.status === STATUS_PREJUIZO_) {
+    acoesHtml = '<div class="acoes-card-grid">' +
+      '<button class="btn-card-primario sucesso" onclick="marcarComoPago(\'' + o.id + '\')">' +
+        '<i data-lucide="check-circle-2"></i> Recebi o Pagamento' +
+      '</button>' +
+      '<div class="acoes-card-secundarias">' +
+        '<button class="btn-card-sm whatsapp" onclick="recobrarWhatsapp(\'' + o.id + '\')" title="Recobrar no WhatsApp">' +
+          '<i data-lucide="message-circle"></i> Recobrar' +
+        '</button>' +
+        '<button class="btn-card-sm" onclick="reabrirOcorrencia(\'' + o.id + '\')" title="Devolver para Cobrado">' +
+          '<i data-lucide="undo-2"></i> ' + (o.data_cobranca ? 'Voltar p/ Cobrado' : 'Voltar p/ Pendente') +
+        '</button>' +
+      '</div>' +
+    '</div>';
   }
 
-  return '<div class="card">' +
+  return '<div class="card card-gestao-moderno">' +
     '<div class="card-topo">' +
-      '<div class="info">' + formatarDataBR(o.data_ocorrencia) + ' às ' + (o.hora || '—') + ' · ' + o.condominio + '</div>' +
+      '<div class="info"><i data-lucide="clock" style="width:12px;height:12px;display:inline-block;vertical-align:middle;margin-right:3px"></i>' + formatarDataBR(o.data_ocorrencia) + (o.hora ? ' às ' + o.hora : '') + ' · <strong>' + o.condominio + '</strong></div>' +
       '<div class="pessoa">' + nomePessoa + '</div>' +
-      '<div class="whatsapp-card">' + (o.contato_whatsapp ? 'WhatsApp: ' + o.contato_whatsapp : 'Sem WhatsApp cadastrado') + '</div>' +
+      '<div class="whatsapp-card">' + (o.contato_whatsapp ? '<i data-lucide="phone" style="width:11px;height:11px;display:inline-block;vertical-align:middle;margin-right:3px"></i>' + o.contato_whatsapp : 'Sem WhatsApp cadastrado') + '</div>' +
       '<div class="valor-linha">' +
         '<span class="valor">' + formatarMoeda(o.valor_total) + '</span>' +
         '<span class="badge ' + statusClasse + '">' + rotuloStatus_(o.status) + '</span>' +
       '</div>' +
     '</div>' +
-    '<div class="itens-resumo">' + resumoItens + '</div>' +
+    '<div class="itens-resumo"><i data-lucide="shopping-bag" style="width:12px;height:12px;display:inline-block;vertical-align:middle;margin-right:4px;color:#64748b"></i>' + resumoItens + '</div>' +
     (o.status === STATUS_PREJUIZO_ && o.data_prejuizo ? '<div class="observacao">Baixado como prejuízo em ' + formatarDataBR(o.data_prejuizo) + '</div>' : '') +
     (o.observacao ? '<div class="observacao">' + o.observacao + '</div>' : '') +
-    '<div class="acoes">' + acoes + '</div>' +
+    (acoesHtml ? '<div class="acoes-modernas">' + acoesHtml + '</div>' : '') +
   '</div>';
 }
 

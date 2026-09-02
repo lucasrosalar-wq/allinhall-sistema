@@ -207,46 +207,71 @@
       </div>
 
       <div class="coluna-detalhes">
+        <div id="barraRecuperacaoGestao" class="barra-recuperacao-wrap oculto">
+          <div class="barra-recuperacao-topo">
+            <span class="recuperacao-rotulo"><strong>Taxa de Recuperação:</strong> <span id="taxaRecuperacaoPct">0%</span></span>
+            <span class="recuperacao-detalhe" id="taxaRecuperacaoDetalhe">R$ 0,00 recebidos de R$ 0,00 cobrados</span>
+          </div>
+          <div class="barra-recuperacao-fundo">
+            <div class="barra-recuperacao-valor" id="taxaRecuperacaoBarra" style="width: 0%"></div>
+          </div>
+        </div>
+
         <div id="secaoConsolidada"></div>
 
-        <div class="filtros">
-          <div>
-            <label>Condomínio</label>
-            <select id="filtroCondominio" onchange="renderizarLista()"></select>
+        <div class="painel-filtros-gestao">
+          <div class="linha-busca-rapida">
+            <div class="campo-busca-wrap">
+              <i data-lucide="search" class="icone-busca-campo"></i>
+              <input type="text" id="inputBuscaGestao" placeholder="Buscar por morador, produto, WhatsApp, data..." oninput="filtrarPorBuscaGestao()">
+              <button type="button" class="btn-limpar-busca oculto" id="btnLimparBuscaGestao" onclick="limparBuscaGestao()"><i data-lucide="x"></i></button>
+            </div>
+            <div class="atalhos-periodo">
+              <button type="button" class="btn-atalho-periodo" id="btnPeriodoMesAtual" onclick="aplicarPeriodoGestao('mes-atual')">Este Mês</button>
+              <button type="button" class="btn-atalho-periodo" id="btnPeriodoMesPassado" onclick="aplicarPeriodoGestao('mes-passado')">Mês Passado</button>
+              <button type="button" class="btn-atalho-periodo" id="btnPeriodoAnoAtual" onclick="aplicarPeriodoGestao('ano-atual')">Todo o Ano</button>
+              <button type="button" class="btn-atalho-periodo" id="btnPeriodoTodos" onclick="aplicarPeriodoGestao('todos')">Tudo</button>
+            </div>
           </div>
-          <div>
-            <label>Mês</label>
-            <select id="filtroMes" onchange="renderizarLista()">
-              <option value="">Todos</option>
-              <option value="01">Janeiro</option>
-              <option value="02">Fevereiro</option>
-              <option value="03">Março</option>
-              <option value="04">Abril</option>
-              <option value="05">Maio</option>
-              <option value="06">Junho</option>
-              <option value="07">Julho</option>
-              <option value="08">Agosto</option>
-              <option value="09">Setembro</option>
-              <option value="10">Outubro</option>
-              <option value="11">Novembro</option>
-              <option value="12">Dezembro</option>
-            </select>
+
+          <div class="filtros">
+            <div>
+              <label>Condomínio</label>
+              <select id="filtroCondominio" onchange="renderizarLista()"></select>
+            </div>
+            <div>
+              <label>Mês</label>
+              <select id="filtroMes" onchange="renderizarLista()">
+                <option value="">Todos</option>
+                <option value="01">Janeiro</option>
+                <option value="02">Fevereiro</option>
+                <option value="03">Março</option>
+                <option value="04">Abril</option>
+                <option value="05">Maio</option>
+                <option value="06">Junho</option>
+                <option value="07">Julho</option>
+                <option value="08">Agosto</option>
+                <option value="09">Setembro</option>
+                <option value="10">Outubro</option>
+                <option value="11">Novembro</option>
+                <option value="12">Dezembro</option>
+              </select>
+            </div>
+            <div>
+              <label>Ano</label>
+              <select id="filtroAno" onchange="renderizarLista()">
+                <option value="">Todos</option>
+              </select>
+            </div>
+            <div>
+              <label>De</label>
+              <input type="date" id="filtroDataInicio" onchange="renderizarLista()">
+            </div>
+            <div>
+              <label>Até</label>
+              <input type="date" id="filtroDataFim" onchange="renderizarLista()">
+            </div>
           </div>
-          <div>
-            <label>Ano</label>
-            <select id="filtroAno" onchange="renderizarLista()">
-              <option value="">Todos</option>
-            </select>
-          </div>
-          <div>
-            <label>De</label>
-            <input type="date" id="filtroDataInicio" onchange="renderizarLista()">
-          </div>
-          <div>
-            <label>Até</label>
-            <input type="date" id="filtroDataFim" onchange="renderizarLista()">
-          </div>
-          <button type="button" class="btn-primaria btn-icone btn-buscar" onclick="renderizarLista()"><i data-lucide="search"></i> Buscar</button>
         </div>
 
         <div class="contagem-status" id="contagemStatus"></div>
@@ -981,12 +1006,12 @@
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
 
 <!-- App Scripts -->
-<script src="firebase-db.js?v=20260902o"></script>
-<script src="shared.js?v=20260902o"></script>
-<script src="conferencia.js?v=20260902o"></script>
-<script src="gestao.js?v=20260902o"></script>
-<script src="reposicao.js?v=20260902o"></script>
-<script src="aquisicao.js?v=20260902o"></script>
+<script src="firebase-db.js?v=20260902p"></script>
+<script src="shared.js?v=20260902p"></script>
+<script src="conferencia.js?v=20260902p"></script>
+<script src="gestao.js?v=20260902p"></script>
+<script src="reposicao.js?v=20260902p"></script>
+<script src="aquisicao.js?v=20260902p"></script>
 <script>
   if (window.lucide) lucide.createIcons();
 </script>

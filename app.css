@@ -2414,3 +2414,284 @@ button.carregando::after {
   margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--borda);
 }
 .nota-conciliacao strong { color: var(--preto); }
+
+/* ===================== NOVO DESIGN E COMPONENTES DA GESTÃO ===================== */
+.barra-recuperacao-wrap {
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  border-radius: var(--raio);
+  padding: 12px 16px;
+  margin-bottom: 14px;
+}
+.barra-recuperacao-topo {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 6px;
+  font-size: 13px;
+}
+.recuperacao-rotulo {
+  color: #166534;
+}
+.recuperacao-rotulo strong {
+  font-weight: 700;
+}
+.recuperacao-rotulo span {
+  font-size: 15px;
+  font-weight: 800;
+  color: #15803d;
+  margin-left: 4px;
+}
+.recuperacao-detalhe {
+  font-size: 12px;
+  color: #15803d;
+  font-weight: 600;
+}
+.barra-recuperacao-fundo {
+  height: 8px;
+  background: #dcfce7;
+  border-radius: 4px;
+  overflow: hidden;
+}
+.barra-recuperacao-valor {
+  height: 100%;
+  background: linear-gradient(90deg, #22c55e, #16a34a);
+  border-radius: 4px;
+  transition: width .4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.painel-filtros-gestao {
+  background: #fff;
+  border: 1px solid var(--borda);
+  border-radius: var(--raio);
+  padding: 14px 16px;
+  margin-bottom: 14px;
+}
+.linha-busca-rapida {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+}
+.campo-busca-wrap {
+  position: relative;
+  flex: 1;
+  min-width: 240px;
+}
+.icone-busca-campo {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 16px;
+  height: 16px;
+  color: #94a3b8;
+  pointer-events: none;
+}
+#inputBuscaGestao {
+  width: 100%;
+  padding: 9px 36px 9px 36px;
+  border: 1px solid var(--borda);
+  border-radius: 8px;
+  font-size: 13px;
+  outline: none;
+  background: #f8fafc;
+  transition: all .2s ease;
+}
+#inputBuscaGestao:focus {
+  background: #fff;
+  border-color: var(--laranja);
+  box-shadow: 0 0 0 3px rgba(249,115,22,.15);
+}
+.btn-limpar-busca {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  color: #94a3b8;
+  cursor: pointer;
+  padding: 2px;
+  display: inline-flex;
+}
+.btn-limpar-busca:hover {
+  color: var(--preto);
+}
+.btn-limpar-busca svg {
+  width: 14px;
+  height: 14px;
+}
+
+.atalhos-periodo {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+.btn-atalho-periodo {
+  background: #f1f5f9;
+  border: 1px solid #e2e8f0;
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--texto);
+  cursor: pointer;
+  transition: all .15s ease;
+}
+.btn-atalho-periodo:hover {
+  background: #e2e8f0;
+  color: var(--preto);
+}
+.btn-atalho-periodo.ativo {
+  background: var(--preto);
+  color: #fff;
+  border-color: var(--preto);
+}
+
+/* Cards Modernos do Kanban de Gestão */
+.card-gestao-moderno {
+  padding: 14px;
+  margin-bottom: 12px;
+  border-radius: 10px;
+  border: 1px solid var(--borda);
+  box-shadow: 0 1px 3px rgba(0,0,0,.05);
+  transition: transform .15s ease, box-shadow .15s ease;
+}
+.card-gestao-moderno:hover {
+  box-shadow: 0 4px 12px rgba(0,0,0,.08);
+  transform: translateY(-1px);
+}
+.card-gestao-moderno .pessoa {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--preto);
+  margin: 4px 0 2px;
+}
+.card-gestao-moderno .whatsapp-card {
+  font-size: 11.5px;
+  color: #64748b;
+  margin-bottom: 6px;
+}
+.card-gestao-moderno .itens-resumo {
+  background: #f8fafc;
+  padding: 6px 8px;
+  border-radius: 6px;
+  font-size: 11.5px;
+  color: #334155;
+  margin: 6px 0;
+}
+
+/* Ações Modernas dos Cards */
+.acoes-modernas {
+  margin-top: 10px;
+  padding-top: 8px;
+  border-top: 1px solid #f1f5f9;
+}
+.acoes-card-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.btn-card-primario {
+  width: 100%;
+  padding: 7px 12px;
+  border: none;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  transition: all .15s ease;
+}
+.btn-card-primario.sucesso {
+  background: #10b981;
+  color: #fff;
+  box-shadow: 0 2px 6px rgba(16,185,129,.25);
+}
+.btn-card-primario.sucesso:hover {
+  background: #059669;
+  box-shadow: 0 4px 10px rgba(16,185,129,.35);
+}
+.btn-card-primario.alerta {
+  background: var(--laranja);
+  color: #fff;
+  box-shadow: 0 2px 6px rgba(249,115,22,.25);
+}
+.btn-card-primario.alerta:hover {
+  background: var(--laranja-escuro);
+  box-shadow: 0 4px 10px rgba(249,115,22,.35);
+}
+.btn-card-primario svg {
+  width: 14px;
+  height: 14px;
+}
+
+.acoes-card-secundarias {
+  display: flex;
+  gap: 4px;
+  flex-wrap: wrap;
+}
+.btn-card-sm {
+  flex: 1;
+  padding: 4px 6px;
+  background: #f1f5f9;
+  border: 1px solid #e2e8f0;
+  border-radius: 5px;
+  font-size: 11px;
+  font-weight: 600;
+  color: #475569;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  white-space: nowrap;
+  transition: all .15s ease;
+}
+.btn-card-sm:hover {
+  background: #e2e8f0;
+  color: var(--preto);
+}
+.btn-card-sm.whatsapp {
+  background: #dcfce7;
+  color: #166534;
+  border-color: #bbf7d0;
+}
+.btn-card-sm.whatsapp:hover {
+  background: #bbf7d0;
+}
+.btn-card-sm.perigo {
+  color: #991b1b;
+  background: #fee2e2;
+  border-color: #fecaca;
+}
+.btn-card-sm.perigo:hover {
+  background: #fca5a5;
+}
+.btn-card-sm svg {
+  width: 12px;
+  height: 12px;
+}
+
+.pagamento-confirmado-card {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: #f0fdf4;
+  color: #166534;
+  padding: 6px 8px;
+  border-radius: 6px;
+  font-size: 11.5px;
+  font-weight: 600;
+  margin-top: 6px;
+}
+.pagamento-confirmado-card svg {
+  width: 14px;
+  height: 14px;
+  color: #16a34a;
+}
