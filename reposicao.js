@@ -356,8 +356,19 @@ function renderizarListaReposicoes() {
                   '</div>';
                 }).join('');
               } else if (item.status === 'Identificado') {
+                let badgeClass = 'identificado';
+                let textoBadge = 'Identificado';
+                const pessoaLower = (item.pessoa || '').toLowerCase();
+                if (pessoaLower.includes('pago')) {
+                  badgeClass = 'pago';
+                  textoBadge = 'Pago';
+                } else if (pessoaLower.includes('cobrado')) {
+                  badgeClass = 'cobrado';
+                  textoBadge = 'Cobrado';
+                }
+
                 statusIdentificacaoHtml = '<div class="item-identificacao-linha">' +
-                  '<span class="badge-status pago">Identificado</span> ' +
+                  '<span class="badge-status ' + badgeClass + '">' + textoBadge + '</span> ' +
                   '<strong class="pessoa-identificada">' + (item.pessoa || 'Vinculado') + '</strong>' +
                 '</div>';
               } else {

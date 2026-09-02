@@ -810,9 +810,26 @@
   }
   .item-identificacao-linha .badge-status {
     font-size: 10px;
-    padding: 2px 6px;
+    padding: 2px 7px;
     letter-spacing: .02em;
     margin: 0;
+    border-radius: 4px;
+    font-weight: 700;
+  }
+  .item-identificacao-linha .badge-status.pago {
+    background: #d1fae5;
+    color: #065f46;
+    border: 1px solid #a7f3d0;
+  }
+  .item-identificacao-linha .badge-status.cobrado {
+    background: #fee2e2;
+    color: #991b1b;
+    border: 1px solid #fecaca;
+  }
+  .item-identificacao-linha .badge-status.identificado {
+    background: #eff6ff;
+    color: #1e40af;
+    border: 1px solid #bfdbfe;
   }
   .pessoa-identificada {
     color: var(--preto);
