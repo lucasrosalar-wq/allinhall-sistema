@@ -378,12 +378,24 @@ const FirebaseDB = {
         furo_reposicao_id: cand.id,
         observacao: 'Furo de reposição de ' + formatarDataBRLocal_(cand.data) + (params.observacao ? ' — ' + params.observacao : '')
       });
-      criadas.push(resOc.id);
+      // Verifica o total de ocorrencias acumuladas para este furo
+      const snapOcs = await db.collection('ocorrencias')
+        .where('condominio', '==', params.condominio)
+        .get();
+      let totalConsumido = 0;
+      snapOcs.forEach(docOc => {
+        const docD = docOc.data();
+        if (docD.furo_reposicao_id === cand.id && docD.status !== 'Cancelado') {
+          (docD.itens || []).forEach(it => {
+            if (it && it.produto === cand.produto) totalConsumido += (Number(it.qtd) || 0);
+          });
+        }
+      });
 
-      if (qtdDeste >= cand.quantidade) {
+      if (totalConsumido >= cand.quantidade) {
         await db.collection('reposicoes').doc(cand.id).update({
-          status: params.pessoa ? 'Identificado' : 'Pendente',
-          pessoa: params.pessoa || '',
+          status: 'Identificado',
+          pessoa: params.pessoa || 'Identificado',
           contato_whatsapp: params.contato_whatsapp || '',
           data_infracao: params.data_infracao || '',
           hora_infracao: params.hora_infracao || ''
