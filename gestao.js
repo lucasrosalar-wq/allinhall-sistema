@@ -94,23 +94,25 @@ async function carregarMiniCalendario() {
   }
 }
 
-// Contagem de ocorrências por status, filtrada só pelo condomínio (independente
-// dos filtros de status/data usados na lista de baixo).
-function renderizarContagemStatus() {
-  const condominio = document.getElementById('filtroCondominio').value;
+// Contagem de ocorrências por status sincronizada com o filtro ativo.
+function renderizarContagemStatus(listaFiltrada) {
+  const lista = listaFiltrada || todasOcorrencias;
   let pendente = 0, cobrado = 0, pago = 0, prejuizo = 0;
-  todasOcorrencias.forEach(function (o) {
-    if (condominio && o.condominio !== condominio) return;
+  lista.forEach(function (o) {
+    if (o.status === 'Cancelado') return;
     if (o.status === 'Pendente' || o.status === 'Identificado') pendente++;
     else if (o.status === 'Cobrado') cobrado++;
     else if (o.status === 'Pago') pago++;
     else if (o.status === STATUS_PREJUIZO_) prejuizo++;
   });
-  document.getElementById('contagemStatus').innerHTML =
-    '<div class="contagem-item pendente"><span class="contagem-numero">' + pendente + '</span><span class="contagem-rotulo">Pendente</span></div>' +
-    '<div class="contagem-item cobrado"><span class="contagem-numero">' + cobrado + '</span><span class="contagem-rotulo">Cobrado</span></div>' +
-    '<div class="contagem-item pago"><span class="contagem-numero">' + pago + '</span><span class="contagem-rotulo">Pago</span></div>' +
-    '<div class="contagem-item prejuizo"><span class="contagem-numero">' + prejuizo + '</span><span class="contagem-rotulo">Prejuízo</span></div>';
+  const el = document.getElementById('contagemStatus');
+  if (el) {
+    el.innerHTML =
+      '<div class="contagem-item pendente"><span class="contagem-numero">' + pendente + '</span><span class="contagem-rotulo">Pendente</span></div>' +
+      '<div class="contagem-item cobrado"><span class="contagem-numero">' + cobrado + '</span><span class="contagem-rotulo">Cobrado</span></div>' +
+      '<div class="contagem-item pago"><span class="contagem-numero">' + pago + '</span><span class="contagem-rotulo">Pago</span></div>' +
+      '<div class="contagem-item prejuizo"><span class="contagem-numero">' + prejuizo + '</span><span class="contagem-rotulo">Prejuízo</span></div>';
+  }
 }
 
 function renderizarMiniCalendario(dados) {
@@ -174,28 +176,46 @@ async function carregarOcorrencias() {
 }
 
 // ===================== TOTALIZADORES =====================
-function renderizarTotais() {
-  const hoje = new Date();
-  const chaveMesAtual = hoje.getFullYear() + '-' + String(hoje.getMonth() + 1).padStart(2, '0');
+function renderizarTotais(listaFiltrada) {
+  const lista = listaFiltrada || todasOcorrencias;
 
   let totalPendente = 0, totalCobrado = 0, totalRecebido = 0, totalPrejuizo = 0;
   let qtdPendente = 0, qtdCobrado = 0, qtdRecebido = 0, qtdPrejuizo = 0;
-  todasOcorrencias.forEach(function (o) {
-    if (o.status === 'Pendente' || o.status === 'Identificado') { totalPendente += o.valor_total; qtdPendente++; }
-    else if (o.status === 'Cobrado') { totalCobrado += o.valor_total; qtdCobrado++; }
-    else if (o.status === 'Pago' && String(o.data_pagamento).indexOf(chaveMesAtual) === 0) { totalRecebido += o.valor_total; qtdRecebido++; }
-    // Prejuízo é acumulado (não só do mês): é o total que a operação já deu por perdido.
-    else if (o.status === STATUS_PREJUIZO_) { totalPrejuizo += o.valor_total; qtdPrejuizo++; }
+
+  lista.forEach(function (o) {
+    if (o.status === 'Cancelado') return;
+    const v = Number(o.valor_total) || 0;
+    if (o.status === 'Pendente' || o.status === 'Identificado') {
+      totalPendente += v;
+      qtdPendente++;
+    } else if (o.status === 'Cobrado') {
+      totalCobrado += v;
+      qtdCobrado++;
+    } else if (o.status === 'Pago') {
+      totalRecebido += v;
+      qtdRecebido++;
+    } else if (o.status === STATUS_PREJUIZO_) {
+      totalPrejuizo += v;
+      qtdPrejuizo++;
+    }
   });
 
-  document.getElementById('kanbanSubtituloPendente').textContent =
-    formatarMoeda(totalPendente) + ' · ' + qtdPendente + (qtdPendente === 1 ? ' ocorrência' : ' ocorrências');
-  document.getElementById('kanbanSubtituloCobrado').textContent =
-    formatarMoeda(totalCobrado) + ' · ' + qtdCobrado + (qtdCobrado === 1 ? ' ocorrência' : ' ocorrências');
-  document.getElementById('kanbanSubtituloRecebido').textContent =
-    formatarMoeda(totalRecebido) + ' · ' + qtdRecebido + (qtdRecebido === 1 ? ' pagamento' : ' pagamentos');
-  document.getElementById('kanbanSubtituloPrejuizo').textContent =
-    formatarMoeda(totalPrejuizo) + ' · ' + qtdPrejuizo + (qtdPrejuizo === 1 ? ' ocorrência' : ' ocorrências');
+  const elPendente = document.getElementById('kanbanSubtituloPendente');
+  if (elPendente) {
+    elPendente.textContent = formatarMoeda(totalPendente) + ' · ' + qtdPendente + (qtdPendente === 1 ? ' ocorrência' : ' ocorrências');
+  }
+  const elCobrado = document.getElementById('kanbanSubtituloCobrado');
+  if (elCobrado) {
+    elCobrado.textContent = formatarMoeda(totalCobrado) + ' · ' + qtdCobrado + (qtdCobrado === 1 ? ' ocorrência' : ' ocorrências');
+  }
+  const elRecebido = document.getElementById('kanbanSubtituloRecebido');
+  if (elRecebido) {
+    elRecebido.textContent = formatarMoeda(totalRecebido) + ' · ' + qtdRecebido + (qtdRecebido === 1 ? ' pagamento' : ' pagamentos');
+  }
+  const elPrejuizo = document.getElementById('kanbanSubtituloPrejuizo');
+  if (elPrejuizo) {
+    elPrejuizo.textContent = formatarMoeda(totalPrejuizo) + ' · ' + qtdPrejuizo + (qtdPrejuizo === 1 ? ' ocorrência' : ' ocorrências');
+  }
 }
 
 // ===================== QUADRO KANBAN (Pendente / Cobrado / Recebido / Prejuízo) =====================
@@ -305,7 +325,6 @@ function atualizarTaxaRecuperacaoGestao(lista) {
 
 function renderizarLista() {
   carregarMiniCalendario();
-  renderizarContagemStatus();
 
   const condominio = document.getElementById('filtroCondominio').value;
   const mes = document.getElementById('filtroMes').value;
@@ -338,6 +357,10 @@ function renderizarLista() {
 
     return true;
   });
+
+  // Atualizar totalizadores do cabeçalho de cada coluna e contagem de status com a lista filtrada
+  renderizarTotais(lista);
+  renderizarContagemStatus(lista);
 
   // Atualizar Indicador Executivo de Taxa de Recuperação
   atualizarTaxaRecuperacaoGestao(lista);
