@@ -192,22 +192,34 @@
   @media (max-width: 600px) { .badge-conexao .label-conexao { display: none; } }
 
   /* ── Sidebar: legenda retrátil ── */
-  .sidebar-info { border-radius: var(--raio); border: 1px solid var(--borda); overflow: hidden; }
-  .sidebar-info-toggle {
-    width: 100%; background: none; text-align: left; font-family: inherit;
-    display: flex; align-items: center; justify-content: space-between;
-    padding: 9px 12px; font-size: 12.5px; font-weight: 700; color: var(--preto);
-    cursor: pointer; gap: 8px;
+  .sidebar-info {
+    border-radius: var(--raio-sm); border: 1px solid var(--borda); background: #F8FAFC;
+    overflow: hidden; margin-top: 10px; transition: border-color .2s var(--ease), background-color .2s var(--ease);
   }
-  .sidebar-info-toggle:hover { background: var(--cinza); }
-  .sidebar-info-toggle svg { width: 13px; height: 13px; color: var(--texto-2); transition: transform .2s; flex-shrink: 0; }
-  .sidebar-info.fechada .sidebar-info-toggle svg { transform: rotate(-90deg); }
+  .sidebar-info:hover { border-color: #CBD5E1; }
+  .sidebar-info-toggle {
+    width: 100%; background: none; border: none; text-align: left; font-family: inherit;
+    display: flex; align-items: center; gap: 9px; padding: 10px 12px;
+    font-size: 13px; font-weight: 600; color: var(--texto-2); cursor: pointer;
+    transition: color .2s var(--ease), background-color .2s var(--ease);
+  }
+  .sidebar-info-toggle:hover { background: #F1F5F9; color: var(--preto); }
+  .sidebar-info-toggle span { flex: 1; font-size: 13px; font-weight: 600; line-height: 1.2; }
+  .icone-legenda-ajuda { width: 16px !important; height: 16px !important; color: var(--texto-2); flex-shrink: 0; }
+  .icone-chevron-legenda { width: 15px !important; height: 15px !important; color: var(--texto-2); margin-left: auto; transition: transform .2s var(--ease); flex-shrink: 0; }
+  .sidebar-info:not(.fechada) .icone-chevron-legenda { transform: rotate(180deg); }
   .sidebar-info-corpo {
-    padding: 0 12px 10px; display: flex; flex-direction: column; gap: 8px;
+    padding: 10px 12px 12px; display: flex; flex-direction: column; gap: 8px;
+    border-top: 1px solid var(--borda); background: #FFFFFF;
     max-height: 300px; overflow: hidden; transition: max-height .25s ease, padding .25s ease;
   }
-  .sidebar-info.fechada .sidebar-info-corpo { max-height: 0; padding-bottom: 0; }
-  .sidebar-info-titulo { display: none; } /* Substituído pelo toggle */
+  .sidebar-info.fechada .sidebar-info-corpo { max-height: 0; padding-top: 0; padding-bottom: 0; border-top: none; }
+  .sidebar-info-titulo { display: none; }
+  .sidebar-info-item { display: flex; align-items: flex-start; gap: 7px; margin-bottom: 4px; }
+  .sidebar-info-item .bolinha { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; margin-top: 5px; }
+  .sidebar-info-item strong { display: block; font-size: 11.5px; color: var(--preto); line-height: 1.3; }
+  .sidebar-info-item span.texto { font-size: 11px; color: var(--texto-2); line-height: 1.4; display: block; }
+  .sidebar-info-nota { font-size: 10.5px; color: #9CA3AF; line-height: 1.45; padding-top: 6px; border-top: 1px dashed var(--borda); }
 
   .view-gestao .page-header { margin-bottom: 20px; }
   .view-gestao .page-header h2 { font-size: 22px; }
@@ -1264,13 +1276,6 @@
   @media (min-width: 1024px) { .btn-fechar-sidebar { display: none; } }
   .nav-sidebar { display: flex; flex-direction: column; gap: 4px; }
   .rodape-sidebar { margin-top: auto; padding: 0 6px; font-size: 11px; color: #9CA3AF; line-height: 1.5; }
-  .sidebar-info { padding: 4px 6px 0; border-top: 1px solid var(--borda); padding-top: 16px; margin-top: 4px; }
-  .sidebar-info-titulo { font-size: 10.5px; font-weight: 700; color: var(--texto-2); text-transform: uppercase; letter-spacing: .04em; margin-bottom: 10px; }
-  .sidebar-info-item { display: flex; align-items: flex-start; gap: 7px; margin-bottom: 10px; }
-  .sidebar-info-item .bolinha { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; margin-top: 4px; }
-  .sidebar-info-item strong { display: block; font-size: 11.5px; color: var(--preto); }
-  .sidebar-info-item span.texto { font-size: 11px; color: var(--texto-2); line-height: 1.4; }
-  .sidebar-info-nota { font-size: 10.5px; color: #9CA3AF; line-height: 1.45; padding-top: 4px; border-top: 1px dashed var(--borda); }
   .nav-item {
     display: flex; align-items: center; gap: 10px; padding: 11px 12px; border-radius: var(--raio-sm);
     color: var(--texto-2); font-size: 14px; font-weight: 600; text-decoration: none;
