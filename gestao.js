@@ -26,17 +26,22 @@ function inicializarGestao() {
 
   const anoAtualFiltro = new Date().getFullYear();
   const selectAno = document.getElementById('filtroAno');
-  const opcoesAno = [];
+  const opcoesAno = ['<option value="">Todos</option>'];
   for (let ano = anoAtualFiltro + 1; ano >= anoAtualFiltro - 2; ano--) {
     opcoesAno.push('<option value="' + ano + '">' + ano + '</option>');
   }
-  const mesAtual = String(new Date().getMonth() + 1).padStart(2, '0');
-  const selectMes = document.getElementById('filtroMes');
-  if (selectMes) selectMes.value = mesAtual;
-  if (selectAno) selectAno.value = String(anoAtualFiltro);
+  selectAno.innerHTML = opcoesAno.join('');
 
-  const btnAtual = document.getElementById('btnPeriodoMesAtual');
-  if (btnAtual) btnAtual.classList.add('ativo');
+  const selectMes = document.getElementById('filtroMes');
+  if (selectMes) selectMes.value = '';
+  if (selectAno) selectAno.value = '';
+
+  ['btnPeriodoMesAtual', 'btnPeriodoMesPassado', 'btnPeriodoAnoAtual', 'btnPeriodoTodos'].forEach(function (id) {
+    const el = document.getElementById(id);
+    if (el) el.classList.remove('ativo');
+  });
+  const btnTodos = document.getElementById('btnPeriodoTodos');
+  if (btnTodos) btnTodos.classList.add('ativo');
 
   carregarMiniCalendario();
 
@@ -331,6 +336,25 @@ function renderizarLista() {
   const ano = document.getElementById('filtroAno').value;
   const dataInicio = document.getElementById('filtroDataInicio').value;
   const dataFim = document.getElementById('filtroDataFim').value;
+
+  // Sincronizar estado visual dos atalhos de período
+  const h = new Date();
+  const mesAtual = String(h.getMonth() + 1).padStart(2, '0');
+  const anoAtual = String(h.getFullYear());
+  ['btnPeriodoMesAtual', 'btnPeriodoMesPassado', 'btnPeriodoAnoAtual', 'btnPeriodoTodos'].forEach(function (id) {
+    const el = document.getElementById(id);
+    if (el) el.classList.remove('ativo');
+  });
+  if (!mes && !ano && !dataInicio && !dataFim) {
+    const btnTodos = document.getElementById('btnPeriodoTodos');
+    if (btnTodos) btnTodos.classList.add('ativo');
+  } else if (mes === mesAtual && ano === anoAtual && !dataInicio && !dataFim) {
+    const btnMesAtual = document.getElementById('btnPeriodoMesAtual');
+    if (btnMesAtual) btnMesAtual.classList.add('ativo');
+  } else if (!mes && ano === anoAtual && !dataInicio && !dataFim) {
+    const btnAnoAtual = document.getElementById('btnPeriodoAnoAtual');
+    if (btnAnoAtual) btnAnoAtual.classList.add('ativo');
+  }
 
   const lista = todasOcorrencias.filter(function (o) {
     if (o.status === 'Cancelado') return false;
