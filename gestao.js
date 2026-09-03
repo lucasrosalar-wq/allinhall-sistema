@@ -761,10 +761,12 @@ function abrirWhatsapp() {
   }
   const nomePessoa = o.pessoa || 'Cliente';
   const resumoItens = o.itens.map(function (i) { return i.qtd + 'x ' + i.produto; }).join(', ');
-  const mensagem = 'Olá ' + nomePessoa + ', tudo bem? Aqui é da All in Hall. Na conferência do minimercado do ' +
-    o.condominio + ' identificamos um consumo em ' + formatarDataBR(o.data_ocorrencia) + ' às ' + (o.hora || '—') +
-    ' (' + resumoItens + ' — total ' + formatarMoeda(o.valor_total) + ') sem pagamento localizado. ' +
-    'Pode verificar? Se já pagou, nos envie o comprovante. Qualquer dúvida estamos à disposição!';
+  const mensagem = 'Oie, ' + nomePessoa + '! Tudo bem com você? 🫰✨\n\n' +
+    'Passando aqui da All in Hall com todo carinho! Na nossa conferência do minimercado do ' + o.condominio +
+    ', vimos um consumo no dia ' + formatarDataBR(o.data_ocorrencia) + ' às ' + (o.hora || '—') +
+    ' (' + resumoItens + ' — total ' + formatarMoeda(o.valor_total) + '), mas não localizamos a confirmação do Pix por aqui.\n\n' +
+    'Sabemos que na correria do dia a dia isso super acontece! Poderia dar uma olhadinha quando puder? Se você já realizou o pagamento, é só me mandar o comprovante aqui pra gente dar baixa.\n\n' +
+    'Muito obrigado pela parceria e carinho de sempre! Qualquer dúvida, estamos à disposição. 🫰🧡';
   window.open('https://web.whatsapp.com/send?phone=' + numero + '&text=' + encodeURIComponent(mensagem), '_blank');
 }
 
@@ -961,11 +963,14 @@ function abrirWhatsappConsolidado() {
   const nomePessoa = grupoCobrancaConsolidadaAtual.pessoa || 'Cliente';
   const datas = ocorrenciasCobrancaConsolidadaAtual.map(function (o) { return o.data_ocorrencia; }).sort();
   const totalGeral = ocorrenciasCobrancaConsolidadaAtual.reduce(function (soma, o) { return soma + o.valor_total; }, 0);
-  const mensagem = 'Olá ' + nomePessoa + ', tudo bem? Aqui é da All in Hall. Na conferência do minimercado do ' +
-    grupoCobrancaConsolidadaAtual.condominio + ' identificamos ' + ocorrenciasCobrancaConsolidadaAtual.length +
-    ' consumos em aberto entre ' + formatarDataBR(datas[0]) + ' e ' + formatarDataBR(datas[datas.length - 1]) +
-    ', no valor total de ' + formatarMoeda(totalGeral) + ', sem pagamento localizado. ' +
-    'Pode verificar? Se já pagou algum deles, nos envie o comprovante. Qualquer dúvida estamos à disposição!';
+  const periodoTexto = datas[0] === datas[datas.length - 1] ? formatarDataBR(datas[0]) : formatarDataBR(datas[0]) + ' e ' + formatarDataBR(datas[datas.length - 1]);
+  const mensagem = 'Oie, ' + nomePessoa + '! Tudo bem com você? 🫰✨\n\n' +
+    'Passando aqui da All in Hall com todo carinho! Na nossa conferência do minimercado do ' +
+    grupoCobrancaConsolidadaAtual.condominio + ', identificamos ' + ocorrenciasCobrancaConsolidadaAtual.length +
+    ' consumos entre ' + periodoTexto + ', somando o total de ' + formatarMoeda(totalGeral) +
+    ', que ainda estão sem confirmação de pagamento por aqui.\n\n' +
+    'Sabemos que na correria do dia a dia isso super acontece! Poderia dar uma olhadinha quando puder? Se já pagou algum deles, nos envie o comprovante que já atualizamos por aqui.\n\n' +
+    'Muito obrigado pela parceria e carinho de sempre! Qualquer dúvida, estamos à disposição. 🫰🧡';
   window.open('https://web.whatsapp.com/send?phone=' + numero + '&text=' + encodeURIComponent(mensagem), '_blank');
 }
 
