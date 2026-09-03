@@ -35,434 +35,1018 @@
   "produtos": [
     {
       "nome": "Absorvente com Abas Suave Sempre Livre Adapt Pacote 8 Unidades",
-      "preco": 7.89
+      "preco": 7.89,
+      "categoria": "Higiene",
+      "codigo_barras": "",
+      "sku": ""
     },
     {
-      "nome": "Absorvente Mili Proteção Total Suave Com Abas 8un",
-      "preco": 7.99
+      "nome": "Absorvente Mili Conforto Total Com Abas - 8 Unidades",
+      "preco": 6.99,
+      "categoria": "Higiene",
+      "codigo_barras": "",
+      "sku": ""
     },
     {
-      "nome": "Achocolatado Toddy 200g",
-      "preco": 8.99
+      "nome": "Absorvente MIli Proteção Total Suave Com Abas 8UN",
+      "preco": 7.99,
+      "categoria": "Higiene",
+      "codigo_barras": "",
+      "sku": ""
+    },
+    {
+      "nome": "Achocolatado em Pó Original Toddy Pote 750g",
+      "preco": 11.95,
+      "categoria": "Bebidas Quentes & Lácteas",
+      "codigo_barras": "",
+      "sku": ""
+    },
+    {
+      "nome": "Achocolatado Toddy 200G",
+      "preco": 8.99,
+      "categoria": "Bebidas Quentes & Lácteas",
+      "codigo_barras": "",
+      "sku": ""
+    },
+    {
+      "nome": "Açúcar Refinado Alto Alegre 1 Kg",
+      "preco": 5.39,
+      "categoria": "Mercearia",
+      "codigo_barras": "",
+      "sku": ""
     },
     {
       "nome": "Açúcar Refinado Caravelas 1kg",
-      "preco": 5.39
+      "preco": 5.99,
+      "categoria": "Mercearia",
+      "codigo_barras": "",
+      "sku": ""
     },
     {
-      "nome": "Água Mineral Crystal Pet 500ml - Sabores",
-      "preco": 3.99
+      "nome": "Agua Mineral Crystal Pet 500ml - Sabores",
+      "preco": 3.99,
+      "categoria": "Bebidas Frias",
+      "codigo_barras": "",
+      "sku": ""
     },
     {
-      "nome": "Água Tônica Antarctica Lata 350ml",
-      "preco": 5.39
+      "nome": "Água Sanitária Qboa 1L",
+      "preco": 6.49,
+      "categoria": "Limpeza",
+      "codigo_barras": "",
+      "sku": ""
     },
     {
-      "nome": "Álcool Coperalcool Bacfree 46°INPM Tradicional 500ml",
-      "preco": 8.99
+      "nome": "Água Tônica Antarctica Lata 350 ml",
+      "preco": 5.99,
+      "categoria": "Bebidas Frias",
+      "codigo_barras": "",
+      "sku": ""
     },
     {
-      "nome": "Álcool Netz Etílico 46° INPM Neutro 500ml",
-      "preco": 8.99
+      "nome": "Álcool Coperalcool Bacfree 46°INPM Tradicional - 500ml",
+      "preco": 8.99,
+      "categoria": "Limpeza",
+      "codigo_barras": "",
+      "sku": ""
     },
     {
-      "nome": "Amaciante Concentrado Comfort Frescor Intenso 500ml",
-      "preco": 15.99
+      "nome": "Álcool Netz Etílico 46º INPM Neutro 500ml",
+      "preco": 8.99,
+      "categoria": "Limpeza",
+      "codigo_barras": "",
+      "sku": ""
+    },
+    {
+      "nome": "Amaciante Concentrado Comfort Frescor Intenso Frasco 500ml",
+      "preco": 15.99,
+      "categoria": "Limpeza",
+      "codigo_barras": "",
+      "sku": ""
+    },
+    {
+      "nome": "Amendoim Crocante Jazam 50g",
+      "preco": 4.99,
+      "categoria": "Snacks & Biscoitos",
+      "codigo_barras": "",
+      "sku": ""
+    },
+    {
+      "nome": "Amendoim Japones 70g Dori",
+      "preco": 3.89,
+      "categoria": "Snacks & Biscoitos",
+      "codigo_barras": "",
+      "sku": ""
     },
     {
       "nome": "Apresuntado Seara Fatiado 180g",
-      "preco": 12.49
+      "preco": 12.49,
+      "categoria": "Mercearia",
+      "codigo_barras": "",
+      "sku": ""
     },
     {
       "nome": "Arroz Branco Urbano 1kg",
-      "preco": 7.39
+      "preco": 7.39,
+      "categoria": "Mercearia",
+      "codigo_barras": "",
+      "sku": ""
     },
     {
       "nome": "Atum Gomes da Costa Ralado 170g - Sabores",
-      "preco": 10.99
+      "preco": 10.99,
+      "categoria": "Mercearia",
+      "codigo_barras": "",
+      "sku": ""
     },
     {
       "nome": "Bala Fini Gelatina 90g - Sabores",
-      "preco": 8.29
+      "preco": 8.99,
+      "categoria": "Snacks & Biscoitos",
+      "codigo_barras": "",
+      "sku": ""
     },
     {
-      "nome": "Barra de Cereal Nutry 20g - Sabores",
-      "preco": 2.89
+      "nome": "Barra de Cereal Nutry  20g - Sabores",
+      "preco": 2.99,
+      "categoria": "Snacks & Biscoitos",
+      "codigo_barras": "",
+      "sku": ""
     },
     {
       "nome": "Batata Palha Caldo Bom 100g - Sabores",
-      "preco": 8.99
+      "preco": 8.99,
+      "categoria": "Mercearia",
+      "codigo_barras": "",
+      "sku": ""
     },
     {
       "nome": "Batata Palha Kisabor 100g",
-      "preco": 7.99
+      "preco": 9.39,
+      "categoria": "Mercearia",
+      "codigo_barras": "",
+      "sku": ""
     },
     {
-      "nome": "Batata Palha Tostally 100g",
-      "preco": 7.99
+      "nome": "Batata palha Tostally 100g",
+      "preco": 7.99,
+      "categoria": "Mercearia",
+      "codigo_barras": "",
+      "sku": ""
     },
     {
       "nome": "Bebida Jungle 500ml - Sabores",
-      "preco": 8.99
+      "preco": 8.99,
+      "categoria": "Bebidas Frias",
+      "codigo_barras": "",
+      "sku": ""
+    },
+    {
+      "nome": "Bebida Láctea Sabor Chocolate 1L – Tirol",
+      "preco": 9.49,
+      "categoria": "Bebidas Quentes & Lácteas",
+      "codigo_barras": "",
+      "sku": ""
     },
     {
       "nome": "Biscoito Bauducco Choco Biscuit Leite 36g",
       "preco": 3.59,
-      "categoria": "Snacks & Biscoitos"
+      "categoria": "Snacks & Biscoitos",
+      "codigo_barras": "",
+      "sku": ""
     },
     {
-      "nome": "Biscoito BelVita 75g - Sabores",
-      "preco": 7.29
+      "nome": "Biscoito BelVita 75G - Sabores",
+      "preco": 7.29,
+      "categoria": "Snacks & Biscoitos",
+      "codigo_barras": "",
+      "sku": ""
+    },
+    {
+      "nome": "Biscoito Club Social 24g - Sabores",
+      "preco": 9.39,
+      "categoria": "Snacks & Biscoitos",
+      "codigo_barras": "",
+      "sku": ""
     },
     {
       "nome": "Biscoito Cookie Piraquê 80g - Sabores",
-      "preco": 5.89
+      "preco": 5.89,
+      "categoria": "Snacks & Biscoitos",
+      "codigo_barras": "",
+      "sku": ""
     },
     {
-      "nome": "Biscoito Cracker Piraquê Premium Sabores 24g",
+      "nome": "Biscoito Cookies Bauducco Maxi Variados 96g",
+      "preco": 5.89,
+      "categoria": "Snacks & Biscoitos",
+      "codigo_barras": "",
+      "sku": ""
+    },
+    {
+      "nome": "Biscoito Cracker  Piraquê Premium Sabores 24g",
       "preco": 2.99,
-      "categoria": "Snacks & Biscoitos"
+      "categoria": "Snacks & Biscoitos",
+      "codigo_barras": "",
+      "sku": ""
     },
     {
-      "nome": "Biscoito Leite Maltado Cobertura Chocolate Piraquê 80g - Sabores",
-      "preco": 5.89
+      "nome": "Biscoito Leite Maltado  Piraquê 132g - Sabores",
+      "preco": 5.89,
+      "categoria": "Snacks & Biscoitos",
+      "codigo_barras": "",
+      "sku": ""
+    },
+    {
+      "nome": "Biscoito Leite Maltado Cobertura Chocolate Piraquê Pacote 80g - Sabores",
+      "preco": 5.99,
+      "categoria": "Snacks & Biscoitos",
+      "codigo_barras": "",
+      "sku": ""
     },
     {
       "nome": "Biscoito Recheado Oreo 90g",
-      "preco": 5.7
+      "preco": 5.99,
+      "categoria": "Snacks & Biscoitos",
+      "codigo_barras": "",
+      "sku": ""
     },
     {
       "nome": "Bolinho Dr. Oetker Bom pra Mim 50g - Sabores",
-      "preco": 7.95
+      "preco": 7.95,
+      "categoria": "Mercearia",
+      "codigo_barras": "",
+      "sku": ""
     },
     {
       "nome": "Bolo de Caneca 67g - Sabores",
-      "preco": 4.99
+      "preco": 4.99,
+      "categoria": "Mercearia",
+      "codigo_barras": "",
+      "sku": ""
     },
     {
       "nome": "Café Melitta Regiões Brasileiras Vácuo 250g - Sabores",
-      "preco": 29.9
+      "preco": 29.9,
+      "categoria": "Bebidas Quentes & Lácteas",
+      "codigo_barras": "",
+      "sku": ""
     },
     {
       "nome": "Café Melitta Vácuo 250g - Variados",
-      "preco": 24.9
+      "preco": 24.9,
+      "categoria": "Bebidas Quentes & Lácteas",
+      "codigo_barras": "",
+      "sku": ""
     },
     {
       "nome": "Cereal Matinal Nestlé Sachê 120g - Sabores",
-      "preco": 8.99
+      "preco": 8.99,
+      "categoria": "Mercearia",
+      "codigo_barras": "",
+      "sku": ""
     },
     {
       "nome": "Cerveja Budweiser American Lager 350ml Lata",
-      "preco": 6.75
+      "preco": 6.99,
+      "categoria": "Bebidas Frias",
+      "codigo_barras": "",
+      "sku": ""
     },
     {
       "nome": "Cerveja Corona Lata 350ml",
-      "preco": 7.89
+      "preco": 7.89,
+      "categoria": "Bebidas Frias",
+      "codigo_barras": "",
+      "sku": ""
     },
     {
       "nome": "Cerveja Heineken Lata 350ml",
-      "preco": 7.69
+      "preco": 7.89,
+      "categoria": "Bebidas Frias",
+      "codigo_barras": "",
+      "sku": ""
     },
     {
-      "nome": "Chá Matte Leão Original - Caixa com 25 Unidades",
-      "preco": 7.39
+      "nome": "Cerveja Original Lata 269ml",
+      "preco": 5.79,
+      "categoria": "Bebidas Frias",
+      "codigo_barras": "",
+      "sku": ""
     },
     {
-      "nome": "Chiclete Trident Sem Açúcar 8g - Sabores",
-      "preco": 3.59
+      "nome": "Chá Matte Leão Original- Caixa com 25 Unidades",
+      "preco": 7.39,
+      "categoria": "Bebidas Frias",
+      "codigo_barras": "",
+      "sku": ""
     },
     {
-      "nome": "Chiclete Trident X 48,3g - Sabores",
-      "preco": 16.79
+      "nome": "Chiclete Trident Sem Açúcar  8g - Sabores",
+      "preco": 3.59,
+      "categoria": "Snacks & Biscoitos",
+      "codigo_barras": "",
+      "sku": ""
+    },
+    {
+      "nome": "Chiclete Trident X  48,3g - Sabores",
+      "preco": 16.79,
+      "categoria": "Snacks & Biscoitos",
+      "codigo_barras": "",
+      "sku": ""
     },
     {
       "nome": "Chocolate Bis Lacta 100,8g - Variados",
-      "preco": 7.99
+      "preco": 8.99,
+      "categoria": "Snacks & Biscoitos",
+      "codigo_barras": "",
+      "sku": ""
     },
     {
       "nome": "Chocolate Garoto 80g - Sabores",
-      "preco": 9.89
+      "preco": 9.99,
+      "categoria": "Snacks & Biscoitos",
+      "codigo_barras": "",
+      "sku": ""
     },
     {
       "nome": "Chocolate KitKat Nestlé 41,5g - Sabores",
-      "preco": 6.99
+      "preco": 6.99,
+      "categoria": "Snacks & Biscoitos",
+      "codigo_barras": "",
+      "sku": ""
     },
     {
       "nome": "Chocolate Lacta 80g - Sabores",
-      "preco": 9.49
+      "preco": 9.89,
+      "categoria": "Snacks & Biscoitos",
+      "codigo_barras": "",
+      "sku": ""
     },
     {
       "nome": "Chocolate Nestlé Galak 80g",
-      "preco": 9.99
+      "preco": 9.99,
+      "categoria": "Snacks & Biscoitos",
+      "codigo_barras": "",
+      "sku": ""
     },
     {
-      "nome": "Chocolate Suflair 80g - Variados",
-      "preco": 10.49
+      "nome": "Chocolate Suflair  80g - Variados",
+      "preco": 10.99,
+      "categoria": "Snacks & Biscoitos",
+      "codigo_barras": "",
+      "sku": ""
     },
     {
       "nome": "Copo de café - 40 ml (Espresso) / 110ml (Lungo)- Variedades",
       "preco": 4.99,
-      "categoria": "Bebidas Quentes & Lácteas"
+      "categoria": "Bebidas Quentes & Lácteas",
+      "codigo_barras": "",
+      "sku": ""
     },
     {
-      "nome": "Creme de Leite Tirol 200g",
-      "preco": 4.19
+      "nome": "Creme de Leite Italac Leve 200g",
+      "preco": 4.49,
+      "categoria": "Mercearia",
+      "codigo_barras": "",
+      "sku": ""
+    },
+    {
+      "nome": "Creme de leite Tirol 200g",
+      "preco": 4.69,
+      "categoria": "Mercearia",
+      "codigo_barras": "",
+      "sku": ""
+    },
+    {
+      "nome": "Creme de Leite UHT Homogeneizado Frimesa 200g",
+      "preco": 4.49,
+      "categoria": "Mercearia",
+      "codigo_barras": "",
+      "sku": ""
     },
     {
       "nome": "Creme Dental Colgate Máxima Proteção Anticáries 50g",
-      "preco": 5.99
+      "preco": 5.99,
+      "categoria": "Higiene",
+      "codigo_barras": "",
+      "sku": ""
     },
     {
       "nome": "Detergente Líquido Cristal Limpol Squeeze 500ml",
-      "preco": 3.89
+      "preco": 3.99,
+      "categoria": "Limpeza",
+      "codigo_barras": "",
+      "sku": ""
     },
     {
-      "nome": "Energético Monster 473ml Lata - Sabores",
-      "preco": 11.99
+      "nome": "Energético Monster  473Ml Lata - Sabores",
+      "preco": 12.99,
+      "categoria": "Bebidas Frias",
+      "codigo_barras": "",
+      "sku": ""
     },
     {
       "nome": "Energético Red Bull Energy Drink 250ml",
-      "preco": 11.99
+      "preco": 11.99,
+      "categoria": "Bebidas Frias",
+      "codigo_barras": "",
+      "sku": ""
+    },
+    {
+      "nome": "Escova de Dente Sanifill Pocket Macia",
+      "preco": 5.99,
+      "categoria": "Higiene",
+      "codigo_barras": "",
+      "sku": ""
     },
     {
       "nome": "Escova de Dentes Oral-B",
-      "preco": 7.89
+      "preco": 7.89,
+      "categoria": "Higiene",
+      "codigo_barras": "",
+      "sku": ""
     },
     {
       "nome": "Esponja Brilhus Multiuso Unitária",
-      "preco": 2.7
+      "preco": 2.95,
+      "categoria": "Limpeza",
+      "codigo_barras": "",
+      "sku": ""
     },
     {
       "nome": "Esponja Multiuso Assolan Pertuto",
-      "preco": 3.19
+      "preco": 3.19,
+      "categoria": "Limpeza",
+      "codigo_barras": "",
+      "sku": ""
     },
     {
-      "nome": "Extrato de Tomate Elefante Tradicional 135g",
-      "preco": 4.99
+      "nome": "Extrato de tomate elefante tradicional 135g",
+      "preco": 4.99,
+      "categoria": "Mercearia",
+      "codigo_barras": "",
+      "sku": ""
+    },
+    {
+      "nome": "Extrato Tomate Quero 130 g",
+      "preco": 2.75,
+      "categoria": "Mercearia",
+      "codigo_barras": "",
+      "sku": ""
+    },
+    {
+      "nome": "Farinha de Trigo Famiglia Venturelli 1kg",
+      "preco": 8.19,
+      "categoria": "Mercearia",
+      "codigo_barras": "",
+      "sku": ""
     },
     {
       "nome": "Fermento em Pó Royal 100g",
-      "preco": 7.49
+      "preco": 7.49,
+      "categoria": "Mercearia",
+      "codigo_barras": "",
+      "sku": ""
     },
     {
       "nome": "Filtro De Papel 103 Melitta",
-      "preco": 4.99
+      "preco": 4.99,
+      "categoria": "Mercearia",
+      "codigo_barras": "",
+      "sku": ""
+    },
+    {
+      "nome": "Filtro de Papel Número 102/103 3 Corações",
+      "preco": 4.99,
+      "categoria": "Bebidas Quentes & Lácteas",
+      "codigo_barras": "",
+      "sku": ""
     },
     {
       "nome": "Granola Jasmine Integral 250g - Sabores",
-      "preco": 13.9
+      "preco": 13.9,
+      "categoria": "Snacks & Biscoitos",
+      "codigo_barras": "",
+      "sku": ""
     },
     {
-      "nome": "Isotônico Powerade 500ml - Sabores",
-      "preco": 7.99
+      "nome": "Isotônico Powerade  500ml - Sabores",
+      "preco": 7.99,
+      "categoria": "Bebidas Frias",
+      "codigo_barras": "",
+      "sku": ""
     },
     {
       "nome": "Leite Condensado Frimesa 395g",
-      "preco": 7.49
+      "preco": 7.49,
+      "categoria": "Mercearia",
+      "codigo_barras": "",
+      "sku": ""
+    },
+    {
+      "nome": "Leite Condensado TIROL Semidesnatado 395g",
+      "preco": 7.99,
+      "categoria": "Mercearia",
+      "codigo_barras": "",
+      "sku": ""
+    },
+    {
+      "nome": "Leite de Coco Mais Coco 200ml",
+      "preco": 7.29,
+      "categoria": "Mercearia",
+      "codigo_barras": "",
+      "sku": ""
+    },
+    {
+      "nome": "Leite Integral UHT Tipo A Parmalat 1 Litro",
+      "preco": 6.59,
+      "categoria": "Mercearia",
+      "codigo_barras": "",
+      "sku": ""
+    },
+    {
+      "nome": "Leite longa vida integral Batavo 1 Litro",
+      "preco": 5.69,
+      "categoria": "Bebidas Quentes & Lácteas",
+      "codigo_barras": "",
+      "sku": ""
     },
     {
       "nome": "Leite Moça Condensado Integral Nestlé - Caixinha 395g",
-      "preco": 8.99
+      "preco": 8.99,
+      "categoria": "Mercearia",
+      "codigo_barras": "",
+      "sku": ""
+    },
+    {
+      "nome": "Leite Parmalat 1l Zymil Zero Lactose Semidesnatado",
+      "preco": 6.99,
+      "categoria": "Mercearia",
+      "codigo_barras": "",
+      "sku": ""
     },
     {
       "nome": "Leite Tirol UHT 1 Litro - Integral",
-      "preco": 6.79
+      "preco": 6.99,
+      "categoria": "Bebidas Quentes & Lácteas",
+      "codigo_barras": "",
+      "sku": ""
     },
     {
       "nome": "Leite Tirol UHT Integral Zero Lactose 1 Litro",
-      "preco": 6.79
+      "preco": 6.99,
+      "categoria": "Bebidas Quentes & Lácteas",
+      "codigo_barras": "",
+      "sku": ""
+    },
+    {
+      "nome": "Leite UHT Desnatado Tirol Caixa com Tampa 1l",
+      "preco": 5.7,
+      "categoria": "Bebidas Quentes & Lácteas",
+      "codigo_barras": "",
+      "sku": ""
     },
     {
       "nome": "Limpador Multiuso Original Veja Gold 500ml",
-      "preco": 7.49
+      "preco": 7.49,
+      "categoria": "Limpeza",
+      "codigo_barras": "",
+      "sku": ""
     },
     {
       "nome": "Macarrão Espaguete Ovos Dona Benta 500g",
-      "preco": 5.09
+      "preco": 5.09,
+      "categoria": "Mercearia",
+      "codigo_barras": "",
+      "sku": ""
     },
     {
       "nome": "Macarrão Instantâneo Nissin 85g - Variados",
-      "preco": 3.99
+      "preco": 3.99,
+      "categoria": "Mercearia",
+      "codigo_barras": "",
+      "sku": ""
     },
     {
-      "nome": "Macarrão Nissin Cup Noodles 64g - Variados",
-      "preco": 6.99
+      "nome": "Macarrão Nissin Cup Noodles 64G - Variados",
+      "preco": 7.99,
+      "categoria": "Mercearia",
+      "codigo_barras": "",
+      "sku": ""
     },
     {
       "nome": "Macarrão Spaghetti 500g Floriani Grano Duro",
-      "preco": 9.69
+      "preco": 9.69,
+      "categoria": "Mercearia",
+      "codigo_barras": "",
+      "sku": ""
     },
     {
-      "nome": "Maionese Heinz Tradicional 215g",
-      "preco": 14.99
+      "nome": "Maionese Heinz Tradicional 215G",
+      "preco": 14.99,
+      "categoria": "Mercearia",
+      "codigo_barras": "",
+      "sku": ""
     },
     {
-      "nome": "Manteiga de Primeira Qualidade Com Sal 200g - Tirol",
-      "preco": 14.99
+      "nome": "Manteiga de Primeira Qualidade Com Sal 200g – Tirol",
+      "preco": 14.99,
+      "categoria": "Mercearia",
+      "codigo_barras": "",
+      "sku": ""
     },
     {
       "nome": "Manteiga Frimesa 200g - Sabores",
-      "preco": 14.99
+      "preco": 14.99,
+      "categoria": "Mercearia",
+      "codigo_barras": "",
+      "sku": ""
     },
     {
       "nome": "Margarina Claybom 250g",
-      "preco": 5.99
+      "preco": 5.99,
+      "categoria": "Mercearia",
+      "codigo_barras": "",
+      "sku": ""
     },
     {
-      "nome": "Massa Caseira Galla nº 1 - 400g",
-      "preco": 8.69
+      "nome": "Massa Caseira Galla nº 1  - 400g",
+      "preco": 8.69,
+      "categoria": "Mercearia",
+      "codigo_barras": "",
+      "sku": ""
     },
     {
       "nome": "Mistura para Bolo Dona Benta 450g - Sabores",
-      "preco": 9.99
+      "preco": 10.49,
+      "categoria": "Mercearia",
+      "codigo_barras": "",
+      "sku": ""
     },
     {
       "nome": "Molho de Tomate Heinz 240g",
-      "preco": 6.79
+      "preco": 6.79,
+      "categoria": "Mercearia",
+      "codigo_barras": "",
+      "sku": ""
     },
     {
-      "nome": "Nescau Achocolatado em Pó 200g",
-      "preco": 10.4
+      "nome": "Molho de Tomate Pomarola Tradicional Sachê 300g",
+      "preco": 5.89,
+      "categoria": "Mercearia",
+      "codigo_barras": "",
+      "sku": ""
     },
     {
-      "nome": "Óleo de Soja Cocamar 900ml",
-      "preco": 11.39
+      "nome": "Molho de Tomate Tradicional Pomarola Sachê 300g",
+      "preco": 5.89,
+      "categoria": "Mercearia",
+      "codigo_barras": "",
+      "sku": ""
+    },
+    {
+      "nome": "Nescau Achocolatado em Pó - 200G",
+      "preco": 10.4,
+      "categoria": "Mercearia",
+      "codigo_barras": "",
+      "sku": ""
+    },
+    {
+      "nome": "Óleo de Soja Cocamar 900mL",
+      "preco": 11.39,
+      "categoria": "Mercearia",
+      "codigo_barras": "",
+      "sku": ""
+    },
+    {
+      "nome": "Óleo de Soja Liza Pet 900ml",
+      "preco": 11.39,
+      "categoria": "Mercearia",
+      "codigo_barras": "",
+      "sku": ""
+    },
+    {
+      "nome": "OMO Sabão Em Pó Lavagem Perfeita 800G",
+      "preco": 16.79,
+      "categoria": "Limpeza",
+      "codigo_barras": "",
+      "sku": ""
     },
     {
       "nome": "Pão de Forma Bauducco Pacote 390g - Sabores",
-      "preco": 8.69
+      "preco": 8.99,
+      "categoria": "Mercearia",
+      "codigo_barras": "",
+      "sku": ""
     },
     {
       "nome": "Papel Higiênico Folha Tripla Branco 20M 4RL Duetto",
-      "preco": 10.99
+      "preco": 10.99,
+      "categoria": "Higiene",
+      "codigo_barras": "",
+      "sku": ""
     },
     {
       "nome": "Papel Higiênico Folha Tripla Mili Prime Comfort 4 Rolos 20m",
-      "preco": 10.99
+      "preco": 10.99,
+      "categoria": "Higiene",
+      "codigo_barras": "",
+      "sku": ""
     },
     {
-      "nome": "Pipoca para Microondas Yoki 100g - Sabores",
-      "preco": 7.75
+      "nome": "Pipoca para Micro-ondas Natural Yoki 100g",
+      "preco": 6.19,
+      "categoria": "Mercearia",
+      "codigo_barras": "",
+      "sku": ""
+    },
+    {
+      "nome": "Pipoca para Microondas YOKI 100g - Sabores",
+      "preco": 7.75,
+      "categoria": "Mercearia",
+      "codigo_barras": "",
+      "sku": ""
     },
     {
       "nome": "Prestobarba Ultragrip Fixo Az C/2 Masc/Fem",
-      "preco": 8.99
+      "preco": 8.99,
+      "categoria": "Higiene",
+      "codigo_barras": "",
+      "sku": ""
     },
     {
       "nome": "Presunto Cozido Fatiado Sadia 200g",
-      "preco": 10.99
+      "preco": 10.99,
+      "categoria": "Mercearia",
+      "codigo_barras": "",
+      "sku": ""
     },
     {
       "nome": "Presunto Levíssimo Fatiado Seara 180g",
-      "preco": 11.99
+      "preco": 11.99,
+      "categoria": "Mercearia",
+      "codigo_barras": "",
+      "sku": ""
+    },
+    {
+      "nome": "Presunto Perdigão Fatiado 200g",
+      "preco": 10.19,
+      "categoria": "Mercearia",
+      "codigo_barras": "",
+      "sku": ""
     },
     {
       "nome": "Protein Parmalat Whey Fit Zero Lactose 250ml - Sabores",
-      "preco": 9.9
+      "preco": 9.9,
+      "categoria": "Bebidas Frias",
+      "codigo_barras": "",
+      "sku": ""
     },
     {
       "nome": "Queijo Mussarela Fatiado 150g",
-      "preco": 10.99
+      "preco": 10.99,
+      "categoria": "Mercearia",
+      "codigo_barras": "",
+      "sku": ""
+    },
+    {
+      "nome": "Queijo Mussarela Frimesa  Fatiado 150g",
+      "preco": 10.99,
+      "categoria": "Mercearia",
+      "codigo_barras": "",
+      "sku": ""
+    },
+    {
+      "nome": "Refrigerante  Mini Lata 220ml Sabores",
+      "preco": 3.89,
+      "categoria": "Bebidas Frias",
+      "codigo_barras": "",
+      "sku": ""
     },
     {
       "nome": "Refrigerante Coca-Cola 2L - Sabores",
-      "preco": 14.99
+      "preco": 14.99,
+      "categoria": "Bebidas Frias",
+      "codigo_barras": "",
+      "sku": ""
     },
     {
-      "nome": "Refrigerante Coca-Cola Lata 310ml - Sabores",
-      "preco": 4.99
+      "nome": "Refrigerante Coca-Cola Lata 310 ml - Sabores",
+      "preco": 5.49,
+      "categoria": "Bebidas Frias",
+      "codigo_barras": "",
+      "sku": ""
     },
     {
       "nome": "Refrigerante Guaraná Antarctica 2L",
-      "preco": 13.79
+      "preco": 13.79,
+      "categoria": "Bebidas Frias",
+      "codigo_barras": "",
+      "sku": ""
     },
     {
       "nome": "Refrigerante Guaraná Antarctica Lata 350ml",
-      "preco": 5.79
+      "preco": 5.79,
+      "categoria": "Bebidas Frias",
+      "codigo_barras": "",
+      "sku": ""
     },
     {
-      "nome": "Refrigerante Laranja Fanta Garrafa 2L",
-      "preco": 13.69
+      "nome": "Refrigerante Laranja Fanta Garrafa 2l",
+      "preco": 13.69,
+      "categoria": "Bebidas Frias",
+      "codigo_barras": "",
+      "sku": ""
     },
     {
       "nome": "Refrigerante Sprite Sabores 2L",
-      "preco": 13.69
+      "preco": 13.89,
+      "categoria": "Bebidas Frias",
+      "codigo_barras": "",
+      "sku": ""
     },
     {
       "nome": "Requeijão Catupiry 250g - Sabores",
-      "preco": 9.99
+      "preco": 9.99,
+      "categoria": "Mercearia",
+      "codigo_barras": "",
+      "sku": ""
     },
     {
-      "nome": "Sabão em Pó OMO Lavagem Perfeita 400g",
-      "preco": 11.99
+      "nome": "Sabão Detergente Minuano 500ml",
+      "preco": 4.39,
+      "categoria": "Limpeza",
+      "codigo_barras": "",
+      "sku": ""
+    },
+    {
+      "nome": "Sabão Detergente Ypê 500ml",
+      "preco": 3.85,
+      "categoria": "Limpeza",
+      "codigo_barras": "",
+      "sku": ""
+    },
+    {
+      "nome": "Sabão Em Pó OMO  Lavagem Perfeita 400G",
+      "preco": 11.99,
+      "categoria": "Limpeza",
+      "codigo_barras": "",
+      "sku": ""
     },
     {
       "nome": "Sabonete Francis Variados 90g",
-      "preco": 4.39
+      "preco": 4.39,
+      "categoria": "Higiene",
+      "codigo_barras": "",
+      "sku": ""
     },
     {
-      "nome": "Sabonete Nivea Com Hidratante Creme Care 90g",
-      "preco": 6.99
+      "nome": "Sabonete Nivea Com Hidratante Creme Care 90G",
+      "preco": 7.49,
+      "categoria": "Higiene",
+      "codigo_barras": "",
+      "sku": ""
     },
     {
       "nome": "Sabonete Phebo Barra Limão Siciliano 100g",
-      "preco": 6.49
+      "preco": 6.49,
+      "categoria": "Higiene",
+      "codigo_barras": "",
+      "sku": ""
     },
     {
       "nome": "Sachê Pedigree Cães Adultos Raças Pequenas - Sabores",
-      "preco": 3.49
+      "preco": 3.49,
+      "categoria": "Pet",
+      "codigo_barras": "",
+      "sku": ""
     },
     {
       "nome": "Sachê Whiskas para Gatos Adultos - Sabores",
-      "preco": 3.99
+      "preco": 3.99,
+      "categoria": "Pet",
+      "codigo_barras": "",
+      "sku": ""
+    },
+    {
+      "nome": "Salame Defumado Fatiado Perdigão 100g",
+      "preco": 14.69,
+      "categoria": "Mercearia",
+      "codigo_barras": "",
+      "sku": ""
     },
     {
       "nome": "Salgadinho de Batata Pringles Tubo 104g - Diversos",
-      "preco": 12.99
+      "preco": 13.99,
+      "categoria": "Snacks & Biscoitos",
+      "codigo_barras": "",
+      "sku": ""
     },
     {
       "nome": "Salgadinho Elma Chips 40g - Variados",
-      "preco": 5.99
+      "preco": 5.99,
+      "categoria": "Snacks & Biscoitos",
+      "codigo_barras": "",
+      "sku": ""
     },
     {
-      "nome": "Salgadinho Time 50g - Sabores",
-      "preco": 3.69
+      "nome": "Salgadinho Time  50g - Sabores",
+      "preco": 3.99,
+      "categoria": "Snacks & Biscoitos",
+      "codigo_barras": "",
+      "sku": ""
+    },
+    {
+      "nome": "Smirnoff Ice 269ml",
+      "preco": 7.89,
+      "categoria": "Bebidas Frias",
+      "codigo_barras": "",
+      "sku": ""
     },
     {
       "nome": "Smirnoff Ice 275ml",
-      "preco": 8.99
+      "preco": 9.59,
+      "categoria": "Bebidas Frias",
+      "codigo_barras": "",
+      "sku": ""
     },
     {
-      "nome": "Snack Crocantíssimo Original 40g - Sabores",
-      "preco": 5.69
+      "nome": "Snack Crocantíssimo Original  40g - Sabores",
+      "preco": 5.69,
+      "categoria": "Snacks & Biscoitos",
+      "codigo_barras": "",
+      "sku": ""
     },
     {
-      "nome": "Snack Pettiz Amendoim Crocante - Sabores",
-      "preco": 7.69
+      "nome": "Snack Pettiz Amendoim Crocante  - Sabores",
+      "preco": 7.69,
+      "categoria": "Snacks & Biscoitos",
+      "codigo_barras": "",
+      "sku": ""
     },
     {
       "nome": "Sopa 17g Vono - Sabores",
-      "preco": 4.79
+      "preco": 4.79,
+      "categoria": "Mercearia",
+      "codigo_barras": "",
+      "sku": ""
     },
     {
-      "nome": "Suco Del Valle Kapo Sabores 200ml",
-      "preco": 3.79
+      "nome": "Suco Del Valle Kapo Sabores 200Ml",
+      "preco": 3.99,
+      "categoria": "Bebidas Frias",
+      "codigo_barras": "",
+      "sku": ""
     },
     {
       "nome": "Toalha Umedecida Levoe 48un",
-      "preco": 6.89
+      "preco": 6.89,
+      "categoria": "Higiene",
+      "codigo_barras": "",
+      "sku": ""
+    },
+    {
+      "nome": "Toalhas Umedecidas Mili  100 Unidades",
+      "preco": 9.89,
+      "categoria": "Higiene",
+      "codigo_barras": "",
+      "sku": ""
+    },
+    {
+      "nome": "Toalhas Umedecidas Mili Baby 50 uni",
+      "preco": 9.89,
+      "categoria": "Higiene",
+      "codigo_barras": "",
+      "sku": ""
     },
     {
       "nome": "Toalhas Umedecidas Mili Prime 50 Unidades",
-      "preco": 9.89
+      "preco": 10.99,
+      "categoria": "Higiene",
+      "codigo_barras": "",
+      "sku": ""
     },
     {
       "nome": "Torrone Montevergine 90g - Sabores",
-      "preco": 5.99
+      "preco": 5.99,
+      "categoria": "Snacks & Biscoitos",
+      "codigo_barras": "",
+      "sku": ""
     },
     {
-      "nome": "Vanish Tira Manchas em Barra White 75g Para Roupas",
-      "preco": 10.29
+      "nome": "Vanish Tira Manchas Em Barra White 75G Para Roupas",
+      "preco": 10.29,
+      "categoria": "Limpeza",
+      "codigo_barras": "",
+      "sku": ""
+    },
+    {
+      "nome": "Wafer Bauducco Snack Avelã e Creme 20g",
+      "preco": 3.59,
+      "categoria": "Snacks & Biscoitos",
+      "codigo_barras": "",
+      "sku": ""
     }
   ],
   "pessoas": [
