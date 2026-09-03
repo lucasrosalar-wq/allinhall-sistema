@@ -113,6 +113,9 @@ async function validarPin() {
     document.getElementById('app').classList.remove('oculto');
     const partes = (location.hash.slice(1) || 'conferencia').split('/');
     irParaView(partes[0], partes[1]);
+    // Inicia live badges e agenda atualização periódica
+    setTimeout(atualizarLiveBadges_, 3000);
+    setInterval(atualizarLiveBadges_, 60000);
   } catch (err) {
     document.getElementById('erroPin').textContent = err.message || 'PIN inválido.';
     pin = '';
@@ -175,7 +178,12 @@ function irParaView(nome, sub) {
   }
 
   const infoConferencia = document.getElementById('sidebarInfoConferencia');
-  if (infoConferencia) infoConferencia.classList.toggle('oculto', nome !== 'conferencia');
+  if (infoConferencia) {
+    // Accordion: visível em todas as telas, mas recolhido nas não-conferência
+    if (nome !== 'conferencia') infoConferencia.classList.add('fechada');
+  }
+
+  atualizarBreadcrumb_(nome, sub);
 
   document.title = TITULOS_VIEW_[nome];
 
@@ -353,3 +361,76 @@ document.addEventListener('keydown', function (ev) {
 });
 
 inicializarSelectsCustom_();
+
+// ===================== UX: BREADCRUMB + BADGE CONEXÃO + LIVE BADGES =====================
+
+// Labels do breadcrumb por view
+const BREADCRUMB_LABELS_ = {
+  conferencia:  { raiz: 'Monitoramento', ativo: 'Conferência' },
+  reposicao:    { raiz: 'Monitoramento', ativo: 'Reposição' },
+  gestao:       { raiz: 'Monitoramento', ativo: 'Gestão' },
+  aquisicao:    { raiz: 'Aquisição',     ativo: 'Painel' }
+};
+
+function atualizarBreadcrumb_(nome, sub) {
+  const el = document.getElementById('breadcrumbTopbar');
+  if (!el) return;
+  const info = BREADCRUMB_LABELS_[nome] || { raiz: 'All in Hall', ativo: nome };
+  const ativoLabel = (nome === 'aquisicao' && sub)
+    ? ({ cupons: 'Cupons', precos: 'Ajuste de Preço', margens: 'Faixas de Margem', gestao: 'Gestão' }[sub] || sub)
+    : info.ativo;
+  el.innerHTML =
+    '<span class="bc-raiz">' + info.raiz + '</span>' +
+    '<span class="bc-sep">›</span>' +
+    '<span class="bc-ativo" id="bcAtivo">' + ativoLabel + '</span>';
+}
+
+// Monitorar estado Firestore para badge de conexão
+(function iniciarMonitorConexao_() {
+  const badge = document.getElementById('badgeConexao');
+  if (!badge) return;
+  function setOnline() {
+    badge.classList.remove('offline');
+    badge.querySelector('.label-conexao').textContent = 'Online';
+  }
+  function setOffline() {
+    badge.classList.add('offline');
+    badge.querySelector('.label-conexao').textContent = 'Offline';
+  }
+  window.addEventListener('online',  setOnline);
+  window.addEventListener('offline', setOffline);
+  if (!navigator.onLine) setOffline();
+})();
+
+// Live badges na sidebar (furos em aberto na Reposição e pendentes na Gestão)
+function atualizarLiveBadges_() {
+  try {
+    const db = window._firestoreDb;
+    if (!db) return;
+    // Badge Reposição: furos sem morador identificado
+    FirebaseDB.listarFurosReposicao && FirebaseDB.listarFurosReposicao().then(function(furos) {
+      const abertos = furos ? furos.filter(function(f) { return !f.moradorId; }).length : 0;
+      const badgeR = document.getElementById('badgeNavReposicao');
+      if (badgeR) {
+        badgeR.textContent = abertos;
+        badgeR.classList.toggle('oculto', abertos === 0);
+      }
+    }).catch(function() {});
+    // Badge Gestão: ocorrências em aberto (pendentes de receber)
+    FirebaseDB.listarOcorrencias && FirebaseDB.listarOcorrencias().then(function(ocorrencias) {
+      const pendentes = ocorrencias ? ocorrencias.filter(function(o) { return o.status === 'aberta' || o.status === 'cobrada'; }).length : 0;
+      const badgeG = document.getElementById('badgeNavGestao');
+      if (badgeG) {
+        badgeG.textContent = pendentes;
+        badgeG.classList.toggle('oculto', pendentes === 0);
+      }
+    }).catch(function() {});
+  } catch(e) {}
+}
+
+// Accordion "Como funciona"
+function toggleLegendaSidebar() {
+  const el = document.getElementById('sidebarInfoConferencia');
+  if (el) el.classList.toggle('fechada');
+  if (window.lucide) lucide.createIcons();
+}

@@ -81,7 +81,21 @@
   }
   .nav-item svg { width: 18px; height: 18px; flex-shrink: 0; }
   .nav-item:hover { background: var(--cinza); color: var(--preto); }
-  .nav-item.ativo { background: #FFF7ED; color: var(--laranja-escuro); }
+  .nav-item.ativo {
+    background: #FFF7ED; color: var(--laranja-escuro);
+    border-left: 3px solid var(--laranja); padding-left: 9px;
+    font-weight: 700;
+  }
+  .nav-item.ativo svg { stroke-width: 2.2; }
+  /* Badge de alerta ao lado do item de menu */
+  .badge-nav {
+    margin-left: auto; min-width: 20px; height: 20px; padding: 0 5px;
+    border-radius: 10px; font-size: 11px; font-weight: 700; line-height: 20px;
+    text-align: center; flex-shrink: 0; display: inline-flex; align-items: center; justify-content: center;
+  }
+  .badge-nav.laranja { background: #FFF7ED; color: var(--laranja-escuro); border: 1px solid #FED7AA; }
+  .badge-nav.vermelho { background: #FEF2F2; color: var(--vermelho); border: 1px solid #FECACA; }
+  .badge-nav.oculto { display: none; }
   .nav-item-grupo {
     width: 100%; background: none; text-align: left; font-family: inherit;
   }
@@ -148,6 +162,52 @@
   }
   .btn-sair:hover { background: #FEF2F2; color: var(--vermelho); }
   .btn-sair svg { width: 18px; height: 18px; }
+
+  /* ── Topbar: breadcrumb dinâmico ── */
+  .breadcrumb-topbar {
+    display: flex; align-items: center; gap: 5px;
+    font-size: 12px; color: var(--texto-2); font-weight: 500; flex-shrink: 1; min-width: 0;
+  }
+  .breadcrumb-topbar .bc-sep { color: #D1D5DB; }
+  .breadcrumb-topbar .bc-ativo { color: var(--preto); font-weight: 700; }
+  @media (max-width: 480px) { .breadcrumb-topbar { display: none; } }
+
+  /* ── Topbar: badge de conexão ── */
+  .badge-conexao {
+    display: flex; align-items: center; gap: 5px;
+    font-size: 11.5px; font-weight: 600; padding: 4px 10px;
+    border-radius: 99px; background: #F0FDF4; color: #15803D;
+    border: 1px solid #BBF7D0; flex-shrink: 0; transition: background .3s, color .3s, border-color .3s;
+  }
+  .badge-conexao.offline { background: #FEF2F2; color: var(--vermelho); border-color: #FECACA; }
+  .badge-conexao .dot-conexao {
+    width: 7px; height: 7px; border-radius: 50%; background: currentColor;
+    animation: pulsar-dot 2s ease-in-out infinite;
+  }
+  .badge-conexao.offline .dot-conexao { animation: none; }
+  @keyframes pulsar-dot {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: .5; transform: scale(.75); }
+  }
+  @media (max-width: 600px) { .badge-conexao .label-conexao { display: none; } }
+
+  /* ── Sidebar: legenda retrátil ── */
+  .sidebar-info { border-radius: var(--raio); border: 1px solid var(--borda); overflow: hidden; }
+  .sidebar-info-toggle {
+    width: 100%; background: none; text-align: left; font-family: inherit;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 9px 12px; font-size: 12.5px; font-weight: 700; color: var(--preto);
+    cursor: pointer; gap: 8px;
+  }
+  .sidebar-info-toggle:hover { background: var(--cinza); }
+  .sidebar-info-toggle svg { width: 13px; height: 13px; color: var(--texto-2); transition: transform .2s; flex-shrink: 0; }
+  .sidebar-info.fechada .sidebar-info-toggle svg { transform: rotate(-90deg); }
+  .sidebar-info-corpo {
+    padding: 0 12px 10px; display: flex; flex-direction: column; gap: 8px;
+    max-height: 300px; overflow: hidden; transition: max-height .25s ease, padding .25s ease;
+  }
+  .sidebar-info.fechada .sidebar-info-corpo { max-height: 0; padding-bottom: 0; }
+  .sidebar-info-titulo { display: none; } /* Substituído pelo toggle */
 
   .view-gestao .page-header { margin-bottom: 20px; }
   .view-gestao .page-header h2 { font-size: 22px; }
