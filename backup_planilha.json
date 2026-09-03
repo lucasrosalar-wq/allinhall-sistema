@@ -34,135 +34,35 @@
   ],
   "produtos": [
     {
-      "nome": "Detergente Líquido Cristal Limpol Squeeze 500ml",
-      "preco": 3.89
+      "nome": "Absorvente com Abas Suave Sempre Livre Adapt Pacote 8 Unidades",
+      "preco": 7.89
     },
     {
-      "nome": "Biscoito Cookie Piraquê 80g - Sabores",
-      "preco": 5.89
+      "nome": "Absorvente Mili Proteção Total Suave Com Abas 8un",
+      "preco": 7.99
     },
     {
-      "nome": "Leite Condensado Frimesa 395g",
-      "preco": 7.49
-    },
-    {
-      "nome": "Atum Gomes da Costa Ralado 170g - Sabores",
-      "preco": 10.99
-    },
-    {
-      "nome": "Bolinho Dr. Oetker Bom pra Mim 50g - Sabores",
-      "preco": 7.95
-    },
-    {
-      "nome": "Granola Jasmine Integral 250g - Sabores",
-      "preco": 13.9
-    },
-    {
-      "nome": "Maionese Heinz Tradicional 215g",
-      "preco": 14.99
-    },
-    {
-      "nome": "Nescau Achocolatado em Pó 200g",
-      "preco": 10.4
-    },
-    {
-      "nome": "Massa Caseira Galla nº 1 - 400g",
-      "preco": 8.69
-    },
-    {
-      "nome": "Chocolate Garoto 80g - Sabores",
-      "preco": 9.89
-    },
-    {
-      "nome": "Biscoito Leite Maltado Cobertura Chocolate Piraquê 80g - Sabores",
-      "preco": 5.89
-    },
-    {
-      "nome": "Papel Higiênico Folha Tripla Branco 20M 4RL Duetto",
-      "preco": 10.99
-    },
-    {
-      "nome": "Água Mineral Crystal Pet 500ml - Sabores",
-      "preco": 3.99
-    },
-    {
-      "nome": "Filtro De Papel 103 Melitta",
-      "preco": 4.99
-    },
-    {
-      "nome": "Bolo de Caneca 67g - Sabores",
-      "preco": 4.99
-    },
-    {
-      "nome": "Bala Fini Gelatina 90g - Sabores",
-      "preco": 8.29
-    },
-    {
-      "nome": "Molho de Tomate Heinz 240g",
-      "preco": 6.79
+      "nome": "Achocolatado Toddy 200g",
+      "preco": 8.99
     },
     {
       "nome": "Açúcar Refinado Caravelas 1kg",
       "preco": 5.39
     },
     {
-      "nome": "Torrone Montevergine 90g - Sabores",
-      "preco": 5.99
+      "nome": "Água Mineral Crystal Pet 500ml - Sabores",
+      "preco": 3.99
     },
     {
-      "nome": "Pipoca para Microondas Yoki 100g - Sabores",
-      "preco": 7.75
+      "nome": "Água Tônica Antarctica Lata 350ml",
+      "preco": 5.39
     },
     {
-      "nome": "Snack Crocantíssimo Original 40g - Sabores",
-      "preco": 5.69
-    },
-    {
-      "nome": "Arroz Branco Urbano 1kg",
-      "preco": 7.39
-    },
-    {
-      "nome": "Smirnoff Ice 275ml",
+      "nome": "Álcool Coperalcool Bacfree 46°INPM Tradicional 500ml",
       "preco": 8.99
     },
     {
-      "nome": "Refrigerante Guaraná Antarctica Lata 350ml",
-      "preco": 5.79
-    },
-    {
-      "nome": "Snack Pettiz Amendoim Crocante - Sabores",
-      "preco": 7.69
-    },
-    {
-      "nome": "Extrato de Tomate Elefante Tradicional 135g",
-      "preco": 4.99
-    },
-    {
-      "nome": "Refrigerante Guaraná Antarctica 2L",
-      "preco": 13.79
-    },
-    {
-      "nome": "Refrigerante Sprite Sabores 2L",
-      "preco": 13.69
-    },
-    {
-      "nome": "Refrigerante Laranja Fanta Garrafa 2L",
-      "preco": 13.69
-    },
-    {
-      "nome": "Cerveja Budweiser American Lager 350ml Lata",
-      "preco": 6.75
-    },
-    {
-      "nome": "Biscoito Recheado Oreo 90g",
-      "preco": 5.7
-    },
-    {
-      "nome": "Sabão em Pó OMO Lavagem Perfeita 400g",
-      "preco": 11.99
-    },
-    {
-      "nome": "Achocolatado Toddy 200g",
+      "nome": "Álcool Netz Etílico 46° INPM Neutro 500ml",
       "preco": 8.99
     },
     {
@@ -170,112 +70,215 @@
       "preco": 15.99
     },
     {
-      "nome": "Vanish Tira Manchas em Barra White 75g Para Roupas",
-      "preco": 10.29
+      "nome": "Apresuntado Seara Fatiado 180g",
+      "preco": 12.49
     },
     {
-      "nome": "Óleo de Soja Cocamar 900ml",
-      "preco": 11.39
+      "nome": "Arroz Branco Urbano 1kg",
+      "preco": 7.39
     },
     {
-      "nome": "Salgadinho Time 50g - Sabores",
-      "preco": 3.69
+      "nome": "Atum Gomes da Costa Ralado 170g - Sabores",
+      "preco": 10.99
     },
     {
-      "nome": "Creme de Leite Tirol 200g",
-      "preco": 4.19
-    },
-    {
-      "nome": "Cerveja Corona Lata 350ml",
-      "preco": 7.89
-    },
-    {
-      "nome": "Cereal Matinal Nestlé Sachê 120g - Sabores",
-      "preco": 8.99
-    },
-    {
-      "nome": "Refrigerante Coca-Cola 2L - Sabores",
-      "preco": 14.99
-    },
-    {
-      "nome": "Chocolate Lacta 80g - Sabores",
-      "preco": 9.49
+      "nome": "Bala Fini Gelatina 90g - Sabores",
+      "preco": 8.29
     },
     {
       "nome": "Barra de Cereal Nutry 20g - Sabores",
       "preco": 2.89
     },
     {
-      "nome": "Absorvente Mili Proteção Total Suave Com Abas 8un",
-      "preco": 7.99
-    },
-    {
-      "nome": "Chocolate KitKat Nestlé 41,5g - Sabores",
-      "preco": 6.99
-    },
-    {
-      "nome": "Macarrão Espaguete Ovos Dona Benta 500g",
-      "preco": 5.09
+      "nome": "Batata Palha Caldo Bom 100g - Sabores",
+      "preco": 8.99
     },
     {
       "nome": "Batata Palha Kisabor 100g",
       "preco": 7.99
     },
     {
-      "nome": "Chocolate Bis Lacta 100,8g - Variados",
+      "nome": "Batata Palha Tostally 100g",
       "preco": 7.99
     },
     {
-      "nome": "Energético Monster 473ml Lata - Sabores",
-      "preco": 11.99
-    },
-    {
-      "nome": "Álcool Netz Etílico 46° INPM Neutro 500ml",
+      "nome": "Bebida Jungle 500ml - Sabores",
       "preco": 8.99
     },
     {
-      "nome": "Limpador Multiuso Original Veja Gold 500ml",
-      "preco": 7.49
+      "nome": "Biscoito Bauducco Choco Biscuit Leite 36g",
+      "preco": 3.59,
+      "categoria": "Snacks & Biscoitos"
     },
     {
-      "nome": "Toalha Umedecida Levoe 48un",
-      "preco": 6.89
+      "nome": "Biscoito BelVita 75g - Sabores",
+      "preco": 7.29
     },
     {
-      "nome": "Sachê Pedigree Cães Adultos Raças Pequenas - Sabores",
-      "preco": 3.49
+      "nome": "Biscoito Cookie Piraquê 80g - Sabores",
+      "preco": 5.89
     },
     {
-      "nome": "Sachê Whiskas para Gatos Adultos - Sabores",
-      "preco": 3.99
+      "nome": "Biscoito Cracker Piraquê Premium Sabores 24g",
+      "preco": 2.99,
+      "categoria": "Snacks & Biscoitos"
     },
     {
-      "nome": "Sabonete Francis Variados 90g",
-      "preco": 4.39
+      "nome": "Biscoito Leite Maltado Cobertura Chocolate Piraquê 80g - Sabores",
+      "preco": 5.89
     },
     {
-      "nome": "Chocolate Suflair 80g - Variados",
-      "preco": 10.49
+      "nome": "Biscoito Recheado Oreo 90g",
+      "preco": 5.7
     },
     {
-      "nome": "Esponja Brilhus Multiuso Unitária",
-      "preco": 2.7
+      "nome": "Bolinho Dr. Oetker Bom pra Mim 50g - Sabores",
+      "preco": 7.95
     },
     {
-      "nome": "Creme Dental Colgate Máxima Proteção Anticáries 50g",
-      "preco": 5.99
+      "nome": "Bolo de Caneca 67g - Sabores",
+      "preco": 4.99
     },
     {
-      "nome": "Energético Red Bull Energy Drink 250ml",
-      "preco": 11.99
+      "nome": "Café Melitta Regiões Brasileiras Vácuo 250g - Sabores",
+      "preco": 29.9
+    },
+    {
+      "nome": "Café Melitta Vácuo 250g - Variados",
+      "preco": 24.9
+    },
+    {
+      "nome": "Cereal Matinal Nestlé Sachê 120g - Sabores",
+      "preco": 8.99
+    },
+    {
+      "nome": "Cerveja Budweiser American Lager 350ml Lata",
+      "preco": 6.75
+    },
+    {
+      "nome": "Cerveja Corona Lata 350ml",
+      "preco": 7.89
+    },
+    {
+      "nome": "Cerveja Heineken Lata 350ml",
+      "preco": 7.69
     },
     {
       "nome": "Chá Matte Leão Original - Caixa com 25 Unidades",
       "preco": 7.39
     },
     {
+      "nome": "Chiclete Trident Sem Açúcar 8g - Sabores",
+      "preco": 3.59
+    },
+    {
+      "nome": "Chiclete Trident X 48,3g - Sabores",
+      "preco": 16.79
+    },
+    {
+      "nome": "Chocolate Bis Lacta 100,8g - Variados",
+      "preco": 7.99
+    },
+    {
+      "nome": "Chocolate Garoto 80g - Sabores",
+      "preco": 9.89
+    },
+    {
+      "nome": "Chocolate KitKat Nestlé 41,5g - Sabores",
+      "preco": 6.99
+    },
+    {
+      "nome": "Chocolate Lacta 80g - Sabores",
+      "preco": 9.49
+    },
+    {
+      "nome": "Chocolate Nestlé Galak 80g",
+      "preco": 9.99
+    },
+    {
+      "nome": "Chocolate Suflair 80g - Variados",
+      "preco": 10.49
+    },
+    {
+      "nome": "Copo de café - 40 ml (Espresso) / 110ml (Lungo)- Variedades",
+      "preco": 4.99,
+      "categoria": "Bebidas Quentes & Lácteas"
+    },
+    {
+      "nome": "Creme de Leite Tirol 200g",
+      "preco": 4.19
+    },
+    {
+      "nome": "Creme Dental Colgate Máxima Proteção Anticáries 50g",
+      "preco": 5.99
+    },
+    {
+      "nome": "Detergente Líquido Cristal Limpol Squeeze 500ml",
+      "preco": 3.89
+    },
+    {
+      "nome": "Energético Monster 473ml Lata - Sabores",
+      "preco": 11.99
+    },
+    {
+      "nome": "Energético Red Bull Energy Drink 250ml",
+      "preco": 11.99
+    },
+    {
+      "nome": "Escova de Dentes Oral-B",
+      "preco": 7.89
+    },
+    {
+      "nome": "Esponja Brilhus Multiuso Unitária",
+      "preco": 2.7
+    },
+    {
+      "nome": "Esponja Multiuso Assolan Pertuto",
+      "preco": 3.19
+    },
+    {
+      "nome": "Extrato de Tomate Elefante Tradicional 135g",
+      "preco": 4.99
+    },
+    {
+      "nome": "Fermento em Pó Royal 100g",
+      "preco": 7.49
+    },
+    {
+      "nome": "Filtro De Papel 103 Melitta",
+      "preco": 4.99
+    },
+    {
+      "nome": "Granola Jasmine Integral 250g - Sabores",
+      "preco": 13.9
+    },
+    {
+      "nome": "Isotônico Powerade 500ml - Sabores",
+      "preco": 7.99
+    },
+    {
+      "nome": "Leite Condensado Frimesa 395g",
+      "preco": 7.49
+    },
+    {
+      "nome": "Leite Moça Condensado Integral Nestlé - Caixinha 395g",
+      "preco": 8.99
+    },
+    {
+      "nome": "Leite Tirol UHT 1 Litro - Integral",
+      "preco": 6.79
+    },
+    {
       "nome": "Leite Tirol UHT Integral Zero Lactose 1 Litro",
       "preco": 6.79
+    },
+    {
+      "nome": "Limpador Multiuso Original Veja Gold 500ml",
+      "preco": 7.49
+    },
+    {
+      "nome": "Macarrão Espaguete Ovos Dona Benta 500g",
+      "preco": 5.09
     },
     {
       "nome": "Macarrão Instantâneo Nissin 85g - Variados",
@@ -286,168 +289,180 @@
       "preco": 6.99
     },
     {
-      "nome": "Café Melitta Vácuo 250g - Variados",
-      "preco": 24.9
-    },
-    {
-      "nome": "Refrigerante Coca-Cola Lata 310ml - Sabores",
-      "preco": 4.99
-    },
-    {
-      "nome": "Salgadinho Elma Chips 40g - Variados",
-      "preco": 5.99
-    },
-    {
-      "nome": "Cerveja Heineken Lata 350ml",
-      "preco": 7.69
-    },
-    {
-      "nome": "Leite Tirol UHT 1 Litro - Integral",
-      "preco": 6.79
-    },
-    {
-      "nome": "Salgadinho de Batata Pringles Tubo 104g - Diversos",
-      "preco": 12.99
-    },
-    {
-      "nome": "Apresuntado Seara Fatiado 180g",
-      "preco": 12.49
-    },
-    {
-      "nome": "Leite Moça Condensado Integral Nestlé - Caixinha 395g",
-      "preco": 8.99
-    },
-    {
-      "nome": "Álcool Coperalcool Bacfree 46°INPM Tradicional 500ml",
-      "preco": 8.99
-    },
-    {
-      "nome": "Presunto Levíssimo Fatiado Seara 180g",
-      "preco": 11.99
-    },
-    {
-      "nome": "Sabonete Nivea Com Hidratante Creme Care 90g",
-      "preco": 6.99
-    },
-    {
-      "nome": "Requeijão Catupiry 250g - Sabores",
-      "preco": 9.99
-    },
-    {
-      "nome": "Manteiga Frimesa 200g - Sabores",
-      "preco": 14.99
-    },
-    {
-      "nome": "Sopa 17g Vono - Sabores",
-      "preco": 4.79
-    },
-    {
-      "nome": "Pão de Forma Bauducco Pacote 390g - Sabores",
-      "preco": 8.69
-    },
-    {
-      "nome": "Queijo Mussarela Fatiado 150g",
-      "preco": 10.99
-    },
-    {
-      "nome": "Isotônico Powerade 500ml - Sabores",
-      "preco": 7.99
-    },
-    {
-      "nome": "Protein Parmalat Whey Fit Zero Lactose 250ml - Sabores",
-      "preco": 9.9
-    },
-    {
-      "nome": "Esponja Multiuso Assolan Pertuto",
-      "preco": 3.19
-    },
-    {
-      "nome": "Papel Higiênico Folha Tripla Mili Prime Comfort 4 Rolos 20m",
-      "preco": 10.99
-    },
-    {
       "nome": "Macarrão Spaghetti 500g Floriani Grano Duro",
       "preco": 9.69
     },
     {
-      "nome": "Toalhas Umedecidas Mili Prime 50 Unidades",
-      "preco": 9.89
-    },
-    {
-      "nome": "Chiclete Trident X 48,3g - Sabores",
-      "preco": 16.79
-    },
-    {
-      "nome": "Biscoito BelVita 75g - Sabores",
-      "preco": 7.29
-    },
-    {
-      "nome": "Chocolate Nestlé Galak 80g",
-      "preco": 9.99
-    },
-    {
-      "nome": "Água Tônica Antarctica Lata 350ml",
-      "preco": 5.39
-    },
-    {
-      "nome": "Escova de Dentes Oral-B",
-      "preco": 7.89
-    },
-    {
-      "nome": "Chiclete Trident Sem Açúcar 8g - Sabores",
-      "preco": 3.59
-    },
-    {
-      "nome": "Prestobarba Ultragrip Fixo Az C/2 Masc/Fem",
-      "preco": 8.99
-    },
-    {
-      "nome": "Suco Del Valle Kapo Sabores 200ml",
-      "preco": 3.79
-    },
-    {
-      "nome": "Café Melitta Regiões Brasileiras Vácuo 250g - Sabores",
-      "preco": 29.9
-    },
-    {
-      "nome": "Absorvente com Abas Suave Sempre Livre Adapt Pacote 8 Unidades",
-      "preco": 7.89
-    },
-    {
-      "nome": "Batata Palha Caldo Bom 100g - Sabores",
-      "preco": 8.99
-    },
-    {
-      "nome": "Bebida Jungle 500ml - Sabores",
-      "preco": 8.99
+      "nome": "Maionese Heinz Tradicional 215g",
+      "preco": 14.99
     },
     {
       "nome": "Manteiga de Primeira Qualidade Com Sal 200g - Tirol",
       "preco": 14.99
     },
     {
-      "nome": "Presunto Cozido Fatiado Sadia 200g",
-      "preco": 10.99
+      "nome": "Manteiga Frimesa 200g - Sabores",
+      "preco": 14.99
     },
     {
       "nome": "Margarina Claybom 250g",
       "preco": 5.99
     },
     {
-      "nome": "Sabonete Phebo Barra Limão Siciliano 100g",
-      "preco": 6.49
-    },
-    {
-      "nome": "Fermento em Pó Royal 100g",
-      "preco": 7.49
+      "nome": "Massa Caseira Galla nº 1 - 400g",
+      "preco": 8.69
     },
     {
       "nome": "Mistura para Bolo Dona Benta 450g - Sabores",
       "preco": 9.99
     },
     {
-      "nome": "Batata Palha Tostally 100g",
-      "preco": 7.99
+      "nome": "Molho de Tomate Heinz 240g",
+      "preco": 6.79
+    },
+    {
+      "nome": "Nescau Achocolatado em Pó 200g",
+      "preco": 10.4
+    },
+    {
+      "nome": "Óleo de Soja Cocamar 900ml",
+      "preco": 11.39
+    },
+    {
+      "nome": "Pão de Forma Bauducco Pacote 390g - Sabores",
+      "preco": 8.69
+    },
+    {
+      "nome": "Papel Higiênico Folha Tripla Branco 20M 4RL Duetto",
+      "preco": 10.99
+    },
+    {
+      "nome": "Papel Higiênico Folha Tripla Mili Prime Comfort 4 Rolos 20m",
+      "preco": 10.99
+    },
+    {
+      "nome": "Pipoca para Microondas Yoki 100g - Sabores",
+      "preco": 7.75
+    },
+    {
+      "nome": "Prestobarba Ultragrip Fixo Az C/2 Masc/Fem",
+      "preco": 8.99
+    },
+    {
+      "nome": "Presunto Cozido Fatiado Sadia 200g",
+      "preco": 10.99
+    },
+    {
+      "nome": "Presunto Levíssimo Fatiado Seara 180g",
+      "preco": 11.99
+    },
+    {
+      "nome": "Protein Parmalat Whey Fit Zero Lactose 250ml - Sabores",
+      "preco": 9.9
+    },
+    {
+      "nome": "Queijo Mussarela Fatiado 150g",
+      "preco": 10.99
+    },
+    {
+      "nome": "Refrigerante Coca-Cola 2L - Sabores",
+      "preco": 14.99
+    },
+    {
+      "nome": "Refrigerante Coca-Cola Lata 310ml - Sabores",
+      "preco": 4.99
+    },
+    {
+      "nome": "Refrigerante Guaraná Antarctica 2L",
+      "preco": 13.79
+    },
+    {
+      "nome": "Refrigerante Guaraná Antarctica Lata 350ml",
+      "preco": 5.79
+    },
+    {
+      "nome": "Refrigerante Laranja Fanta Garrafa 2L",
+      "preco": 13.69
+    },
+    {
+      "nome": "Refrigerante Sprite Sabores 2L",
+      "preco": 13.69
+    },
+    {
+      "nome": "Requeijão Catupiry 250g - Sabores",
+      "preco": 9.99
+    },
+    {
+      "nome": "Sabão em Pó OMO Lavagem Perfeita 400g",
+      "preco": 11.99
+    },
+    {
+      "nome": "Sabonete Francis Variados 90g",
+      "preco": 4.39
+    },
+    {
+      "nome": "Sabonete Nivea Com Hidratante Creme Care 90g",
+      "preco": 6.99
+    },
+    {
+      "nome": "Sabonete Phebo Barra Limão Siciliano 100g",
+      "preco": 6.49
+    },
+    {
+      "nome": "Sachê Pedigree Cães Adultos Raças Pequenas - Sabores",
+      "preco": 3.49
+    },
+    {
+      "nome": "Sachê Whiskas para Gatos Adultos - Sabores",
+      "preco": 3.99
+    },
+    {
+      "nome": "Salgadinho de Batata Pringles Tubo 104g - Diversos",
+      "preco": 12.99
+    },
+    {
+      "nome": "Salgadinho Elma Chips 40g - Variados",
+      "preco": 5.99
+    },
+    {
+      "nome": "Salgadinho Time 50g - Sabores",
+      "preco": 3.69
+    },
+    {
+      "nome": "Smirnoff Ice 275ml",
+      "preco": 8.99
+    },
+    {
+      "nome": "Snack Crocantíssimo Original 40g - Sabores",
+      "preco": 5.69
+    },
+    {
+      "nome": "Snack Pettiz Amendoim Crocante - Sabores",
+      "preco": 7.69
+    },
+    {
+      "nome": "Sopa 17g Vono - Sabores",
+      "preco": 4.79
+    },
+    {
+      "nome": "Suco Del Valle Kapo Sabores 200ml",
+      "preco": 3.79
+    },
+    {
+      "nome": "Toalha Umedecida Levoe 48un",
+      "preco": 6.89
+    },
+    {
+      "nome": "Toalhas Umedecidas Mili Prime 50 Unidades",
+      "preco": 9.89
+    },
+    {
+      "nome": "Torrone Montevergine 90g - Sabores",
+      "preco": 5.99
+    },
+    {
+      "nome": "Vanish Tira Manchas em Barra White 75g Para Roupas",
+      "preco": 10.29
     }
   ],
   "pessoas": [
