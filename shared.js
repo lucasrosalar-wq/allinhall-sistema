@@ -68,6 +68,9 @@ async function chamarApi(params, metodo) {
       case 'identificarFuroReposicao':
         dados = await FirebaseDB.identificarFuroReposicao(params);
         break;
+      case 'vincularConciliacaoAutomatica':
+        dados = await FirebaseDB.vincularConciliacaoAutomatica(params);
+        break;
       case 'aquisicao':
         dados = await FirebaseDB.obterAquisicao();
         break;

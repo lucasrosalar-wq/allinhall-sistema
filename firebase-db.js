@@ -409,8 +409,10 @@ const FirebaseDB = {
   async vincularConciliacaoAutomatica(params) {
     const pares = params.pares || [];
     for (const p of pares) {
-      if (p.furo_id) {
-        await db.collection('reposicoes').doc(p.furo_id).update({
+      const furoId = p.furoId || p.furo_id;
+      const ocorrenciaId = p.ocorrenciaId || p.ocorrencia_id;
+      if (furoId) {
+        await db.collection('reposicoes').doc(furoId).update({
           status: 'Identificado',
           pessoa: p.pessoa || '',
           contato_whatsapp: p.contato_whatsapp || '',
@@ -418,9 +420,9 @@ const FirebaseDB = {
           hora_infracao: p.hora || ''
         });
       }
-      if (p.ocorrencia_id) {
-        await db.collection('ocorrencias').doc(p.ocorrencia_id).update({
-          furo_reposicao_id: p.furo_id || ''
+      if (ocorrenciaId) {
+        await db.collection('ocorrencias').doc(ocorrenciaId).update({
+          furo_reposicao_id: furoId || ''
         });
       }
     }
