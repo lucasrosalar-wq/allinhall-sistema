@@ -2,48 +2,34 @@
   "exportado_em": "2026-09-02T16:41:53.247Z",
   "condominios": [
     {
-      "nome_oficial": "Walk Soho",
-      "nome_curto": "Walk Soho",
-      "endereco": "",
-      "bairro": "",
+      "nome_curto": "ALL 0001 EDIFÍCIO REMY MERLIN",
+      "nome_oficial": "ALL 0001 EDIFÍCIO REMY MERLIN",
       "cidade": "Curitiba",
-      "sindico_ou_contato": "",
-      "telefone_contato": "",
-      "ativo": true,
-      "_linha": 2
+      "ativo": true
     },
     {
-      "nome_oficial": "Walk Brigadeiro",
-      "nome_curto": "Walk Brigadeiro",
-      "endereco": "",
-      "bairro": "",
+      "nome_curto": "ALL 0002 RESIDENCIAL PARQUE DAS PEDRAS",
+      "nome_oficial": "ALL 0002 RESIDENCIAL PARQUE DAS PEDRAS",
       "cidade": "Curitiba",
-      "sindico_ou_contato": "",
-      "telefone_contato": "",
-      "ativo": true,
-      "_linha": 3
+      "ativo": true
     },
     {
-      "nome_oficial": "Parque das Pedreiras",
-      "nome_curto": "Parque das Pedreiras",
-      "endereco": "",
-      "bairro": "",
+      "nome_curto": "ALL 0003 RESIDENCIAL WALK SOHO",
+      "nome_oficial": "ALL 0003 RESIDENCIAL WALK SOHO",
       "cidade": "Curitiba",
-      "sindico_ou_contato": "",
-      "telefone_contato": "",
-      "ativo": true,
-      "_linha": 4
+      "ativo": true
     },
     {
-      "nome_oficial": "Ed Remy",
-      "nome_curto": "Ed Remy",
-      "endereco": "",
-      "bairro": "",
+      "nome_curto": "ALL 0004 RESIDENCIAL WALK BRIGADEIRO",
+      "nome_oficial": "ALL 0004 RESIDENCIAL WALK BRIGADEIRO",
       "cidade": "Curitiba",
-      "sindico_ou_contato": "",
-      "telefone_contato": "",
-      "ativo": true,
-      "_linha": 5
+      "ativo": true
+    },
+    {
+      "nome_curto": "COFFEE 0001 RESIDENCIAL WALK SOHO",
+      "nome_oficial": "COFFEE 0001 RESIDENCIAL WALK SOHO",
+      "cidade": "Curitiba",
+      "ativo": true
     }
   ],
   "produtos": [
@@ -546,7 +532,7 @@
   "ocorrencias": [
     {
       "id": "OC2026072100474356",
-      "condominio": "Ed Remy",
+      "condominio": "ALL 0001 EDIFÍCIO REMY MERLIN",
       "data_ocorrencia": "2026-07-12",
       "hora": "19:15",
       "pessoa": "Ruy",
@@ -592,7 +578,7 @@
     },
     {
       "id": "OC2026072100484662",
-      "condominio": "Ed Remy",
+      "condominio": "ALL 0001 EDIFÍCIO REMY MERLIN",
       "data_ocorrencia": "2026-07-13",
       "hora": "12:44",
       "pessoa": "Ruy",
@@ -618,7 +604,7 @@
     },
     {
       "id": "OC2026072100511173",
-      "condominio": "Ed Remy",
+      "condominio": "ALL 0001 EDIFÍCIO REMY MERLIN",
       "data_ocorrencia": "2026-07-18",
       "hora": "19:49",
       "pessoa": "Ruy",
@@ -649,7 +635,7 @@
     },
     {
       "id": "OC2026072100524522",
-      "condominio": "Ed Remy",
+      "condominio": "ALL 0001 EDIFÍCIO REMY MERLIN",
       "data_ocorrencia": "2026-07-18",
       "hora": "23:07",
       "pessoa": "Ruy",
@@ -680,7 +666,7 @@
     },
     {
       "id": "OC2026072123281422",
-      "condominio": "Walk Soho",
+      "condominio": "ALL 0003 RESIDENCIAL WALK SOHO",
       "data_ocorrencia": "2026-07-17",
       "hora": "13:18",
       "pessoa": "Rafael T Sugiyama dr.rafaelsugiyama@gmail.com -",
@@ -706,7 +692,7 @@
     },
     {
       "id": "OC2026072200134986",
-      "condominio": "Walk Soho",
+      "condominio": "ALL 0003 RESIDENCIAL WALK SOHO",
       "data_ocorrencia": "2026-07-15",
       "hora": "16:52",
       "pessoa": "Lunara",
@@ -742,7 +728,7 @@
     },
     {
       "id": "OC2026072200193489",
-      "condominio": "Walk Soho",
+      "condominio": "ALL 0003 RESIDENCIAL WALK SOHO",
       "data_ocorrencia": "2026-07-18",
       "hora": "18:58",
       "pessoa": "",
@@ -768,7 +754,7 @@
     },
     {
       "id": "OC2026072410384318",
-      "condominio": "Ed Remy",
+      "condominio": "ALL 0001 EDIFÍCIO REMY MERLIN",
       "data_ocorrencia": "2026-07-20",
       "hora": "20:53",
       "pessoa": "Gabriel",
@@ -794,7 +780,7 @@
     },
     {
       "id": "OC2026072413044155",
-      "condominio": "Walk Brigadeiro",
+      "condominio": "ALL 0004 RESIDENCIAL WALK BRIGADEIRO",
       "data_ocorrencia": "2026-07-17",
       "hora": "21:11",
       "pessoa": "Evaldo Colossi",
@@ -825,7 +811,7 @@
     },
     {
       "id": "OC2026072413495855",
-      "condominio": "Walk Brigadeiro",
+      "condominio": "ALL 0004 RESIDENCIAL WALK BRIGADEIRO",
       "data_ocorrencia": "2026-07-19",
       "hora": "15:24",
       "pessoa": "IGOR RODRIGUES DE FARIA",
@@ -851,7 +837,7 @@
     },
     {
       "id": "OC2026072418070986",
-      "condominio": "Ed Remy",
+      "condominio": "ALL 0001 EDIFÍCIO REMY MERLIN",
       "data_ocorrencia": "2026-07-10",
       "hora": "17:49",
       "pessoa": "Gabriel",
@@ -877,7 +863,7 @@
     },
     {
       "id": "OC2026072421122121",
-      "condominio": "Walk Brigadeiro",
+      "condominio": "ALL 0004 RESIDENCIAL WALK BRIGADEIRO",
       "data_ocorrencia": "2026-07-20",
       "hora": "18:37",
       "pessoa": "Gisele Coronato",
@@ -903,7 +889,7 @@
     },
     {
       "id": "OC2026072421540635",
-      "condominio": "Walk Brigadeiro",
+      "condominio": "ALL 0004 RESIDENCIAL WALK BRIGADEIRO",
       "data_ocorrencia": "2026-07-21",
       "hora": "23:50",
       "pessoa": "Henrique Gabriel Taborda Gonçalves de Melo - 103.959.059-40",
@@ -929,7 +915,7 @@
     },
     {
       "id": "OC2026072421580930",
-      "condominio": "Walk Brigadeiro",
+      "condominio": "ALL 0004 RESIDENCIAL WALK BRIGADEIRO",
       "data_ocorrencia": "2026-07-22",
       "hora": "01:04",
       "pessoa": "Henrique Gabriel Taborda Gonçalves de Melo - 103.959.059-40",
@@ -975,7 +961,7 @@
     },
     {
       "id": "OC2026072423090436",
-      "condominio": "Walk Brigadeiro",
+      "condominio": "ALL 0004 RESIDENCIAL WALK BRIGADEIRO",
       "data_ocorrencia": "2026-07-22",
       "hora": "07:21",
       "pessoa": "Henrique Gabriel Taborda Gonçalves de Melo - 103.959.059-40",
@@ -1001,7 +987,7 @@
     },
     {
       "id": "OC2026072423285551",
-      "condominio": "Walk Brigadeiro",
+      "condominio": "ALL 0004 RESIDENCIAL WALK BRIGADEIRO",
       "data_ocorrencia": "2026-07-22",
       "hora": "13:13",
       "pessoa": "Henrique Gabriel Taborda Gonçalves de Melo - 103.959.059-40",
@@ -1062,7 +1048,7 @@
     },
     {
       "id": "OC2026072520574671",
-      "condominio": "Walk Brigadeiro",
+      "condominio": "ALL 0004 RESIDENCIAL WALK BRIGADEIRO",
       "data_ocorrencia": "2026-07-23",
       "hora": "23:47",
       "pessoa": "Giezi azevedo jr",
@@ -1088,7 +1074,7 @@
     },
     {
       "id": "OC2026072522140528",
-      "condominio": "Walk Soho",
+      "condominio": "ALL 0003 RESIDENCIAL WALK SOHO",
       "data_ocorrencia": "2026-07-20",
       "hora": "19:30",
       "pessoa": "Lunara Mendes?",
@@ -1114,7 +1100,7 @@
     },
     {
       "id": "OC2026072713185566",
-      "condominio": "Walk Brigadeiro",
+      "condominio": "ALL 0004 RESIDENCIAL WALK BRIGADEIRO",
       "data_ocorrencia": "2026-07-25",
       "hora": "16:50",
       "pessoa": "Danylo Monteiro",
@@ -1140,7 +1126,7 @@
     },
     {
       "id": "OC2026072713305559",
-      "condominio": "Walk Brigadeiro",
+      "condominio": "ALL 0004 RESIDENCIAL WALK BRIGADEIRO",
       "data_ocorrencia": "2026-07-25",
       "hora": "22:22",
       "pessoa": "Pedro Deodato Terto",
@@ -1166,7 +1152,7 @@
     },
     {
       "id": "OC2026072722142571",
-      "condominio": "Walk Brigadeiro",
+      "condominio": "ALL 0004 RESIDENCIAL WALK BRIGADEIRO",
       "data_ocorrencia": "2026-07-27",
       "hora": "02:08",
       "pessoa": "Guilherme de Souza Acosta",
@@ -1192,7 +1178,7 @@
     },
     {
       "id": "OC2026072723221931",
-      "condominio": "Parque das Pedreiras",
+      "condominio": "ALL 0002 RESIDENCIAL PARQUE DAS PEDRAS",
       "data_ocorrencia": "2026-07-27",
       "hora": "13:15",
       "pessoa": "",
@@ -1218,7 +1204,7 @@
     },
     {
       "id": "OC2026072723303857",
-      "condominio": "Ed Remy",
+      "condominio": "ALL 0001 EDIFÍCIO REMY MERLIN",
       "data_ocorrencia": "2026-07-24",
       "hora": "23:29",
       "pessoa": "Juliana",
@@ -1244,7 +1230,7 @@
     },
     {
       "id": "OC2026072723360915",
-      "condominio": "Walk Soho",
+      "condominio": "ALL 0003 RESIDENCIAL WALK SOHO",
       "data_ocorrencia": "2026-07-23",
       "hora": "10:50",
       "pessoa": "Lunara Mendes?",
@@ -1270,7 +1256,7 @@
     },
     {
       "id": "OC2026073110573624",
-      "condominio": "Walk Soho",
+      "condominio": "ALL 0003 RESIDENCIAL WALK SOHO",
       "data_ocorrencia": "2026-07-28",
       "hora": "20:16",
       "pessoa": "Marcio",
@@ -1296,7 +1282,7 @@
     },
     {
       "id": "OC2026073110580031",
-      "condominio": "Walk Soho",
+      "condominio": "ALL 0003 RESIDENCIAL WALK SOHO",
       "data_ocorrencia": "2026-07-28",
       "hora": "20:16",
       "pessoa": "Marcio",
@@ -1327,7 +1313,7 @@
     },
     {
       "id": "OC2026073122185142",
-      "condominio": "Walk Soho",
+      "condominio": "ALL 0003 RESIDENCIAL WALK SOHO",
       "data_ocorrencia": "2026-07-29",
       "hora": "03:00",
       "pessoa": "Marcio",
@@ -1353,7 +1339,7 @@
     },
     {
       "id": "OC2026073122452873",
-      "condominio": "Walk Soho",
+      "condominio": "ALL 0003 RESIDENCIAL WALK SOHO",
       "data_ocorrencia": "2026-07-29",
       "hora": "14:29",
       "pessoa": "Maria Aparecida de lima faria",
@@ -1379,7 +1365,7 @@
     },
     {
       "id": "OC2026073122561632",
-      "condominio": "Walk Soho",
+      "condominio": "ALL 0003 RESIDENCIAL WALK SOHO",
       "data_ocorrencia": "2026-07-29",
       "hora": "18:56",
       "pessoa": "Marcio",
@@ -1415,7 +1401,7 @@
     },
     {
       "id": "OC2026073123115944",
-      "condominio": "Walk Soho",
+      "condominio": "ALL 0003 RESIDENCIAL WALK SOHO",
       "data_ocorrencia": "2026-07-29",
       "hora": "22:35",
       "pessoa": "Marcio",
@@ -1441,7 +1427,7 @@
     },
     {
       "id": "OC2026073123211615",
-      "condominio": "Walk Soho",
+      "condominio": "ALL 0003 RESIDENCIAL WALK SOHO",
       "data_ocorrencia": "2026-07-30",
       "hora": "01:59",
       "pessoa": "Marcio",
@@ -1467,7 +1453,7 @@
     },
     {
       "id": "OC2026080123080796",
-      "condominio": "Walk Brigadeiro",
+      "condominio": "ALL 0004 RESIDENCIAL WALK BRIGADEIRO",
       "data_ocorrencia": "2026-07-31",
       "hora": "17:19",
       "pessoa": "Danylo Monteiro",
@@ -1493,7 +1479,7 @@
     },
     {
       "id": "OC2026080423213955",
-      "condominio": "Walk Soho",
+      "condominio": "ALL 0003 RESIDENCIAL WALK SOHO",
       "data_ocorrencia": "2026-08-01",
       "hora": "08:43",
       "pessoa": "Rafael T Sugiyama",
@@ -1519,7 +1505,7 @@
     },
     {
       "id": "OC2026080500090579",
-      "condominio": "Walk Soho",
+      "condominio": "ALL 0003 RESIDENCIAL WALK SOHO",
       "data_ocorrencia": "2026-08-01",
       "hora": "23:54",
       "pessoa": "Willian de Lima dos Santos",
@@ -1545,7 +1531,7 @@
     },
     {
       "id": "OC2026080501053744",
-      "condominio": "Walk Brigadeiro",
+      "condominio": "ALL 0004 RESIDENCIAL WALK BRIGADEIRO",
       "data_ocorrencia": "2026-08-03",
       "hora": "00:58",
       "pessoa": "Amanda Schreiner ?",
@@ -1571,7 +1557,7 @@
     },
     {
       "id": "OC2026080719013533",
-      "condominio": "Walk Soho",
+      "condominio": "ALL 0003 RESIDENCIAL WALK SOHO",
       "data_ocorrencia": "2026-08-05",
       "hora": "01:38",
       "pessoa": "Karoline ono",
@@ -1597,7 +1583,7 @@
     },
     {
       "id": "OC2026080719113671",
-      "condominio": "Walk Soho",
+      "condominio": "ALL 0003 RESIDENCIAL WALK SOHO",
       "data_ocorrencia": "2026-08-05",
       "hora": "14:39",
       "pessoa": "Rafael T Sugiyama",
@@ -1638,7 +1624,7 @@
     },
     {
       "id": "OC2026080719470010",
-      "condominio": "Walk Soho",
+      "condominio": "ALL 0003 RESIDENCIAL WALK SOHO",
       "data_ocorrencia": "2026-08-06",
       "hora": "22:40",
       "pessoa": "Rafael T Sugiyama",
@@ -1664,7 +1650,7 @@
     },
     {
       "id": "OC2026081021225311",
-      "condominio": "Walk Soho",
+      "condominio": "ALL 0003 RESIDENCIAL WALK SOHO",
       "data_ocorrencia": "2026-08-07",
       "hora": "00:32",
       "pessoa": "Giovanna",
@@ -1695,7 +1681,7 @@
     },
     {
       "id": "OC2026081021293212",
-      "condominio": "Walk Soho",
+      "condominio": "ALL 0003 RESIDENCIAL WALK SOHO",
       "data_ocorrencia": "2026-08-07",
       "hora": "21:28",
       "pessoa": "Karoline ono",
@@ -1721,7 +1707,7 @@
     },
     {
       "id": "OC2026081213550134",
-      "condominio": "Walk Soho",
+      "condominio": "ALL 0003 RESIDENCIAL WALK SOHO",
       "data_ocorrencia": "2026-08-09",
       "hora": "22:14",
       "pessoa": "José Vitor Pachko",
@@ -1747,7 +1733,7 @@
     },
     {
       "id": "OC2026081213552129",
-      "condominio": "Walk Soho",
+      "condominio": "ALL 0003 RESIDENCIAL WALK SOHO",
       "data_ocorrencia": "2026-08-09",
       "hora": "22:14",
       "pessoa": "José Vitor Pachko",
@@ -1773,7 +1759,7 @@
     },
     {
       "id": "OC2026081213570597",
-      "condominio": "Walk Soho",
+      "condominio": "ALL 0003 RESIDENCIAL WALK SOHO",
       "data_ocorrencia": "2026-08-09",
       "hora": "22:14",
       "pessoa": "José Vitor Pachko",
@@ -1799,7 +1785,7 @@
     },
     {
       "id": "OC2026081322545174",
-      "condominio": "Walk Brigadeiro",
+      "condominio": "ALL 0004 RESIDENCIAL WALK BRIGADEIRO",
       "data_ocorrencia": "2026-08-11",
       "hora": "05:00",
       "pessoa": "Evaldo Colossi ?",
@@ -1825,7 +1811,7 @@
     },
     {
       "id": "OC2026081323185176",
-      "condominio": "Walk Brigadeiro",
+      "condominio": "ALL 0004 RESIDENCIAL WALK BRIGADEIRO",
       "data_ocorrencia": "2026-08-11",
       "hora": "16:23",
       "pessoa": "Diego Rodrigo Garcia",
@@ -1851,7 +1837,7 @@
     },
     {
       "id": "OC2026081323314635",
-      "condominio": "Walk Brigadeiro",
+      "condominio": "ALL 0004 RESIDENCIAL WALK BRIGADEIRO",
       "data_ocorrencia": "2026-08-11",
       "hora": "22:49",
       "pessoa": "ALAN DIEGO DE OLIVEIRA MIXESKI",
@@ -1877,7 +1863,7 @@
     },
     {
       "id": "OC2026081410061286",
-      "condominio": "Ed Remy",
+      "condominio": "ALL 0001 EDIFÍCIO REMY MERLIN",
       "data_ocorrencia": "2026-07-22",
       "hora": "03:32",
       "pessoa": "Ruy",
@@ -1903,7 +1889,7 @@
     },
     {
       "id": "OC2026081410061555",
-      "condominio": "Ed Remy",
+      "condominio": "ALL 0001 EDIFÍCIO REMY MERLIN",
       "data_ocorrencia": "2026-07-22",
       "hora": "05:45",
       "pessoa": "Ruy",
@@ -1929,7 +1915,7 @@
     },
     {
       "id": "OC2026081410061727",
-      "condominio": "Ed Remy",
+      "condominio": "ALL 0001 EDIFÍCIO REMY MERLIN",
       "data_ocorrencia": "2026-07-24",
       "hora": "02:20",
       "pessoa": "Ruy",
@@ -1960,7 +1946,7 @@
     },
     {
       "id": "OC2026081410061971",
-      "condominio": "Ed Remy",
+      "condominio": "ALL 0001 EDIFÍCIO REMY MERLIN",
       "data_ocorrencia": "2026-07-25",
       "hora": "04:42",
       "pessoa": "Ruy",
@@ -2001,7 +1987,7 @@
     },
     {
       "id": "OC2026081410062151",
-      "condominio": "Ed Remy",
+      "condominio": "ALL 0001 EDIFÍCIO REMY MERLIN",
       "data_ocorrencia": "2026-07-26",
       "hora": "07:46",
       "pessoa": "Ruy",
@@ -2037,7 +2023,7 @@
     },
     {
       "id": "OC2026081410062348",
-      "condominio": "Ed Remy",
+      "condominio": "ALL 0001 EDIFÍCIO REMY MERLIN",
       "data_ocorrencia": "2026-07-26",
       "hora": "18:33",
       "pessoa": "Ruy",
@@ -2068,7 +2054,7 @@
     },
     {
       "id": "OC2026081410062613",
-      "condominio": "Ed Remy",
+      "condominio": "ALL 0001 EDIFÍCIO REMY MERLIN",
       "data_ocorrencia": "2026-07-27",
       "hora": "00:36",
       "pessoa": "Ruy",
@@ -2104,7 +2090,7 @@
     },
     {
       "id": "OC2026081421201879",
-      "condominio": "Walk Soho",
+      "condominio": "ALL 0003 RESIDENCIAL WALK SOHO",
       "data_ocorrencia": "2026-08-14",
       "hora": "17:15",
       "pessoa": "pagou há mais",
@@ -2130,7 +2116,7 @@
     },
     {
       "id": "OC2026081422331460",
-      "condominio": "Walk Brigadeiro",
+      "condominio": "ALL 0004 RESIDENCIAL WALK BRIGADEIRO",
       "data_ocorrencia": "2026-08-12",
       "hora": "16:36",
       "pessoa": "VINICIUS MICHELINE",
@@ -2181,7 +2167,7 @@
     },
     {
       "id": "OC2026081423201996",
-      "condominio": "Walk Brigadeiro",
+      "condominio": "ALL 0004 RESIDENCIAL WALK BRIGADEIRO",
       "data_ocorrencia": "2026-08-13",
       "hora": "02:27",
       "pessoa": "VINICIUS MICHELINE",
@@ -2222,7 +2208,7 @@
     },
     {
       "id": "OC2026081423431936",
-      "condominio": "Walk Brigadeiro",
+      "condominio": "ALL 0004 RESIDENCIAL WALK BRIGADEIRO",
       "data_ocorrencia": "2026-08-13",
       "hora": "13:18",
       "pessoa": "VINICIUS MICHELINE ?",
@@ -2263,7 +2249,7 @@
     },
     {
       "id": "OC2026081500322072",
-      "condominio": "Walk Brigadeiro",
+      "condominio": "ALL 0004 RESIDENCIAL WALK BRIGADEIRO",
       "data_ocorrencia": "2026-08-13",
       "hora": "21:27",
       "pessoa": "VINICIUS MICHELINE ?",
@@ -2294,7 +2280,7 @@
     },
     {
       "id": "OC2026081820483217",
-      "condominio": "Walk Soho",
+      "condominio": "ALL 0003 RESIDENCIAL WALK SOHO",
       "data_ocorrencia": "2026-08-16",
       "hora": "14:11",
       "pessoa": "Thayana Elisabete Quintino",
@@ -2320,7 +2306,7 @@
     },
     {
       "id": "OC2026081821071788",
-      "condominio": "Walk Soho",
+      "condominio": "ALL 0003 RESIDENCIAL WALK SOHO",
       "data_ocorrencia": "2026-08-16",
       "hora": "16:01",
       "pessoa": "Pagou2 x Thayana Quintino",
@@ -2346,7 +2332,7 @@
     },
     {
       "id": "OC2026081922555886",
-      "condominio": "Parque das Pedreiras",
+      "condominio": "ALL 0002 RESIDENCIAL PARQUE DAS PEDRAS",
       "data_ocorrencia": "2026-08-18",
       "hora": "20:33",
       "pessoa": "",
@@ -2372,7 +2358,7 @@
     },
     {
       "id": "OC2026081923165950",
-      "condominio": "Walk Brigadeiro",
+      "condominio": "ALL 0004 RESIDENCIAL WALK BRIGADEIRO",
       "data_ocorrencia": "2026-08-14",
       "hora": "20:44",
       "pessoa": "Evaldo Colossi confirmar",
@@ -2398,7 +2384,7 @@
     },
     {
       "id": "OC2026082000093199",
-      "condominio": "Walk Brigadeiro",
+      "condominio": "ALL 0004 RESIDENCIAL WALK BRIGADEIRO",
       "data_ocorrencia": "2026-08-15",
       "hora": "00:01",
       "pessoa": "VINICIUS MICHELINE",
@@ -2439,7 +2425,7 @@
     },
     {
       "id": "OC2026082000420496",
-      "condominio": "Walk Brigadeiro",
+      "condominio": "ALL 0004 RESIDENCIAL WALK BRIGADEIRO",
       "data_ocorrencia": "2026-08-15",
       "hora": "01:45",
       "pessoa": "VINICIUS MICHELINE",
@@ -2485,7 +2471,7 @@
     },
     {
       "id": "OC2026082011161724",
-      "condominio": "Parque das Pedreiras",
+      "condominio": "ALL 0002 RESIDENCIAL PARQUE DAS PEDRAS",
       "data_ocorrencia": "2026-08-19",
       "hora": "07:20",
       "pessoa": "",
@@ -2511,7 +2497,7 @@
     },
     {
       "id": "OC2026082022090054",
-      "condominio": "Walk Soho",
+      "condominio": "ALL 0003 RESIDENCIAL WALK SOHO",
       "data_ocorrencia": "2026-08-17",
       "hora": "13:57",
       "pessoa": "Rafael T Sugiyama",
@@ -2537,7 +2523,7 @@
     },
     {
       "id": "OC2026082022564882",
-      "condominio": "Walk Soho",
+      "condominio": "ALL 0003 RESIDENCIAL WALK SOHO",
       "data_ocorrencia": "2026-08-18",
       "hora": "15:57",
       "pessoa": "Lunara Mendes (marido)",
@@ -2563,7 +2549,7 @@
     },
     {
       "id": "OC2026082023594439",
-      "condominio": "Walk Soho",
+      "condominio": "ALL 0003 RESIDENCIAL WALK SOHO",
       "data_ocorrencia": "2026-08-19",
       "hora": "20:53",
       "pessoa": "Giovanna",
@@ -2589,7 +2575,7 @@
     },
     {
       "id": "OC2026082122450576",
-      "condominio": "Walk Brigadeiro",
+      "condominio": "ALL 0004 RESIDENCIAL WALK BRIGADEIRO",
       "data_ocorrencia": "2026-08-17",
       "hora": "23:21",
       "pessoa": "jennifer nascimento de souza",
@@ -2615,7 +2601,7 @@
     },
     {
       "id": "OC2026082123002088",
-      "condominio": "Walk Brigadeiro",
+      "condominio": "ALL 0004 RESIDENCIAL WALK BRIGADEIRO",
       "data_ocorrencia": "2026-08-18",
       "hora": "12:52",
       "pessoa": "Eduarda coelho",
@@ -2641,7 +2627,7 @@
     },
     {
       "id": "OC2026082123210192",
-      "condominio": "Walk Brigadeiro",
+      "condominio": "ALL 0004 RESIDENCIAL WALK BRIGADEIRO",
       "data_ocorrencia": "2026-08-19",
       "hora": "22:45",
       "pessoa": "Evaldo Colossi",
@@ -2667,7 +2653,7 @@
     },
     {
       "id": "OC2026082123440370",
-      "condominio": "Walk Brigadeiro",
+      "condominio": "ALL 0004 RESIDENCIAL WALK BRIGADEIRO",
       "data_ocorrencia": "2026-08-19",
       "hora": "22:56",
       "pessoa": "Alan Jesus",
@@ -2693,7 +2679,7 @@
     },
     {
       "id": "OC2026082200261664",
-      "condominio": "Walk Brigadeiro",
+      "condominio": "ALL 0004 RESIDENCIAL WALK BRIGADEIRO",
       "data_ocorrencia": "2026-07-23",
       "hora": "",
       "pessoa": "VINICIUS MICHELINE já foi cobrado",
@@ -2719,7 +2705,7 @@
     },
     {
       "id": "OC2026082200314856",
-      "condominio": "Walk Brigadeiro",
+      "condominio": "ALL 0004 RESIDENCIAL WALK BRIGADEIRO",
       "data_ocorrencia": "2026-07-22",
       "hora": "07:21",
       "pessoa": "Henrique Gabriel (cobrado)",
@@ -2745,7 +2731,7 @@
     },
     {
       "id": "OC2026082200382650",
-      "condominio": "Walk Brigadeiro",
+      "condominio": "ALL 0004 RESIDENCIAL WALK BRIGADEIRO",
       "data_ocorrencia": "2026-07-22",
       "hora": "13:13",
       "pessoa": "Henrique Gabriel Taborda (pago",
@@ -2771,7 +2757,7 @@
     },
     {
       "id": "OC2026082200393130",
-      "condominio": "Walk Brigadeiro",
+      "condominio": "ALL 0004 RESIDENCIAL WALK BRIGADEIRO",
       "data_ocorrencia": "2026-07-22",
       "hora": "13:13",
       "pessoa": "Henrique Gabriel Taborda (pago)",
@@ -2797,7 +2783,7 @@
     },
     {
       "id": "OC2026082200395910",
-      "condominio": "Walk Brigadeiro",
+      "condominio": "ALL 0004 RESIDENCIAL WALK BRIGADEIRO",
       "data_ocorrencia": "2026-07-22",
       "hora": "13:13",
       "pessoa": "Henrique Gabriel Taborda (pago",
@@ -2823,7 +2809,7 @@
     },
     {
       "id": "OC2026082200402368",
-      "condominio": "Walk Brigadeiro",
+      "condominio": "ALL 0004 RESIDENCIAL WALK BRIGADEIRO",
       "data_ocorrencia": "2026-07-22",
       "hora": "13:13",
       "pessoa": "Henrique Gabriel Taborda (pago)",
@@ -2849,7 +2835,7 @@
     },
     {
       "id": "OC2026082200410953",
-      "condominio": "Walk Brigadeiro",
+      "condominio": "ALL 0004 RESIDENCIAL WALK BRIGADEIRO",
       "data_ocorrencia": "2026-07-22",
       "hora": "13:13",
       "pessoa": "Henrique Gabriel Taborda pago",
@@ -2875,7 +2861,7 @@
     },
     {
       "id": "OC2026082200473740",
-      "condominio": "Walk Brigadeiro",
+      "condominio": "ALL 0004 RESIDENCIAL WALK BRIGADEIRO",
       "data_ocorrencia": "2026-07-22",
       "hora": "04:37",
       "pessoa": "Henrique Gabriel Taborda (foi cobrado pendente)",
@@ -2901,7 +2887,7 @@
     },
     {
       "id": "OC2026082200485293",
-      "condominio": "Walk Brigadeiro",
+      "condominio": "ALL 0004 RESIDENCIAL WALK BRIGADEIRO",
       "data_ocorrencia": "2026-07-22",
       "hora": "01:04",
       "pessoa": "Henrique Gabriel Taborda (cobrado/pendente)",
@@ -2927,7 +2913,7 @@
     },
     {
       "id": "OC2026082200503526",
-      "condominio": "Walk Brigadeiro",
+      "condominio": "ALL 0004 RESIDENCIAL WALK BRIGADEIRO",
       "data_ocorrencia": "2026-07-22",
       "hora": "",
       "pessoa": "Henrique Gabriel Taborda(cobrado/Pendente)",
@@ -2953,7 +2939,7 @@
     },
     {
       "id": "OC2026082200523518",
-      "condominio": "Walk Brigadeiro",
+      "condominio": "ALL 0004 RESIDENCIAL WALK BRIGADEIRO",
       "data_ocorrencia": "2026-07-22",
       "hora": "01:04",
       "pessoa": "Henrique Gabriel Taborda (cobrado/Pendente)",
@@ -2979,7 +2965,7 @@
     },
     {
       "id": "OC2026082201003949",
-      "condominio": "Walk Brigadeiro",
+      "condominio": "ALL 0004 RESIDENCIAL WALK BRIGADEIRO",
       "data_ocorrencia": "2026-07-22",
       "hora": "01:04",
       "pessoa": "Henrique Gabriel ou Ruy (foi cobrado pendente)",
@@ -3005,7 +2991,7 @@
     },
     {
       "id": "OC2026082201014975",
-      "condominio": "Walk Brigadeiro",
+      "condominio": "ALL 0004 RESIDENCIAL WALK BRIGADEIRO",
       "data_ocorrencia": "2026-08-22",
       "hora": "03:14",
       "pessoa": "Henrique Gabriel Taborda (foi cobrado pendente)",
@@ -3031,7 +3017,7 @@
     },
     {
       "id": "OC2026082421332396",
-      "condominio": "Walk Brigadeiro",
+      "condominio": "ALL 0004 RESIDENCIAL WALK BRIGADEIRO",
       "data_ocorrencia": "2026-08-15",
       "hora": "01:45",
       "pessoa": "VINICIUS MICHELINE (confirmar se não é o mesmo lançado)",
@@ -3057,7 +3043,7 @@
     },
     {
       "id": "OC2026082421383119",
-      "condominio": "Walk Brigadeiro",
+      "condominio": "ALL 0004 RESIDENCIAL WALK BRIGADEIRO",
       "data_ocorrencia": "2026-08-15",
       "hora": "00:01",
       "pessoa": "VINICIUS MICHELINE j(á foi lançado)",
@@ -3083,7 +3069,7 @@
     },
     {
       "id": "OC2026082422510756",
-      "condominio": "Walk Brigadeiro",
+      "condominio": "ALL 0004 RESIDENCIAL WALK BRIGADEIRO",
       "data_ocorrencia": "2026-08-21",
       "hora": "16:17",
       "pessoa": "Alan Jesus",
@@ -3109,7 +3095,7 @@
     },
     {
       "id": "OC2026082522573716",
-      "condominio": "Walk Brigadeiro",
+      "condominio": "ALL 0004 RESIDENCIAL WALK BRIGADEIRO",
       "data_ocorrencia": "2026-08-23",
       "hora": "19:45",
       "pessoa": "Alan Jesus",
@@ -3145,7 +3131,7 @@
     },
     {
       "id": "OC2026082613425976",
-      "condominio": "Walk Brigadeiro",
+      "condominio": "ALL 0004 RESIDENCIAL WALK BRIGADEIRO",
       "data_ocorrencia": "2026-08-16",
       "hora": "14:10",
       "pessoa": "Thayana Elisabete Quintino",
@@ -3171,7 +3157,7 @@
     },
     {
       "id": "OC2026082621422517",
-      "condominio": "Walk Soho",
+      "condominio": "ALL 0003 RESIDENCIAL WALK SOHO",
       "data_ocorrencia": "2026-08-20",
       "hora": "12:56",
       "pessoa": "Fernando Lima",
@@ -3197,7 +3183,7 @@
     },
     {
       "id": "OC2026082622005582",
-      "condominio": "Walk Soho",
+      "condominio": "ALL 0003 RESIDENCIAL WALK SOHO",
       "data_ocorrencia": "2026-08-20",
       "hora": "21:37",
       "pessoa": "PAULO RICARDO ANSELMO",
@@ -3223,7 +3209,7 @@
     },
     {
       "id": "OC2026082622191372",
-      "condominio": "Walk Soho",
+      "condominio": "ALL 0003 RESIDENCIAL WALK SOHO",
       "data_ocorrencia": "2026-08-20",
       "hora": "21:53",
       "pessoa": "Roxane vaisemberg",
@@ -3259,7 +3245,7 @@
     },
     {
       "id": "OC2026082622420876",
-      "condominio": "Walk Soho",
+      "condominio": "ALL 0003 RESIDENCIAL WALK SOHO",
       "data_ocorrencia": "2026-08-21",
       "hora": "04:23",
       "pessoa": "Nicholas Horton",
@@ -3295,7 +3281,7 @@
     },
     {
       "id": "OC2026082623023422",
-      "condominio": "Walk Soho",
+      "condominio": "ALL 0003 RESIDENCIAL WALK SOHO",
       "data_ocorrencia": "2026-08-21",
       "hora": "14:52",
       "pessoa": "Lunara Mendes (Marido)",
@@ -3321,7 +3307,7 @@
     },
     {
       "id": "OC2026082623112267",
-      "condominio": "Walk Soho",
+      "condominio": "ALL 0003 RESIDENCIAL WALK SOHO",
       "data_ocorrencia": "2026-08-21",
       "hora": "14:54",
       "pessoa": "Lunara Mendes",
@@ -3347,7 +3333,7 @@
     },
     {
       "id": "OC2026083120170520",
-      "condominio": "Walk Soho",
+      "condominio": "ALL 0003 RESIDENCIAL WALK SOHO",
       "data_ocorrencia": "2026-08-22",
       "hora": "14:49",
       "pessoa": "Thayana Elisabete Quintino",
@@ -3373,7 +3359,7 @@
     },
     {
       "id": "OC2026083120223722",
-      "condominio": "Walk Soho",
+      "condominio": "ALL 0003 RESIDENCIAL WALK SOHO",
       "data_ocorrencia": "2026-08-22",
       "hora": "22:03",
       "pessoa": "",
@@ -3399,7 +3385,7 @@
     },
     {
       "id": "OC2026083123094086",
-      "condominio": "Walk Brigadeiro",
+      "condominio": "ALL 0004 RESIDENCIAL WALK BRIGADEIRO",
       "data_ocorrencia": "2026-08-27",
       "hora": "00:15",
       "pessoa": "Evaldo Colossi pago a mais",
@@ -3425,7 +3411,7 @@
     },
     {
       "id": "OC2026090100012485",
-      "condominio": "Walk Soho",
+      "condominio": "ALL 0003 RESIDENCIAL WALK SOHO",
       "data_ocorrencia": "2026-08-25",
       "hora": "15:13",
       "pessoa": "Giovanna Freitas Sampaio(café)",
@@ -3451,7 +3437,7 @@
     },
     {
       "id": "OC2026090122113150",
-      "condominio": "Walk Brigadeiro",
+      "condominio": "ALL 0004 RESIDENCIAL WALK BRIGADEIRO",
       "data_ocorrencia": "2026-09-01",
       "hora": "01:10",
       "pessoa": "Evaldo Colossi",
@@ -3479,7 +3465,7 @@
   "reposicoes": [
     {
       "id": "RP20260723205137-016",
-      "condominio": "Walk Brigadeiro",
+      "condominio": "ALL 0004 RESIDENCIAL WALK BRIGADEIRO",
       "data": "2026-07-23",
       "produto": "Água Tônica Antarctica Lata 350ml",
       "quantidade": 1,
@@ -3496,7 +3482,7 @@
     },
     {
       "id": "RP20260723205520-096",
-      "condominio": "Walk Brigadeiro",
+      "condominio": "ALL 0004 RESIDENCIAL WALK BRIGADEIRO",
       "data": "2026-07-23",
       "produto": "Batata Palha Caldo Bom 100g - Sabores",
       "quantidade": 1,
@@ -3513,7 +3499,7 @@
     },
     {
       "id": "RP20260723210206-068",
-      "condominio": "Walk Brigadeiro",
+      "condominio": "ALL 0004 RESIDENCIAL WALK BRIGADEIRO",
       "data": "2026-07-23",
       "produto": "Cerveja Budweiser American Lager 350ml Lata",
       "quantidade": 2,
@@ -3530,7 +3516,7 @@
     },
     {
       "id": "RP20260723212822-198",
-      "condominio": "Walk Brigadeiro",
+      "condominio": "ALL 0004 RESIDENCIAL WALK BRIGADEIRO",
       "data": "2026-07-23",
       "produto": "Creme de Leite Tirol 200g",
       "quantidade": 1,
@@ -3547,7 +3533,7 @@
     },
     {
       "id": "RP20260723212822-242",
-      "condominio": "Walk Brigadeiro",
+      "condominio": "ALL 0004 RESIDENCIAL WALK BRIGADEIRO",
       "data": "2026-07-23",
       "produto": "Energético Red Bull Energy Drink 250ml",
       "quantidade": 6,
@@ -3564,7 +3550,7 @@
     },
     {
       "id": "RP20260723212823-360",
-      "condominio": "Walk Brigadeiro",
+      "condominio": "ALL 0004 RESIDENCIAL WALK BRIGADEIRO",
       "data": "2026-07-23",
       "produto": "Macarrão Nissin Cup Noodles 64g - Variados",
       "quantidade": 1,
@@ -3581,7 +3567,7 @@
     },
     {
       "id": "RP20260723212823-445",
-      "condominio": "Walk Brigadeiro",
+      "condominio": "ALL 0004 RESIDENCIAL WALK BRIGADEIRO",
       "data": "2026-07-23",
       "produto": "Molho de Tomate Heinz 240g",
       "quantidade": 1,
@@ -3598,7 +3584,7 @@
     },
     {
       "id": "RP20260723212823-514",
-      "condominio": "Walk Brigadeiro",
+      "condominio": "ALL 0004 RESIDENCIAL WALK BRIGADEIRO",
       "data": "2026-07-23",
       "produto": "Queijo Mussarela Fatiado 150g",
       "quantidade": 1,
@@ -3615,7 +3601,7 @@
     },
     {
       "id": "RP20260723212824-662",
-      "condominio": "Walk Brigadeiro",
+      "condominio": "ALL 0004 RESIDENCIAL WALK BRIGADEIRO",
       "data": "2026-07-23",
       "produto": "Refrigerante Sprite Sabores 2L",
       "quantidade": 1,
@@ -3632,7 +3618,7 @@
     },
     {
       "id": "RP20260723212824-778",
-      "condominio": "Walk Brigadeiro",
+      "condominio": "ALL 0004 RESIDENCIAL WALK BRIGADEIRO",
       "data": "2026-07-23",
       "produto": "Salgadinho de Batata Pringles Tubo 104g - Diversos",
       "quantidade": 1,
@@ -3649,7 +3635,7 @@
     },
     {
       "id": "RP20260723212824-849",
-      "condominio": "Walk Brigadeiro",
+      "condominio": "ALL 0004 RESIDENCIAL WALK BRIGADEIRO",
       "data": "2026-07-23",
       "produto": "Smirnoff Ice 275ml",
       "quantidade": 1,
@@ -3666,7 +3652,7 @@
     },
     {
       "id": "RP20260723212825-939",
-      "condominio": "Walk Brigadeiro",
+      "condominio": "ALL 0004 RESIDENCIAL WALK BRIGADEIRO",
       "data": "2026-07-23",
       "produto": "Sopa 17g Vono - Sabores",
       "quantidade": 2,
@@ -3683,7 +3669,7 @@
     },
     {
       "id": "RP20260723230725-554",
-      "condominio": "Ed Remy",
+      "condominio": "ALL 0001 EDIFÍCIO REMY MERLIN",
       "data": "2026-07-23",
       "produto": "Leite Condensado Frimesa 395g",
       "quantidade": 1,
@@ -3700,7 +3686,7 @@
     },
     {
       "id": "RP20260723230725-776",
-      "condominio": "Ed Remy",
+      "condominio": "ALL 0001 EDIFÍCIO REMY MERLIN",
       "data": "2026-07-23",
       "produto": "Macarrão Instantâneo Nissin 85g - Variados",
       "quantidade": 2,
@@ -3717,7 +3703,7 @@
     },
     {
       "id": "RP20260731104002-151",
-      "condominio": "Walk Soho",
+      "condominio": "ALL 0003 RESIDENCIAL WALK SOHO",
       "data": "2026-07-28",
       "produto": "Refrigerante Coca-Cola Lata 310ml - Sabores",
       "quantidade": 1,
@@ -3734,7 +3720,7 @@
     },
     {
       "id": "RP20260731105607-043",
-      "condominio": "Walk Soho",
+      "condominio": "ALL 0003 RESIDENCIAL WALK SOHO",
       "data": "2026-07-28",
       "produto": "Água Mineral Crystal Pet 500ml - Sabores",
       "quantidade": 3,
@@ -3751,7 +3737,7 @@
     },
     {
       "id": "RP20260820180931-039",
-      "condominio": "Walk Soho",
+      "condominio": "ALL 0003 RESIDENCIAL WALK SOHO",
       "data": "2026-08-20",
       "produto": "Chocolate Garoto 80g - Sabores",
       "quantidade": 1,
@@ -3768,7 +3754,7 @@
     },
     {
       "id": "RP20260820180932-270",
-      "condominio": "Walk Soho",
+      "condominio": "ALL 0003 RESIDENCIAL WALK SOHO",
       "data": "2026-08-20",
       "produto": "Refrigerante Coca-Cola Lata 310ml - Sabores",
       "quantidade": 1,
@@ -3785,7 +3771,7 @@
     },
     {
       "id": "RP20260820191600-174",
-      "condominio": "Walk Brigadeiro",
+      "condominio": "ALL 0004 RESIDENCIAL WALK BRIGADEIRO",
       "data": "2026-08-20",
       "produto": "Chocolate Bis Lacta 100,8g - Variados",
       "quantidade": 2,
@@ -3802,7 +3788,7 @@
     },
     {
       "id": "RP20260820191600-384",
-      "condominio": "Walk Brigadeiro",
+      "condominio": "ALL 0004 RESIDENCIAL WALK BRIGADEIRO",
       "data": "2026-08-20",
       "produto": "Macarrão Instantâneo Nissin 85g - Variados",
       "quantidade": 3,
@@ -3819,7 +3805,7 @@
     },
     {
       "id": "RP20260820191601-432",
-      "condominio": "Walk Brigadeiro",
+      "condominio": "ALL 0004 RESIDENCIAL WALK BRIGADEIRO",
       "data": "2026-08-20",
       "produto": "Macarrão Nissin Cup Noodles 64g - Variados",
       "quantidade": 2,
@@ -3836,7 +3822,7 @@
     },
     {
       "id": "RP20260820191601-697",
-      "condominio": "Walk Brigadeiro",
+      "condominio": "ALL 0004 RESIDENCIAL WALK BRIGADEIRO",
       "data": "2026-08-20",
       "produto": "Refrigerante Coca-Cola Lata 310ml - Sabores",
       "quantidade": 1,
@@ -3853,7 +3839,7 @@
     },
     {
       "id": "RP20260820192559-029",
-      "condominio": "Walk Brigadeiro",
+      "condominio": "ALL 0004 RESIDENCIAL WALK BRIGADEIRO",
       "data": "2026-08-20",
       "produto": "Salgadinho de Batata Pringles Tubo 104g - Diversos",
       "quantidade": 2,
@@ -3870,7 +3856,7 @@
     },
     {
       "id": "RP20260828160040-113",
-      "condominio": "Walk Soho",
+      "condominio": "ALL 0003 RESIDENCIAL WALK SOHO",
       "data": "2026-08-28",
       "produto": "Cerveja Budweiser American Lager 350ml Lata",
       "quantidade": 2,
@@ -3887,7 +3873,7 @@
     },
     {
       "id": "RP20260828160041-433",
-      "condominio": "Walk Soho",
+      "condominio": "ALL 0003 RESIDENCIAL WALK SOHO",
       "data": "2026-08-28",
       "produto": "Protein Parmalat Whey Fit Zero Lactose 250ml - Sabores",
       "quantidade": 1,
@@ -3904,7 +3890,7 @@
     },
     {
       "id": "RP20260828160041-554",
-      "condominio": "Walk Soho",
+      "condominio": "ALL 0003 RESIDENCIAL WALK SOHO",
       "data": "2026-08-28",
       "produto": "Refrigerante Coca-Cola Lata 310ml - Sabores",
       "quantidade": 2,
@@ -3921,7 +3907,7 @@
     },
     {
       "id": "RP20260828160042-695",
-      "condominio": "Walk Soho",
+      "condominio": "ALL 0003 RESIDENCIAL WALK SOHO",
       "data": "2026-08-28",
       "produto": "Smirnoff Ice 275ml",
       "quantidade": 2,
