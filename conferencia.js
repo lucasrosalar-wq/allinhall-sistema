@@ -910,7 +910,8 @@ async function enviarOcorrencia(payload) {
     }, 700);
   } catch (err) {
     ultimoPayloadFalhou = payload;
-    mostrarBannerOcorrencia('erro', 'Falha ao salvar. Seus dados não foram perdidos — toque em "Salvar ocorrência" para tentar novamente.');
+    console.error('Erro ao salvar ocorrência:', err);
+    mostrarBannerOcorrencia('erro', 'Falha ao salvar: ' + (err.message || 'Verifique a conexão e tente novamente.'));
   } finally {
     botao.disabled = false;
     botao.classList.remove('carregando');

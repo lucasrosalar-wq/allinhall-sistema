@@ -26,6 +26,24 @@ function formatarDataBRLocal_(iso) {
   return p[2] + '/' + p[1] + '/' + p[0];
 }
 
+function sanitizarParaFirestore_(val) {
+  if (val === undefined) return '';
+  if (val === null) return null;
+  if (Array.isArray(val)) {
+    return val.map(sanitizarParaFirestore_);
+  }
+  if (typeof val === 'object' && !(val instanceof Date)) {
+    const limpo = {};
+    for (const k in val) {
+      if (val.hasOwnProperty(k) && val[k] !== undefined) {
+        limpo[k] = sanitizarParaFirestore_(val[k]);
+      }
+    }
+    return limpo;
+  }
+  return val;
+}
+
 // ===================== FUNÇÕES DE ACESSO AO BANCO FIRESTORE =====================
 
 const FirebaseDB = {
@@ -159,11 +177,11 @@ const FirebaseDB = {
       itens: params.itens || [],
       valor_total: Number(params.valor_total) || 0,
       observacao: params.observacao || '',
-      status: params.pessoa ? 'Identificado' : 'Pendente',
+      status: params.pessoa ? 'Identificado' : (params.status || 'Pendente'),
       data_criacao: agora.toISOString(),
-      data_cobranca: '',
-      data_pagamento: '',
-      data_prejuizo: '',
+      data_cobranca: params.data_cobranca || '',
+      data_pagamento: params.data_pagamento || '',
+      data_prejuizo: params.data_prejuizo || '',
       grupo_cobranca_id: params.grupo_cobranca_id || '',
       furo_reposicao_id: params.furo_reposicao_id || ''
     };
@@ -173,7 +191,8 @@ const FirebaseDB = {
       if (comFuro) docData.furo_reposicao_id = comFuro.furo_reposicao_id;
     }
 
-    await db.collection('ocorrencias').doc(id).set(docData);
+    const docDataLimpo = sanitizarParaFirestore_(docData);
+    await db.collection('ocorrencias').doc(id).set(docDataLimpo);
     return { id: id };
   },
 
@@ -184,7 +203,13 @@ const FirebaseDB = {
     delete campos.id;
     delete campos.action;
     delete campos.pin;
-    await db.collection('ocorrencias').doc(id).update(campos);
+
+    if (campos.pessoa && (!campos.status || campos.status === 'Pendente')) {
+      campos.status = 'Identificado';
+    }
+
+    const camposLimpos = sanitizarParaFirestore_(campos);
+    await db.collection('ocorrencias').doc(id).set(camposLimpos, { merge: true });
     return { id: id, atualizado: true };
   },
 
