@@ -14,7 +14,7 @@
      que já tem guardados — e a tela fica misturando versão nova com antiga. Trocando
      o número aqui, a URL muda e o navegador é obrigado a buscar tudo de novo.
      SEMPRE mude este número ao publicar mudança em .css ou .js. -->
-<link rel="stylesheet" href="app.css?v=20260902y">
+<link rel="stylesheet" href="app.css?v=20260905a">
 </head>
 <body>
 
@@ -115,75 +115,77 @@
       <h2>Conferência</h2>
       <p>Registre as ocorrências observadas no dia</p>
     </div>
-    <div class="coluna-calendario">
-      <label>Condomínio</label>
-      <select id="selectCondominio" onchange="mudarCondominio()">
-        <option value="">Selecione um condomínio</option>
-      </select>
+    <div class="layout-conferencia">
+      <div class="coluna-calendario">
+        <label>Condomínio</label>
+        <select id="selectCondominio" onchange="mudarCondominio()">
+          <option value="">Selecione um condomínio</option>
+        </select>
 
-      <div id="calendarioConteudo">
-        <div id="progressoConferenciaMes" class="progresso-conferencia-wrap oculto">
-          <div class="progresso-conferencia-topo">
-            <span class="progresso-texto" id="progressoConferenciaTexto">0 de 0 dias conferidos (0%)</span>
-            <span class="progresso-restante" id="progressoConferenciaRestante">0 restantes</span>
+        <div id="calendarioConteudo">
+          <div id="progressoConferenciaMes" class="progresso-conferencia-wrap oculto">
+            <div class="progresso-conferencia-topo">
+              <span class="progresso-texto" id="progressoConferenciaTexto">0 de 0 dias conferidos (0%)</span>
+              <span class="progresso-restante" id="progressoConferenciaRestante">0 restantes</span>
+            </div>
+            <div class="progresso-barra-fundo">
+              <div class="progresso-barra-valor" id="progressoConferenciaBarra" style="width: 0%"></div>
+            </div>
           </div>
-          <div class="progresso-barra-fundo">
-            <div class="progresso-barra-valor" id="progressoConferenciaBarra" style="width: 0%"></div>
+
+          <div class="nav-mes">
+            <button onclick="mudarMes(-1)"><i data-lucide="chevron-left"></i></button>
+            <div class="titulo-mes" id="tituloMes">—</div>
+            <button onclick="mudarMes(1)"><i data-lucide="chevron-right"></i></button>
+          </div>
+
+          <div class="grade-semana">
+            <div>Dom</div><div>Seg</div><div>Ter</div><div>Qua</div><div>Qui</div><div>Sex</div><div>Sáb</div>
+          </div>
+          <div class="grade-dias" id="gradeDias"></div>
+
+          <div class="legenda">
+            <span><span class="bolinha" style="background:var(--verde)"></span> Fechado OK</span>
+            <span><span class="bolinha" style="background:var(--amarelo)"></span> Ocorrência</span>
+            <span><span class="bolinha" style="background:var(--azul)"></span> Sem operação</span>
+            <span><span class="bolinha" style="background:#e2e2e2"></span> Não conferido</span>
           </div>
         </div>
+        <div id="calendarioVazio" class="calendario-vazio oculto">Selecione um condomínio acima para ver o calendário.</div>
 
-        <div class="nav-mes">
-          <button onclick="mudarMes(-1)"><i data-lucide="chevron-left"></i></button>
-          <div class="titulo-mes" id="tituloMes">—</div>
-          <button onclick="mudarMes(1)"><i data-lucide="chevron-right"></i></button>
-        </div>
-
-        <div class="grade-semana">
-          <div>Dom</div><div>Seg</div><div>Ter</div><div>Qua</div><div>Qui</div><div>Sex</div><div>Sáb</div>
-        </div>
-        <div class="grade-dias" id="gradeDias"></div>
-
-        <div class="legenda">
-          <span><span class="bolinha" style="background:var(--verde)"></span> Fechado OK</span>
-          <span><span class="bolinha" style="background:var(--amarelo)"></span> Ocorrência</span>
-          <span><span class="bolinha" style="background:var(--azul)"></span> Sem operação</span>
-          <span><span class="bolinha" style="background:#e2e2e2"></span> Não conferido</span>
-        </div>
-      </div>
-      <div id="calendarioVazio" class="calendario-vazio oculto">Selecione um condomínio acima para ver o calendário.</div>
-
-      <div id="bannerCarregamento" class="banner"></div>
-    </div>
-
-    <div class="coluna-detalhes">
-      <div id="painelAcoesDia" class="painel-acoes-dia oculto">
-        <div class="topo-painel-dia">
-          <div>
-            <h3 id="tituloDiaSelecionado">Dia —</h3>
-            <div class="subtitulo" id="condominioDiaSelecionado">—</div>
-          </div>
-          <div class="dica-teclado-dia">Navegue com as setas <strong>←</strong> e <strong>→</strong></div>
-        </div>
-
-        <div class="grade-botoes-dia-principais">
-          <button class="btn-primaria btn-icone" onclick="abrirFormularioOcorrencia()"><i data-lucide="plus-circle"></i> Registrar ocorrência</button>
-          <button class="btn-fechar-ok btn-icone" onclick="fecharDiaComoOk()"><i data-lucide="check-circle-2"></i> Fechar dia (OK)</button>
-        </div>
-        <div class="grade-botoes-dia-secundarios">
-          <button class="btn-secundaria-sm btn-icone" onclick="marcarSemOperacao()"><i data-lucide="ban"></i> Sem operação</button>
-          <button class="btn-secundaria-sm btn-icone" onclick="limparDiaSelecionado()"><i data-lucide="eraser"></i> Limpar marcação</button>
-        </div>
+        <div id="bannerCarregamento" class="banner"></div>
       </div>
 
-      <div id="relacaoDia" class="relacao-dia oculto">
-        <h3 id="tituloRelacaoDia">Ocorrências —</h3>
-        <div id="listaRelacaoDia"></div>
-      </div>
+      <div class="coluna-detalhes">
+        <div id="painelAcoesDia" class="painel-acoes-dia oculto">
+          <div class="topo-painel-dia">
+            <div>
+              <h3 id="tituloDiaSelecionado">Dia —</h3>
+              <div class="subtitulo" id="condominioDiaSelecionado">—</div>
+            </div>
+            <div class="dica-teclado-dia">Navegue com as setas <strong>←</strong> e <strong>→</strong></div>
+          </div>
 
-      <div id="furosPendentes" class="relacao-dia oculto">
-        <div id="bannerConciliacaoInteligente" class="oculto"></div>
-        <h3>Furos de reposição</h3>
-        <div id="listaFurosPendentes"></div>
+          <div class="grade-botoes-dia-principais">
+            <button class="btn-primaria btn-icone" onclick="abrirFormularioOcorrencia()"><i data-lucide="plus-circle"></i> Registrar ocorrência</button>
+            <button class="btn-fechar-ok btn-icone" onclick="fecharDiaComoOk()"><i data-lucide="check-circle-2"></i> Fechar dia (OK)</button>
+          </div>
+          <div class="grade-botoes-dia-secundarios">
+            <button class="btn-secundaria-sm btn-icone" onclick="marcarSemOperacao()"><i data-lucide="ban"></i> Sem operação</button>
+            <button class="btn-secundaria-sm btn-icone" onclick="limparDiaSelecionado()"><i data-lucide="eraser"></i> Limpar marcação</button>
+          </div>
+        </div>
+
+        <div id="relacaoDia" class="relacao-dia oculto">
+          <h3 id="tituloRelacaoDia">Ocorrências —</h3>
+          <div id="listaRelacaoDia"></div>
+        </div>
+
+        <div id="furosPendentes" class="relacao-dia oculto">
+          <div id="bannerConciliacaoInteligente" class="oculto"></div>
+          <h3>Furos de reposição</h3>
+          <div id="listaFurosPendentes"></div>
+        </div>
       </div>
     </div>
   </div>
